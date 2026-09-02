@@ -1,0 +1,38 @@
+# ===============================================
+# Voidscape Lite Configuration
+# ปรับแต่งค่าระบบมิติ The Void และอุปกรณ์พิเศษ
+# ===============================================
+
+dimension:
+  # ชื่อโลกมิติ The Void
+  world-name: "the_void"
+  # ความสูงของเกาะลอยฟ้าเริ่มต้น
+  island-base-y: 64
+
+portal:
+  # ความลึกของ Bedrock ที่เริ่มทำงาน (Y <= ค่านี้)
+  bedrock-trigger-y: -59
+  # เวลายืนบน Bedrock เพื่อเปิดประตูมิติ (วินาที)
+  stand-duration-seconds: 3
+  # วาร์ปทันทีเมื่อตกทะลุใต้ Bedrock (Overworld void)
+  void-fall-teleport: true
+
+infusion:
+  # ระยะเวลาระหว่างการลดเลือดสูงสุด (Max Health) ใน Void (วินาที)
+  interval-seconds: 60
+  # เลือดที่หักในแต่ละรอบ (2.0 = 1 หัวใจ)
+  reduction-amount: 2.0
+  # เลือดขั้นต่ำที่ไม่ลดต่อ (4.0 = 2 หัวใจ)
+  min-health: 4.0
+
+paranoia:
+  # โอกาสเกิดเอฟเฟกต์หลอนและเสกเงาดำทุกๆ 15 วินาที (0.0 ถึง 1.0)
+  event-chance: 0.35
+  # สัตว์ประหลาดเงาดำ (Shadow Stalker)
+  spawn-stalker-chance: 0.50
+
+rewards:
+  # โอกาสดรอป Voidic Crystal จากมอนสเตอร์เงา (0.0 ถึง 1.0)
+  stalker-crystal-chance: 0.75
+  # คูลดาวน์ของสกิล Shadow Dash บนดาบ (วินาที)
+  shadow-dash-cooldown: 6

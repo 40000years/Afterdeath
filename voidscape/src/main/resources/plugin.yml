@@ -1,0 +1,12 @@
+name: Voidscape
+version: '${project.version}'
+main: com.example.voidscape.VoidscapePlugin
+api-version: '26.2'
+author: YourName
+description: Voidscape Lite - มิติลี้ลับ The Void เกาะลอยฟ้าหิน Bedrock และระบบหลอน Paranoia
+
+commands:
+  voidscape:
+    description: คำสั่งจัดการระบบ Voidscape
+    usage: /voidscape [tp|give <item>|reload]
+    permission: voidscape.admin
