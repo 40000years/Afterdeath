@@ -28,9 +28,9 @@ public class VoidItemManager {
         if (meta != null) {
             meta.displayName(Component.text("ผลึกความว่างเปล่า (Voidic Crystal)", NamedTextColor.DARK_PURPLE, TextDecoration.BOLD));
             meta.lore(List.of(
-                Component.text("ผลึกพลังงานมืดที่สกัดได้จาก The Void", NamedTextColor.GRAY),
-                Component.text("👁 [คลิกขวา] เบิกเนตรแห่งความมืด (มองเห็นชัดเจน 1 นาที)", NamedTextColor.AQUA, TextDecoration.BOLD),
-                Component.text("✦ ใช้สำหรับคราฟต์หรืออัปเกรดอุปกรณ์ระดับสูง", NamedTextColor.DARK_AQUA)
+                Component.text("ผลึกพลังงานมืดที่ดรอปจากมอนสเตอร์ใน The Void", NamedTextColor.GRAY),
+                Component.text("👁 [คลิกขวา] เบิกเนตรแห่งความมืด (มองเห็นสว่างชัดเจน 2 นาที)", NamedTextColor.AQUA, TextDecoration.BOLD),
+                Component.text("✦ ลบล้างความมืดมิดและให้ Night Vision ทันที", NamedTextColor.DARK_AQUA)
             ));
             meta.setEnchantmentGlintOverride(true);
             meta.getPersistentDataContainer().set(keyItemType, PersistentDataType.STRING, "VOID_CRYSTAL");
@@ -46,9 +46,8 @@ public class VoidItemManager {
             meta.displayName(Component.text("ผลไม้ไร้รูป (Null Fruit)", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD));
             meta.lore(List.of(
                 Component.text("ผลไม้ลึกลับที่เติบโตในความว่างเปล่า", NamedTextColor.GRAY),
-                Component.text("✔ กินเพื่อฉีกมิติ หลบหนีออกจาก The Void ทันที!", NamedTextColor.GOLD, TextDecoration.BOLD),
-                Component.text("✔ ฟื้นฟูหลอดเลือดหัวใจสูงสุดที่สูญเสียไป +2 ดวง", NamedTextColor.GREEN),
-                Component.text("✔ ลบล้างพลังความมืด Voidic Infusion", NamedTextColor.AQUA)
+                Component.text("✔ กินเพื่อฟื้นฟูหลอดเลือดหัวใจสูงสุดที่สูญเสียไป +2 ดวง", NamedTextColor.GREEN, TextDecoration.BOLD),
+                Component.text("✔ ลบล้างผลของ Voidic Infusion", NamedTextColor.AQUA)
             ));
             meta.setEnchantmentGlintOverride(true);
             meta.getPersistentDataContainer().set(keyItemType, PersistentDataType.STRING, "NULL_FRUIT");

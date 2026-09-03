@@ -21,6 +21,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -55,23 +56,22 @@ public class VoidItemListener implements Listener {
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
-        if (entity.getPersistentDataContainer().has(plugin.getKeyShadowStalker(), PersistentDataType.BYTE)) {
-            event.getDrops().clear();
+        boolean isVoidMonster = entity.getWorld().getName().equals(plugin.getVoidWorldName())
+                || entity.getPersistentDataContainer().has(plugin.getKeyShadowStalker(), PersistentDataType.BYTE);
 
-            // โอกาส 70% ดรอป Echo Shard (Voidic Crystal) 1-2 ชิ้น สำหรับใช้เบิกเนตร
-            if (ThreadLocalRandom.current().nextDouble() < 0.70) {
-                int count = 1 + (ThreadLocalRandom.current().nextDouble() < 0.35 ? 1 : 0);
-                event.getDrops().add(itemManager.createVoidCrystal(count));
-            }
+        if (isVoidMonster && entity instanceof org.bukkit.entity.Monster) {
+            // การันตี 100% ดรอป Echo Shard (Voidic Crystal) 1-2 ชิ้น สำหรับใช้คลิกขวาเบิกเนตรมองเห็น
+            int count = 1 + (ThreadLocalRandom.current().nextDouble() < 0.40 ? 1 : 0);
+            event.getDrops().add(itemManager.createVoidCrystal(count));
 
-            // โอกาส 35% ดรอปผลไม้ Null Fruit
-            if (ThreadLocalRandom.current().nextDouble() < 0.35) {
+            // โอกาส 25% ดรอปผลไม้ Null Fruit สำหรับฟื้นฟูหลอดเลือดหัวใจ
+            if (ThreadLocalRandom.current().nextDouble() < 0.25) {
                 event.getDrops().add(itemManager.createNullFruit(1));
             }
         }
     }
 
-    // 2. กินผลไม้ Null Fruit ดึงหลอดเลือดสูงสุดกลับมา และฉีกมิติวาร์ปหนีออกจาก The Void
+    // 2. กินผลไม้ Null Fruit เพื่อฟื้นฟูหลอดเลือดหัวใจสูงสุดที่สูญเสียไป (+2 ดวง) โดยไม่เกี่ยวกับระบบสายตามองเห็น
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onConsume(PlayerItemConsumeEvent event) {
         ItemStack item = event.getItem();
@@ -85,53 +85,38 @@ public class VoidItemListener implements Listener {
             attr.setBaseValue(restored);
         }
 
-        // ถ้ากินขณะที่ติดอยู่ในมิติ The Void -> ฉีกมิติวาร์ปหนีกลับสู่ Overworld ทันที!
-        if (player.getWorld().getName().equals(plugin.getVoidWorldName())) {
-            player.removePotionEffect(PotionEffectType.DARKNESS);
-            player.removePotionEffect(PotionEffectType.BLINDNESS);
-            player.setFallDistance(0.0f);
-            player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
+        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1.5, 0), 8, 0.3, 0.3, 0.3);
+        player.sendMessage(Component.text("✔ พลังของ Null Fruit ฟื้นฟูหลอดเลือดหัวใจของคุณ (+2 ดวง) เรียบร้อยแล้ว!", NamedTextColor.GREEN));
+    }
 
-            // อนุญาตให้ผ่านระบบ Lockdown
-            player.setMetadata("void_authorized_escape", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
-
-            org.bukkit.World overworld = Bukkit.getWorlds().get(0);
-            Location returnLoc = player.getRespawnLocation();
-            if (returnLoc == null || returnLoc.getWorld() == null) {
-                returnLoc = overworld.getSpawnLocation();
-            }
-
-            player.teleport(returnLoc);
-            player.setFallDistance(0.0f);
-            player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
-            if (plugin.getEjectionListener() != null) {
-                plugin.getEjectionListener().grantFallImmunity(player.getUniqueId(), 10000L);
-            }
-
-            // เอฟเฟกต์ประตูมิติแตกออก
-            player.playSound(returnLoc, Sound.ITEM_CHORUS_FRUIT_TELEPORT, 1.2f, 0.8f);
-            player.playSound(returnLoc, Sound.BLOCK_PORTAL_TRAVEL, 0.8f, 1.2f);
-            player.getWorld().spawnParticle(Particle.PORTAL, returnLoc.clone().add(0, 1, 0), 40, 0.5, 0.5, 0.5, 0.1);
-
-            Title title = Title.title(
-                Component.text("✦ ESCAPED THE VOID ✦", NamedTextColor.LIGHT_PURPLE),
-                Component.text("พลังของ Null Fruit ได้ฉีกมิตินำคุณกลับสู่ Overworld ปลอดภัย!", NamedTextColor.GREEN),
-                Title.Times.times(Duration.ofMillis(300), Duration.ofSeconds(3), Duration.ofSeconds(1))
-            );
-            player.showTitle(title);
-            player.sendMessage(Component.text("🌌 คุณได้กิน Null Fruit ฉีกมิติหลบหนีออกจาก The Void กลับสู่บ้านเรียบร้อยแล้ว!", NamedTextColor.LIGHT_PURPLE));
-        } else {
-            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
-            player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1.5, 0), 8, 0.3, 0.3, 0.3);
-            player.sendMessage(Component.text("✔ พลังของ Null Fruit ฟื้นฟูหลอดเลือดของคุณให้สมบูรณ์ขึ้น", NamedTextColor.GREEN));
+    // ฟังก์ชันเบิกเนตรแห่งความมืด (Void Sight) จากการคลิกขวา Echo Shard
+    public void activateVoidSight(Player player, ItemStack item) {
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.subtract(1);
         }
+
+        // มอบเนตรแห่งความมืดนาน 2 นาที (120,000 ms)
+        itemManager.grantVoidSight(player, 120000L);
+
+        player.removePotionEffect(PotionEffectType.BLINDNESS);
+        player.removePotionEffect(PotionEffectType.DARKNESS);
+        // ให้ Night Vision 600 ticks ป้องกันไม่ให้เกิดอาการจอกระพริบ
+        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 600, 0, false, false, true));
+
+        Location loc = player.getLocation();
+        player.getWorld().playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.8f, 1.2f);
+        player.getWorld().playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 2.0f, 0.8f);
+        player.getWorld().playSound(loc, Sound.ENTITY_WARDEN_HEARTBEAT, 1.5f, 1.4f);
+        player.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, loc.clone().add(0, 1, 0), 25, 0.5, 0.5, 0.5, 0.05);
+
+        player.sendActionBar(Component.text("👁️ เบิกเนตรแห่งความมืด (Void Sight) ทำงาน! สว่างชัดเจน 2 นาที", NamedTextColor.AQUA));
+        player.sendMessage(Component.text("👁️ คุณใช้ Echo Shard เบิกเนตรแห่งความมืด! สลายความมืดและมองเห็นสว่างชัดเจน 2 นาที", NamedTextColor.AQUA, TextDecoration.BOLD));
     }
 
     // 3. คลิกขวาใช้งานไอเทมพิเศษ (Echo Shard / Pocket Void / Shadow Blade / Chests)
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-
         Player player = event.getPlayer();
 
         // 3.0 เปิดหีบสมบัติโบราณใน The Void ครั้งแรก -> เติมไอเทมสุ่มให้อัตโนมัติ
@@ -153,29 +138,14 @@ public class VoidItemListener implements Listener {
         ItemStack item = event.getItem();
         if (item == null) return;
 
-        // 3.1 เบิกเนตรแห่งความมืด (Echo Shard / Voidic Crystal -> Void Sight 60 วินาที)
+        // 3.1 เบิกเนตรแห่งความมืด (Echo Shard / Voidic Crystal -> Void Sight 2 นาที)
         if (item.getType() == Material.ECHO_SHARD) {
             event.setCancelled(true);
-            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-                item.subtract(1);
-            }
-
-            itemManager.grantVoidSight(player, 60000L);
-
-            player.removePotionEffect(PotionEffectType.BLINDNESS);
-            player.removePotionEffect(PotionEffectType.DARKNESS);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 1200, 0, false, false, true));
-
-            Location loc = player.getLocation();
-            player.getWorld().playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.8f, 1.2f);
-            player.getWorld().playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 2.0f, 0.8f);
-            player.getWorld().playSound(loc, Sound.ENTITY_WARDEN_HEARTBEAT, 1.5f, 1.4f);
-            player.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, loc.clone().add(0, 1, 0), 25, 0.5, 0.5, 0.5, 0.05);
-
-            player.sendActionBar(Component.text("👁️ เบิกเนตรแห่งความมืด (Void Sight) ทำงาน! มองเห็นสว่างชัดเจน 60 วินาที", NamedTextColor.AQUA));
-            player.sendMessage(Component.text("👁️ คุณใช้ Echo Shard เบิกเนตรแห่งความมืด! ต้านทานหมอกมืดและมองเห็นชัดเจนเป็นเวลา 1 นาที", NamedTextColor.AQUA, TextDecoration.BOLD));
+            activateVoidSight(player, item);
             return;
         }
+
+        if (event.getHand() != EquipmentSlot.HAND) return;
 
         // 3.2 กระเป๋าหลุมดำ (Pocket Void)
         if (itemManager.isVoidItem(item, "POCKET_VOID")) {
@@ -189,6 +159,17 @@ public class VoidItemListener implements Listener {
         if (itemManager.isVoidItem(item, "SHADOW_BLADE")) {
             event.setCancelled(true);
             handleShadowDash(player);
+        }
+    }
+
+    // คลิกขวาใส่ Entity ด้วย Echo Shard เพื่อเบิกเนตร
+    @EventHandler
+    public void onEntityInteract(PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItem(event.getHand());
+        if (item != null && item.getType() == Material.ECHO_SHARD) {
+            event.setCancelled(true);
+            activateVoidSight(player, item);
         }
     }
 

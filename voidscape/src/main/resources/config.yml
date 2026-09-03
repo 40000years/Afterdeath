@@ -18,10 +18,10 @@ dimension:
 performance:
   # ปิดฝน/พายุใน The Void ถาวร (แก้ปัญหา Client Lag 100% จากการเรนเดอร์เม็ดฝนในความว่างเปล่า)
   disable-storm: true
-  # เปิดเอฟเฟกต์หมอก Darkness (หากเครื่องเล่นกระตุกจาก Shader สามารถปิดให้เหลือแค่ Blindness ได้)
+  # เปิดเอฟเฟกต์หมอก Darkness (บรรยากาศมืดสลัว มองเห็นรอบตัวได้พรางๆ พอมองเห็นทางได้)
   enable-darkness: true
-  # เปิดเอฟเฟกต์ตัดระยะสายตา Blindness (ไม่กินสเปก)
-  enable-blindness: true
+  # เปิดเอฟเฟกต์ตัดระยะสายตา Blindness (ค่าเริ่มต้น false เพื่อไม่ให้จอดำมืดสนิทจนมองไม่เห็นอะไรเลย)
+  enable-blindness: false
 
 portal:
   # ความลึกของ Bedrock ที่เริ่มทำงาน (Y <= ค่านี้)

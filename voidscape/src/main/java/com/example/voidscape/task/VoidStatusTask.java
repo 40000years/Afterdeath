@@ -89,6 +89,9 @@ public class VoidStatusTask extends BukkitRunnable {
             boolean hasVoidSight = plugin.getItemManager().hasVoidSight(player);
 
             if (!hasVoidArmor && !hasVoidSight) {
+                if (player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
+                    player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+                }
                 if (enableBlindness) {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 160, 0, false, false, false));
                 } else {
@@ -102,7 +105,8 @@ public class VoidStatusTask extends BukkitRunnable {
             } else {
                 player.removePotionEffect(PotionEffectType.BLINDNESS);
                 player.removePotionEffect(PotionEffectType.DARKNESS);
-                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 160, 0, false, false, false));
+                // ให้ Night Vision นาน 600 ticks (30 วินาที) ป้องกันเอนจิน Minecraft กระพริบเตือนเมื่อต่ำกว่า 200 ticks
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 600, 0, false, false, false));
 
                 // แจ้งเตือนเมื่อเนตรแห่งความมืดใกล้หมด
                 if (hasVoidSight) {
