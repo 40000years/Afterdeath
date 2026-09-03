@@ -132,16 +132,25 @@ public class VoidPortalListener implements Listener {
 
         cancelStandTask(player.getUniqueId());
 
-        // รีเซ็ตระยะตกเพื่อความปลอดภัย
+        // รีเซ็ตระยะตกและความเร่งเพื่อความปลอดภัย
         player.setFallDistance(0.0f);
         player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+        if (plugin.getEjectionListener() != null) {
+            plugin.getEjectionListener().grantFallImmunity(player.getUniqueId(), 10000L);
+        }
 
-        // วาร์ปไปที่จุดกึ่งกลางของเกาะหิน Tier 1 Zenith Altar (0.5, 261.0, 0.5) อย่างปลอดภัย
-        Location spawnLoc = new Location(voidWorld, 0.5, 261.0, 0.5, 0f, 0f);
+        // วาร์ปไปที่จุดเกิดที่ปลอดภัยบนแท่นบูชา Zenith Altar
+        Location spawnLoc = voidWorld.getSpawnLocation();
+        if (spawnLoc == null) {
+            spawnLoc = new Location(voidWorld, 0.5, 141.0, 14.5, 180f, 0f);
+        }
         player.teleport(spawnLoc);
 
         player.setFallDistance(0.0f);
         player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+        if (plugin.getEjectionListener() != null) {
+            plugin.getEjectionListener().grantFallImmunity(player.getUniqueId(), 10000L);
+        }
 
         // กำจัดมังกรและซ่อนหลอดเลือด Ender Dragon จากผู้เล่นทันที
         plugin.suppressEnderDragon(voidWorld);
@@ -166,7 +175,7 @@ public class VoidPortalListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST)
     public void onVoidDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
@@ -174,6 +183,10 @@ public class VoidPortalListener implements Listener {
         if (event.getCause() == EntityDamageEvent.DamageCause.VOID) {
             if (!player.getWorld().getName().equals(plugin.getVoidWorldName())) {
                 event.setCancelled(true);
+                player.setFallDistance(0.0f);
+                if (plugin.getEjectionListener() != null) {
+                    plugin.getEjectionListener().grantFallImmunity(player.getUniqueId(), 10000L);
+                }
                 teleportToVoid(player);
             }
         }

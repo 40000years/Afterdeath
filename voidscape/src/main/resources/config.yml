@@ -8,6 +8,12 @@ dimension:
   world-name: "the_void"
   # ความสูงของเกาะลอยฟ้าเริ่มต้น
   island-base-y: 64
+  # ปิดดาเมจจากการตก (Fall Damage) ใน The Void 100%
+  disable-fall-damage: true
+  # พิกัดเกิดบนแท่นบูชา Zenith Altar ที่ปลอดภัย
+  spawn-x: 0.5
+  spawn-y: 141.0
+  spawn-z: 14.5
 
 performance:
   # ปิดฝน/พายุใน The Void ถาวร (แก้ปัญหา Client Lag 100% จากการเรนเดอร์เม็ดฝนในความว่างเปล่า)
@@ -82,6 +88,13 @@ rewards:
   null-fruit-chance: 0.35
   # คูลดาวน์ของสกิล Shadow Dash บนดาบ (วินาที)
   shadow-dash-cooldown: 6
+
+chests:
+  # โอกาสเกิดหีบสมบัติบนยอดเสาศิลา Spire (0.0 ถึง 1.0, 0.10 = 10%)
+  spawn-chance: 0.10
+  # จำนวนกองไอเทมต่อหีบ (สุ่มระหว่าง min ถึง max)
+  min-items: 2
+  max-items: 4
 
 boss:
   # เปิดใช้งานระบบบอสราชันย์ก้นบึ้ง (Abyssal Warden Boss)

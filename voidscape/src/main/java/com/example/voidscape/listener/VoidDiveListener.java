@@ -74,9 +74,15 @@ public class VoidDiveListener implements Listener {
             // เอฟเฟกต์ภาพและเสียง: มืดวูบชั่วขณะ พร้อมเสียงลมกระโชกคำราม
             player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 40, 0, false, false, false));
             player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 25, 0, false, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 160, 0, false, false, true));
 
+            player.setFallDistance(0.0f);
             player.teleport(targetLoc);
+            player.setFallDistance(0.0f);
             player.setVelocity(new Vector(vel.getX() * 0.5, downwardVel, vel.getZ() * 0.5));
+            if (plugin.getEjectionListener() != null) {
+                plugin.getEjectionListener().grantFallImmunity(uuid, 10000L);
+            }
 
             player.playSound(targetLoc, Sound.ITEM_ELYTRA_FLYING, 2.0f, 0.7f);
             player.playSound(targetLoc, Sound.ENTITY_WARDEN_SONIC_BOOM, 1.5f, 0.5f);
@@ -105,10 +111,15 @@ public class VoidDiveListener implements Listener {
 
             // เอฟเฟกต์ภาพและเสียง: เสียงคำรามของราชันย์ก้นบึ้ง
             player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 50, 0, false, false, false));
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 120, 0, false, false, true)); // ร่อนลงสู่ลานประลอง
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 400, 0, false, false, true)); // ร่อนลงสู่ลานประลอง 20 วิ
 
+            player.setFallDistance(0.0f);
             player.teleport(targetLoc);
+            player.setFallDistance(0.0f);
             player.setVelocity(new Vector(vel.getX() * 0.3, -0.8, vel.getZ() * 0.3));
+            if (plugin.getEjectionListener() != null) {
+                plugin.getEjectionListener().grantFallImmunity(uuid, 15000L);
+            }
 
             player.playSound(targetLoc, Sound.ENTITY_WARDEN_ROAR, 2.0f, 0.6f);
             player.playSound(targetLoc, Sound.ENTITY_WARDEN_HEARTBEAT, 2.0f, 1.0f);
@@ -132,7 +143,11 @@ public class VoidDiveListener implements Listener {
             Location safeLoc = new Location(player.getWorld(), VoidChunkGenerator.SECTOR_3_CENTER_X + 0.5, -50.0, 0.5);
             player.setFallDistance(0.0f);
             player.teleport(safeLoc);
+            player.setFallDistance(0.0f);
             player.setVelocity(new Vector(0, 0.2, 0));
+            if (plugin.getEjectionListener() != null) {
+                plugin.getEjectionListener().grantFallImmunity(uuid, 5000L);
+            }
             player.playSound(safeLoc, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 0.8f);
             player.sendActionBar(Component.text("🛡 กำแพงพลังก้นบึ้งดีดตัวคุณกลับสู่ใจกลางลานประลอง!", NamedTextColor.GOLD));
             return;
@@ -157,9 +172,13 @@ public class VoidDiveListener implements Listener {
                         returnLoc = overworld.getSpawnLocation();
                     }
 
+                    player.setFallDistance(0.0f);
                     player.teleport(returnLoc);
                     player.setFallDistance(0.0f);
                     player.setVelocity(new Vector(0, 0, 0));
+                    if (plugin.getEjectionListener() != null) {
+                        plugin.getEjectionListener().grantFallImmunity(uuid, 10000L);
+                    }
 
                     // ล้างเอฟเฟกต์มืด
                     player.removePotionEffect(PotionEffectType.DARKNESS);

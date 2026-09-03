@@ -26,6 +26,7 @@ public class VoidscapePlugin extends JavaPlugin {
     private VoidBossManager bossManager;
     private VoidStatusTask statusTask;
     private NamespacedKey keyShadowStalker;
+    private VoidEjectionListener ejectionListener;
 
     @Override
     public void onEnable() {
@@ -47,8 +48,9 @@ public class VoidscapePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(bossManager, this);
 
         // ลงทะเบียน Event Listeners
+        ejectionListener = new VoidEjectionListener(this);
         getServer().getPluginManager().registerEvents(new VoidPortalListener(this), this);
-        getServer().getPluginManager().registerEvents(new VoidEjectionListener(this), this);
+        getServer().getPluginManager().registerEvents(ejectionListener, this);
         getServer().getPluginManager().registerEvents(new VoidItemListener(this), this);
         getServer().getPluginManager().registerEvents(new com.example.voidscape.listener.VoidLockdownListener(this), this);
         getServer().getPluginManager().registerEvents(new com.example.voidscape.listener.VoidDiveListener(this), this);
@@ -89,7 +91,10 @@ public class VoidscapePlugin extends JavaPlugin {
 
         if (voidWorld != null) {
             // ตั้งค่าให้เกาะกลางเป็นจุดเกิดที่ปลอดภัย (Layer 1 Zenith Altar ที่ Y=141)
-            Location spawn = new Location(voidWorld, 0.5, 141.0, 0.5, 0f, 0f);
+            double spawnX = getConfig().getDouble("dimension.spawn-x", 0.5);
+            double spawnY = getConfig().getDouble("dimension.spawn-y", 141.0);
+            double spawnZ = getConfig().getDouble("dimension.spawn-z", 14.5);
+            Location spawn = new Location(voidWorld, spawnX, spawnY, spawnZ, 180f, 0f);
             voidWorld.setSpawnLocation(spawn);
 
             // ปิดวงจรเวลากลางวัน ปิดมอนสเตอร์ปกติ และตั้งเวลาเที่ยงคืนตลอดกาล
@@ -140,5 +145,6 @@ public class VoidscapePlugin extends JavaPlugin {
     public VoidItemManager getItemManager() { return itemManager; }
     public VoidMobManager getMobManager() { return mobManager; }
     public VoidBossManager getBossManager() { return bossManager; }
+    public VoidEjectionListener getEjectionListener() { return ejectionListener; }
     public NamespacedKey getKeyShadowStalker() { return keyShadowStalker; }
 }

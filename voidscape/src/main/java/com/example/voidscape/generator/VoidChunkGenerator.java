@@ -280,11 +280,11 @@ public class VoidChunkGenerator extends ChunkGenerator {
                 }
             }
 
-            // ประภาคารเรืองแสงและหีบสมบัติบนยอดเสา
+            // ประภาคารเรืองแสงและหีบสมบัติบนยอดเสา (ลดความถี่ลงเหลือ 10% ตามที่ผู้เล่นต้องการ)
             int topY = isInverted ? (startY - spireHeight + 1) : (startY + spireHeight - 1);
             if (topY >= -55 && topY <= 310) {
                 chunkData.setBlock(spireX, topY, spireZ, Material.CRYING_OBSIDIAN);
-                if (rand.nextInt(100) < 40 && topY + 1 <= 310 && !isInverted) {
+                if (rand.nextInt(100) < 10 && topY + 1 <= 310 && !isInverted) {
                     chunkData.setBlock(spireX, topY + 1, spireZ, Material.CHEST);
                 }
             }

@@ -32,7 +32,10 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -101,6 +104,9 @@ public class VoidItemListener implements Listener {
             player.teleport(returnLoc);
             player.setFallDistance(0.0f);
             player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+            if (plugin.getEjectionListener() != null) {
+                plugin.getEjectionListener().grantFallImmunity(player.getUniqueId(), 10000L);
+            }
 
             // เอฟเฟกต์ประตูมิติแตกออก
             player.playSound(returnLoc, Sound.ITEM_CHORUS_FRUIT_TELEPORT, 1.2f, 0.8f);
@@ -188,15 +194,43 @@ public class VoidItemListener implements Listener {
 
     private void populateVoidChest(org.bukkit.inventory.Inventory inv) {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        inv.addItem(itemManager.createVoidCrystal(2 + rnd.nextInt(4)));
-        inv.addItem(itemManager.createNullFruit(1 + rnd.nextInt(3)));
-        if (rnd.nextDouble() < 0.40) {
-            inv.addItem(itemManager.createShadowBlade());
+        inv.clear();
+
+        // คลังแร่เล็กๆ น้อยๆ สำหรับกล่องสมบัติโบราณใน The Void
+        List<ItemStack> minorOrePool = new ArrayList<>();
+        minorOrePool.add(new ItemStack(Material.COAL, 1 + rnd.nextInt(4)));
+        minorOrePool.add(new ItemStack(Material.IRON_NUGGET, 2 + rnd.nextInt(6)));
+        minorOrePool.add(new ItemStack(Material.RAW_IRON, 1 + rnd.nextInt(2)));
+        minorOrePool.add(new ItemStack(Material.COPPER_INGOT, 1 + rnd.nextInt(3)));
+        minorOrePool.add(new ItemStack(Material.GOLD_NUGGET, 2 + rnd.nextInt(5)));
+        minorOrePool.add(new ItemStack(Material.LAPIS_LAZULI, 1 + rnd.nextInt(3)));
+        minorOrePool.add(new ItemStack(Material.AMETHYST_SHARD, 1 + rnd.nextInt(2)));
+
+        // โอกาสเล็กน้อย 12% ได้ Echo Shard (Voidic Crystal) 1 ชิ้น สำหรับเบิกเนตร
+        if (rnd.nextDouble() < 0.12) {
+            minorOrePool.add(itemManager.createVoidCrystal(1));
         }
-        if (rnd.nextDouble() < 0.30) {
-            inv.addItem(itemManager.createPocketVoid());
+
+        // โอกาสเล็กน้อย 6% ได้ผลไม้ Null Fruit 1 ชิ้น
+        if (rnd.nextDouble() < 0.06) {
+            minorOrePool.add(itemManager.createNullFruit(1));
         }
-        inv.addItem(new ItemStack(Material.ENDER_PEARL, 2 + rnd.nextInt(4)));
+
+        // สุ่มหยิบแร่เล็กๆ 2-4 กอง แล้ววางสุ่มตามช่องในหีบ
+        int minItems = plugin.getConfig().getInt("chests.min-items", 2);
+        int maxItems = plugin.getConfig().getInt("chests.max-items", 4);
+        int totalItems = minItems + rnd.nextInt(Math.max(1, maxItems - minItems + 1));
+
+        Collections.shuffle(minorOrePool);
+        int chestSize = inv.getSize();
+        for (int i = 0; i < totalItems && i < minorOrePool.size(); i++) {
+            int slot = rnd.nextInt(chestSize);
+            if (inv.getItem(slot) == null) {
+                inv.setItem(slot, minorOrePool.get(i));
+            } else {
+                inv.addItem(minorOrePool.get(i));
+            }
+        }
     }
 
     private void handleShadowDash(Player player) {
@@ -266,7 +300,13 @@ public class VoidItemListener implements Listener {
                 event.setCancelled(true);
                 // ดีดผู้เล่นวาร์ปกลับขึ้นมาบนจุดเกิดหรือบล็อกสูงสุด
                 Location safe = player.getWorld().getSpawnLocation();
+                player.setFallDistance(0.0f);
                 player.teleport(safe);
+                player.setFallDistance(0.0f);
+                player.setVelocity(new Vector(0, 0, 0));
+                if (plugin.getEjectionListener() != null) {
+                    plugin.getEjectionListener().grantFallImmunity(player.getUniqueId(), 10000L);
+                }
                 player.playSound(safe, Sound.ITEM_TOTEM_USE, 1.0f, 1.0f);
                 player.sendMessage(Component.text("🛡 เกราะ Voidic Armor ช่วยชีวิตคุณจากการตกเหว Void เอาไว้ได้!", NamedTextColor.GOLD));
             }

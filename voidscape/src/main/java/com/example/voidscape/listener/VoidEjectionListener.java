@@ -39,22 +39,44 @@ public class VoidEjectionListener implements Listener {
         this.plugin = plugin;
     }
 
+    /**
+     * มอบบัฟคุ้มกันความเสียหายจากการตก (Fall Immunity) ชั่วคราว
+     */
+    public void grantFallImmunity(UUID uuid, long durationMs) {
+        fallImmunity.put(uuid, System.currentTimeMillis() + durationMs);
+    }
+
+    /**
+     * ตรวจสอบว่ามีบัฟคุ้มกันความเสียหายจากการตกหรือไม่
+     */
+    public boolean hasFallImmunity(UUID uuid) {
+        return System.currentTimeMillis() < fallImmunity.getOrDefault(uuid, 0L);
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
-        // 1. ป้องกัน Fall Damage 5 วิ หลังจากวาร์ปกลับมาโลกปกติ
+        World world = player.getWorld();
+        boolean isInVoid = world.getName().equals(plugin.getVoidWorldName());
+
+        // 1. ป้องกัน Fall Damage ทั้งหมดใน The Void และตรวจสอบ Fall Immunity หลังวาร์ป
         if (event.getCause() == EntityDamageEvent.DamageCause.FALL) {
-            long until = fallImmunity.getOrDefault(player.getUniqueId(), 0L);
-            if (System.currentTimeMillis() < until) {
+            boolean disableVoidFall = plugin.getConfig().getBoolean("dimension.disable-fall-damage", true);
+            if (isInVoid && disableVoidFall) {
+                event.setCancelled(true);
+                player.setFallDistance(0.0f);
+                return;
+            }
+
+            if (hasFallImmunity(player.getUniqueId())) {
                 event.setCancelled(true);
                 player.setFallDistance(0.0f);
                 return;
             }
         }
 
-        World world = player.getWorld();
-        if (!world.getName().equals(plugin.getVoidWorldName())) return;
+        if (!isInVoid) return;
 
         // 2. ยกเลิกดาเมจ Void ภายใน The Void (ทำให้ดิ่งทะลุ Y = -64, -500, -1000 ได้เรื่อยๆ)
         if (event.getCause() == EntityDamageEvent.DamageCause.VOID) {
@@ -86,8 +108,8 @@ public class VoidEjectionListener implements Listener {
         player.setFallDistance(0.0f);
         player.setVelocity(new Vector(0, 0, 0));
 
-        // ป้องกัน Fall Damage 5 วินาที
-        fallImmunity.put(player.getUniqueId(), System.currentTimeMillis() + 5000L);
+        // ป้องกัน Fall Damage 10 วินาที
+        grantFallImmunity(player.getUniqueId(), 10000L);
 
         // อนุญาตให้ผ่านระบบ Lockdown เพื่อกลับสู่โลก Overworld
         player.setMetadata("void_authorized_escape", new FixedMetadataValue(plugin, true));
