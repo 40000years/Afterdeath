@@ -29,7 +29,8 @@ public class VoidItemManager {
             meta.displayName(Component.text("ผลึกความว่างเปล่า (Voidic Crystal)", NamedTextColor.DARK_PURPLE, TextDecoration.BOLD));
             meta.lore(List.of(
                 Component.text("ผลึกพลังงานมืดที่สกัดได้จาก The Void", NamedTextColor.GRAY),
-                Component.text("ใช้สำหรับคราฟต์หรืออัปเกรดอุปกรณ์ระดับสูง", NamedTextColor.DARK_AQUA)
+                Component.text("👁 [คลิกขวา] เบิกเนตรแห่งความมืด (มองเห็นชัดเจน 1 นาที)", NamedTextColor.AQUA, TextDecoration.BOLD),
+                Component.text("✦ ใช้สำหรับคราฟต์หรืออัปเกรดอุปกรณ์ระดับสูง", NamedTextColor.DARK_AQUA)
             ));
             meta.setEnchantmentGlintOverride(true);
             meta.getPersistentDataContainer().set(keyItemType, PersistentDataType.STRING, "VOID_CRYSTAL");
@@ -115,5 +116,28 @@ public class VoidItemManager {
     public boolean isAnyVoidItem(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
         return item.getItemMeta().getPersistentDataContainer().has(keyItemType, PersistentDataType.STRING);
+    }
+
+    private final java.util.Map<java.util.UUID, Long> voidSightExpiry = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public void grantVoidSight(org.bukkit.entity.Player player, long durationMs) {
+        voidSightExpiry.put(player.getUniqueId(), System.currentTimeMillis() + durationMs);
+    }
+
+    public boolean hasVoidSight(org.bukkit.entity.Player player) {
+        Long expiry = voidSightExpiry.get(player.getUniqueId());
+        if (expiry == null) return false;
+        if (System.currentTimeMillis() > expiry) {
+            voidSightExpiry.remove(player.getUniqueId());
+            return false;
+        }
+        return true;
+    }
+
+    public long getVoidSightRemainingSeconds(org.bukkit.entity.Player player) {
+        Long expiry = voidSightExpiry.get(player.getUniqueId());
+        if (expiry == null) return 0;
+        long rem = (expiry - System.currentTimeMillis()) / 1000L;
+        return Math.max(0, rem);
     }
 }

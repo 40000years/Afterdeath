@@ -1,6 +1,7 @@
 package com.example.voidscape.task;
 
 import com.example.voidscape.VoidscapePlugin;
+import com.example.voidscape.mob.VoidMobManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
@@ -9,12 +10,8 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.WitherSkeleton;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -25,20 +22,23 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * VoidStatusTask: ควบคุมสภาพแวดล้อมความมืดและมอนสเตอร์ใน The Void
- * 1. ควบคุมระดับความมืด (Blindness + Darkness)
+ * VoidStatusTask: ควบคุมสภาพแวดล้อมความมืดและมอนสเตอร์ยักษ์ใน The Void
+ * 1. ควบคุมระดับความมืดแบบไร้อาการแลค (Flicker-free Blindness + Darkness)
  * 2. แรงกดดันก้นบึ้งมิติมืด (Abyssal Pressure) เมื่อดิ่งลึกเกิน Y = -600
- * 3. เสกมอนสเตอร์สยองขวัญ:
- *    - Void Wraith (วิญญาณเวหาทมิฬ โฉบจากความมืด)
- *    - Shadow Stalker (เงาไร้ตัวตน ตามเสียงหัวใจเต้น)
+ * 3. ระบบ Voidic Infusion ลดเลือดสูงสุดทุกๆ 60 วินาที
+ * 4. ระบบเสกมอนสเตอร์ยักษ์อัตโนมัติ (Giant Phantom / Giant Vex) สม่ำเสมอ ไม่ว่างเปล่า
  */
 public class VoidStatusTask extends BukkitRunnable {
 
     private final VoidscapePlugin plugin;
+    private final VoidMobManager mobManager;
     private final Map<UUID, Integer> playerSecondsInVoid = new HashMap<>();
+    private final Map<UUID, Long> lastInfusionTimes = new HashMap<>();
+    private long lastVoidThunderTime = 0L;
 
     public VoidStatusTask(VoidscapePlugin plugin) {
         this.plugin = plugin;
+        this.mobManager = plugin.getMobManager();
     }
 
     @Override
@@ -46,10 +46,38 @@ public class VoidStatusTask extends BukkitRunnable {
         World voidWorld = plugin.getVoidWorld();
         if (voidWorld == null) return;
 
+        // ดับฝน/พายุทันทีหากตรวจพบในโลก The Void
+        if (plugin.getConfig().getBoolean("performance.disable-storm", true) && voidWorld.hasStorm()) {
+            voidWorld.setStorm(false);
+            voidWorld.setThundering(false);
+            voidWorld.setWeatherDuration(0);
+        }
+
+        boolean enableDarkness = plugin.getConfig().getBoolean("performance.enable-darkness", true);
+        boolean enableBlindness = plugin.getConfig().getBoolean("performance.enable-blindness", true);
+        double spawnChance = plugin.getConfig().getDouble("spawning.chance", 0.80);
+        int maxMobsPerPlayer = plugin.getConfig().getInt("spawning.max-mobs-per-player", 8);
+        int batchSize = plugin.getConfig().getInt("spawning.spawn-batch-size", 2);
+        long infusionIntervalMs = plugin.getConfig().getLong("infusion.interval-seconds", 60L) * 1000L;
+
+        long now = System.currentTimeMillis();
+
+        // บรรยากาศฟ้าร้องมิติมืด Void Thunder (เสียงคำรามก้องกังวานทุ้มต่ำลึก ทุกๆ 35-50 วินาที)
+        if (now - lastVoidThunderTime >= 38000L) {
+            lastVoidThunderTime = now;
+            for (Player p : voidWorld.getPlayers()) {
+                p.playSound(p.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 2.5f, 0.45f);
+                p.playSound(p.getLocation(), Sound.ENTITY_WARDEN_AMBIENT, 1.2f, 0.5f);
+                p.getWorld().spawnParticle(Particle.PORTAL, p.getLocation().add(0, 3, 0), 20, 2.0, 1.0, 2.0, 0.1);
+            }
+        }
+
         for (Player player : voidWorld.getPlayers()) {
             if (!player.isOnline() || player.isDead()) continue;
 
-            // มืดสนิท 100%: ใช้ Blindness ตัดระยะการมองเห็นเหลือ 5 บล็อกรอบตัว + Darkness เพิ่มหมอกควันดำทมิฬ
+            UUID uuid = player.getUniqueId();
+
+            // 1. ระบบความมืดแบบ Flicker-Free (ให้ Effect นาน 160 ticks ซ้อนทับการรันทุก 40 ticks ป้องกัน Shader รีเซ็ตกระตุก)
             boolean hasVoidArmor = false;
             for (ItemStack piece : player.getInventory().getArmorContents()) {
                 if (piece != null && plugin.getItemManager().isVoidItem(piece, "VOID_ARMOR")) {
@@ -58,33 +86,86 @@ public class VoidStatusTask extends BukkitRunnable {
                 }
             }
 
-            if (!hasVoidArmor) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 140, 0, false, false, false));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 140, 0, false, false, false));
+            boolean hasVoidSight = plugin.getItemManager().hasVoidSight(player);
+
+            if (!hasVoidArmor && !hasVoidSight) {
+                if (enableBlindness) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 160, 0, false, false, false));
+                } else {
+                    player.removePotionEffect(PotionEffectType.BLINDNESS);
+                }
+                if (enableDarkness) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 160, 0, false, false, false));
+                } else {
+                    player.removePotionEffect(PotionEffectType.DARKNESS);
+                }
             } else {
                 player.removePotionEffect(PotionEffectType.BLINDNESS);
                 player.removePotionEffect(PotionEffectType.DARKNESS);
-                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 140, 0, false, false, false));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 160, 0, false, false, false));
+
+                // แจ้งเตือนเมื่อเนตรแห่งความมืดใกล้หมด
+                if (hasVoidSight) {
+                    long remaining = plugin.getItemManager().getVoidSightRemainingSeconds(player);
+                    if (remaining > 0 && remaining <= 5) {
+                        player.sendActionBar(Component.text("⚠️ เนตรแห่งความมืด (Void Sight) กำลังจะหมดใน " + remaining + " วินาที!", NamedTextColor.YELLOW));
+                    }
+                }
             }
 
-            UUID uuid = player.getUniqueId();
-            int secs = playerSecondsInVoid.getOrDefault(uuid, 0) + 10;
+            // นับเวลาที่อยู่ใน Void
+            int secs = playerSecondsInVoid.getOrDefault(uuid, 0) + 2;
             playerSecondsInVoid.put(uuid, secs);
 
             double currentY = player.getLocation().getY();
 
-            // 1. ระบบดิ่งลงก้นบึ้ง (Abyssal Pressure)
+            // 2. ระบบดิ่งลงก้นบึ้ง (Abyssal Pressure)
             if (currentY < -100.0) {
                 handleAbyssalDepth(player, currentY);
             }
 
-            // 2. ระบบ Voidic Infusion (ทุกๆ 60 วินาที ลดเลือดสูงสุด 1 ดวง)
-            if (secs % 60 == 0) {
+            // 3. ระบบ Voidic Infusion (ลดเลือดสูงสุดตามเวลาที่กำหนด)
+            long lastInfusion = lastInfusionTimes.getOrDefault(uuid, now);
+            if (lastInfusionTimes.containsKey(uuid) && (now - lastInfusion >= infusionIntervalMs)) {
                 applyInfusion(player);
+                lastInfusionTimes.put(uuid, now);
+            } else if (!lastInfusionTimes.containsKey(uuid)) {
+                lastInfusionTimes.put(uuid, now);
             }
 
-            // 3. ระบบ Paranoia และเสกมอนสเตอร์สยองขวัญ
-            handleParanoiaAndMonsters(player);
+            // 4. ระบบเสกมอนสเตอร์ยักษ์สม่ำเสมอ (Dense & Thrilling Void Spawning)
+            handleMonsterSpawning(player, spawnChance, maxMobsPerPlayer, batchSize);
+        }
+    }
+
+    /**
+     * เสกมอนสเตอร์ยักษ์รอบตัวผู้เล่นตามจำนวนและโอกาสที่กำหนด
+     */
+    private void handleMonsterSpawning(Player player, double spawnChance, int maxMobs, int batchSize) {
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+
+        // เล่นเสียงหลอนในบรรยากาศเป็นครั้งคราว (โอกาส 25%)
+        if (rnd.nextDouble() < 0.25) {
+            Sound[] spookySounds = {
+                Sound.ENTITY_WARDEN_HEARTBEAT,
+                Sound.AMBIENT_CAVE,
+                Sound.BLOCK_SCULK_SHRIEKER_SHRIEK,
+                Sound.ENTITY_PHANTOM_SWOOP,
+                Sound.AMBIENT_SOUL_SAND_VALLEY_MOOD
+            };
+            Sound sound = spookySounds[rnd.nextInt(spookySounds.length)];
+            player.playSound(player.getLocation(), sound, 0.8f, 0.7f);
+        }
+
+        // ตรวจสอบโอกาสสปอว์นมอนสเตอร์
+        if (rnd.nextDouble() < spawnChance) {
+            int currentMobs = mobManager.getNearbyVoidMonsterCount(player, 45.0);
+            if (currentMobs < maxMobs) {
+                int toSpawn = Math.min(batchSize, maxMobs - currentMobs);
+                for (int i = 0; i < toSpawn; i++) {
+                    mobManager.spawnRandomVoidMonster(player);
+                }
+            }
         }
     }
 
@@ -96,17 +177,17 @@ public class VoidStatusTask extends BukkitRunnable {
 
         if (y >= -300.0) {
             player.sendActionBar(Component.text(String.format("🕳️ คุณกำลังร่วงหล่นลงสู่ความว่างเปล่าไร้ก้นบึ้ง... (Y: %.0f)", y), NamedTextColor.GRAY));
-            if (ThreadLocalRandom.current().nextDouble() < 0.3) {
+            if (ThreadLocalRandom.current().nextDouble() < 0.2) {
                 player.playSound(loc, Sound.AMBIENT_SOUL_SAND_VALLEY_MOOD, 1.0f, 0.5f);
             }
         } else if (y >= -600.0) {
             player.sendActionBar(Component.text(String.format("⚠️ จิตใจเริ่มถูกบีบคั้นในความมืดมิด... (Y: %.0f)", y), NamedTextColor.DARK_PURPLE));
-            player.playSound(loc, Sound.ENTITY_WARDEN_HEARTBEAT, 1.2f, 0.8f);
-            player.getWorld().spawnParticle(Particle.SQUID_INK, loc.clone().add(0, 1, 0), 12, 0.4, 0.4, 0.4, 0.05);
+            player.playSound(loc, Sound.ENTITY_WARDEN_HEARTBEAT, 1.1f, 0.8f);
+            player.getWorld().spawnParticle(Particle.SQUID_INK, loc.clone().add(0, 1, 0), 6, 0.3, 0.3, 0.3, 0.02);
         } else {
-            // Y < -600: แรงกดดันก้นบึ้งเริ่มฉีกร่างผู้เล่น!
-            player.damage(4.0); // ดาเมจ 2 หัวใจทุกรอบ
-            player.playSound(loc, Sound.ENTITY_WARDEN_SONIC_BOOM, 0.8f, 1.5f);
+            // Y < -600: แรงกดดันก้นบึ้งเริ่มฉีกร่างผู้เล่น
+            player.damage(4.0); // ดาเมจ 2 หัวใจ
+            player.playSound(loc, Sound.ENTITY_WARDEN_SONIC_BOOM, 0.7f, 1.5f);
             player.getWorld().spawnParticle(Particle.SONIC_BOOM, loc, 1);
             player.sendActionBar(Component.text(String.format("💀 มัจจุราชแห่งก้นบึ้งกำลังกลืนกินคุณ! (Y: %.0f) [กิน Null Fruit ด่วน!]", y), NamedTextColor.RED));
         }
@@ -117,14 +198,15 @@ public class VoidStatusTask extends BukkitRunnable {
         if (attr == null) return;
 
         double currentMax = attr.getBaseValue();
-        double minHp = 4.0; // ต่ำสุด 2 หัวใจ
+        double minHp = plugin.getConfig().getDouble("infusion.min-health", 4.0);
+        double reduction = plugin.getConfig().getDouble("infusion.reduction-amount", 2.0);
 
         if (currentMax > minHp) {
-            double newMax = Math.max(minHp, currentMax - 2.0);
+            double newMax = Math.max(minHp, currentMax - reduction);
             attr.setBaseValue(newMax);
 
             player.playSound(player.getLocation(), Sound.ENTITY_WITHER_HURT, 0.8f, 0.5f);
-            player.getWorld().spawnParticle(Particle.SOUL, player.getLocation().add(0, 1, 0), 10, 0.2, 0.2, 0.2, 0.05);
+            player.getWorld().spawnParticle(Particle.SOUL, player.getLocation().add(0, 1, 0), 8, 0.2, 0.2, 0.2, 0.03);
 
             player.sendActionBar(Component.text(
                 String.format("✦ พลังความมืดกัดกร่อนดวงใจของคุณ... (เหลือสูงสุด %.0f หัวใจ)", newMax / 2.0),
@@ -133,100 +215,8 @@ public class VoidStatusTask extends BukkitRunnable {
         }
     }
 
-    private void handleParanoiaAndMonsters(Player player) {
-        ThreadLocalRandom rnd = ThreadLocalRandom.current();
-
-        // 40% สุ่มเกิดเหตุการณ์หลอน
-        if (rnd.nextDouble() < 0.40) {
-            Location loc = player.getLocation();
-
-            // สุ่มเสียงหลอน
-            Sound[] spookySounds = {
-                Sound.ENTITY_WARDEN_HEARTBEAT,
-                Sound.AMBIENT_CAVE,
-                Sound.ENTITY_ELDER_GUARDIAN_CURSE,
-                Sound.BLOCK_SCULK_SHRIEKER_SHRIEK,
-                Sound.ENTITY_PHANTOM_SWOOP
-            };
-            Sound sound = spookySounds[rnd.nextInt(spookySounds.length)];
-            player.playSound(loc, sound, 0.9f, 0.7f);
-
-            // 30% สุ่มเสกมอนสเตอร์
-            if (rnd.nextDouble() < 0.30) {
-                if (rnd.nextBoolean()) {
-                    spawnVoidWraith(player);
-                } else {
-                    spawnShadowStalker(player);
-                }
-            }
-        }
-    }
-
-    /**
-     * เสก Void Wraith (วิญญาณเวหาทมิฬ) - บินโฉบจากความมืด ดรอป Void Crystal และ Null Fruit
-     */
-    private void spawnVoidWraith(Player player) {
-        try {
-            Location pLoc = player.getLocation();
-            ThreadLocalRandom rnd = ThreadLocalRandom.current();
-
-            double angle = rnd.nextDouble() * 2 * Math.PI;
-            double dist = 10 + rnd.nextDouble() * 6;
-            Location spawnLoc = pLoc.clone().add(Math.cos(angle) * dist, 6 + rnd.nextDouble() * 4, Math.sin(angle) * dist);
-
-            World world = player.getWorld();
-            Phantom wraith = (Phantom) world.spawnEntity(spawnLoc, EntityType.PHANTOM);
-            wraith.customName(Component.text("✦ วิญญาณเวหาทมิฬ (Void Wraith)", NamedTextColor.DARK_PURPLE));
-            wraith.setCustomNameVisible(true);
-            wraith.setSize(2);
-            wraith.setTarget(player);
-
-            // ติดบัฟล่องหนรางๆ + พลังโจมตี
-            wraith.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 99999, 0, false, false));
-            wraith.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 99999, 0, false, false));
-
-            wraith.getPersistentDataContainer().set(plugin.getKeyShadowStalker(), PersistentDataType.BYTE, (byte) 1);
-
-            world.spawnParticle(Particle.PORTAL, spawnLoc, 30, 0.5, 0.5, 0.5);
-            world.spawnParticle(Particle.LARGE_SMOKE, spawnLoc, 15, 0.3, 0.3, 0.3);
-            player.playSound(pLoc, Sound.ENTITY_PHANTOM_SWOOP, 1.2f, 0.5f);
-            player.sendMessage(Component.text("🦇 บางสิ่งที่มีปีกกำลังแหวกความมืดมิดลงมาหาคุณ!", NamedTextColor.RED));
-        } catch (Exception e) {
-            plugin.getLogger().warning("เกิดข้อผิดพลาดขณะเสก Void Wraith: " + e.getMessage());
-        }
-    }
-
-    /**
-     * เสก Shadow Stalker (ผู้แฝงกายในเงามืด) - ร่างเงาเดินดิน ทรงพลัง
-     */
-    private void spawnShadowStalker(Player player) {
-        try {
-            Location pLoc = player.getLocation();
-            ThreadLocalRandom rnd = ThreadLocalRandom.current();
-
-            double angle = rnd.nextDouble() * 2 * Math.PI;
-            double dist = 7 + rnd.nextDouble() * 4;
-            Location spawnLoc = pLoc.clone().add(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
-            spawnLoc.setY(pLoc.getY());
-
-            World world = player.getWorld();
-            WitherSkeleton stalker = (WitherSkeleton) world.spawnEntity(spawnLoc, EntityType.WITHER_SKELETON);
-            stalker.customName(Component.text("✦ เงาแห่งความมืด (Shadow Stalker)", NamedTextColor.DARK_RED));
-            stalker.setCustomNameVisible(true);
-            stalker.setTarget(player);
-
-            stalker.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, 1, false, false));
-            stalker.getPersistentDataContainer().set(plugin.getKeyShadowStalker(), PersistentDataType.BYTE, (byte) 1);
-
-            world.spawnParticle(Particle.LARGE_SMOKE, spawnLoc.clone().add(0, 1, 0), 20, 0.3, 0.5, 0.3);
-            player.playSound(pLoc, Sound.ENTITY_WARDEN_HEARTBEAT, 1.2f, 0.6f);
-            player.sendMessage(Component.text("⚠️ คุณรู้สึกได้ถึงสายตาอันมืดมิดกำลังจ้องมองคุณจากข้างหลัง...", NamedTextColor.DARK_RED));
-        } catch (Exception e) {
-            plugin.getLogger().warning("เกิดข้อผิดพลาดขณะเสก Shadow Stalker: " + e.getMessage());
-        }
-    }
-
     public void cleanupPlayer(UUID uuid) {
         playerSecondsInVoid.remove(uuid);
+        lastInfusionTimes.remove(uuid);
     }
 }

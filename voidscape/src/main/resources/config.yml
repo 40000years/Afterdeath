@@ -1,6 +1,6 @@
 # ===============================================
 # Voidscape Lite Configuration
-# ปรับแต่งค่าระบบมิติ The Void และอุปกรณ์พิเศษ
+# ปรับแต่งค่าระบบมิติ The Void, การเพิ่มประสิทธิภาพ, และมอนสเตอร์ยักษ์
 # ===============================================
 
 dimension:
@@ -8,6 +8,14 @@ dimension:
   world-name: "the_void"
   # ความสูงของเกาะลอยฟ้าเริ่มต้น
   island-base-y: 64
+
+performance:
+  # ปิดฝน/พายุใน The Void ถาวร (แก้ปัญหา Client Lag 100% จากการเรนเดอร์เม็ดฝนในความว่างเปล่า)
+  disable-storm: true
+  # เปิดเอฟเฟกต์หมอก Darkness (หากเครื่องเล่นกระตุกจาก Shader สามารถปิดให้เหลือแค่ Blindness ได้)
+  enable-darkness: true
+  # เปิดเอฟเฟกต์ตัดระยะสายตา Blindness (ไม่กินสเปก)
+  enable-blindness: true
 
 portal:
   # ความลึกของ Bedrock ที่เริ่มทำงาน (Y <= ค่านี้)
@@ -25,14 +33,76 @@ infusion:
   # เลือดขั้นต่ำที่ไม่ลดต่อ (4.0 = 2 หัวใจ)
   min-health: 4.0
 
-paranoia:
-  # โอกาสเกิดเอฟเฟกต์หลอนและเสกเงาดำทุกๆ 15 วินาที (0.0 ถึง 1.0)
-  event-chance: 0.35
-  # สัตว์ประหลาดเงาดำ (Shadow Stalker)
-  spawn-stalker-chance: 0.50
+spawning:
+  # รอบการตรวจจับและเสกมอนสเตอร์ (วินาที)
+  interval-seconds: 3
+  # โอกาสเกิดมอนสเตอร์ในแต่ละรอบ (0.0 ถึง 1.0)
+  chance: 0.80
+  # จำนวนมอนสเตอร์ Void สูงสุดรอบตัวผู้เล่น 1 คน (ในระยะ 45 บล็อก)
+  max-mobs-per-player: 8
+  # จำนวนมอนสเตอร์ที่เสกพร้อมกันใน 1 ครั้ง (1 ถึง 3 ตัว)
+  spawn-batch-size: 2
+
+  # 1. พญาเงาเวหาทมิฬ (Giant Phantom - Void Leviathan)
+  giant-phantom:
+    enabled: true
+    weight: 50
+    # ขนาดโมเดลปีกตามเอนจินของ Minecraft Phantom (ค่าปกติ 0, ค่า 6 = ตัวมหึมา)
+    size: 6
+    # อัตราส่วนขยายขนาด Entity Scale (2.2 เท่า)
+    scale: 2.2
+    # หลอดเลือด HP (ปกติ 20 -> 20 เท่า = 400 HP / 200 หัวใจ)
+    health: 400.0
+    # พลังโจมตี
+    attack-damage: 14.0
+
+  # 2. ภูตทมิฬกลืนวิญญาณ (Giant Vex - Abyssal Shade)
+  giant-vex:
+    enabled: true
+    weight: 50
+    # อัตราส่วนขยายขนาด Entity Scale (2.8 เท่า = ปีศาจบินตัวใหญ่ยักษ์)
+    scale: 2.8
+    # หลอดเลือด HP (ปกติ 14 -> 20 เท่า = 280 HP / 140 หัวใจ)
+    health: 280.0
+    # พลังโจมตี
+    attack-damage: 12.0
+
+  # 3. เงาแห่งความมืด (Shadow Stalker - Wither Skeleton)
+  shadow-stalker:
+    enabled: true
+    weight: 25
+    scale: 1.5
+    health: 200.0
+    attack-damage: 14.0
 
 rewards:
   # โอกาสดรอป Voidic Crystal จากมอนสเตอร์เงา (0.0 ถึง 1.0)
   stalker-crystal-chance: 0.75
+  # โอกาสดรอป Null Fruit จากมอนสเตอร์เงา (0.0 ถึง 1.0)
+  null-fruit-chance: 0.35
   # คูลดาวน์ของสกิล Shadow Dash บนดาบ (วินาที)
   shadow-dash-cooldown: 6
+
+boss:
+  # เปิดใช้งานระบบบอสราชันย์ก้นบึ้ง (Abyssal Warden Boss)
+  enabled: true
+  name: "💀 ราชันย์ก้นบึ้งทมิฬ (The Abyssal Warden)"
+  # หลอดเลือด HP (ค่าปกติ 5000.0 = 2500 หัวใจ)
+  health: 5000.0
+  # ขยายขนาดตัวโมเดล Entity Scale (4.5 เท่า = ยักษ์ไททันมหึมา สูงกว่า 13 บล็อก!)
+  scale: 4.5
+  # การันตี 1-Hit Kill (ดาเมจสูงลิ่ว 2000+)
+  one-hit-kill: true
+  attack-damage: 2000.0
+  # เกิดอัตโนมัติประจำชั้นล่างสุดทันที (ไม่ต้องพิมพ์คำสั่ง)
+  auto-spawn-on-start: true
+  # เกิดใหม่อัตโนมัติเมื่อตาย (หน่วย: นาที, 0 = ไม่เกิดอัตโนมัติ)
+  respawn-interval-minutes: 60
+  # พิกัดกึ่งกลางลานประลอง Layer 3 (จุดเกิดและจุดดึงกลับเมื่อใกล้ตก Void)
+  arena-center-x: 8000.5
+  arena-center-y: -51.0
+  arena-center-z: 0.5
+  # รัศมีลานประลองที่ปลอดภัย (หากบอสออกนอกรัศมีนี้จะถูก Recall วาร์ปกลับ)
+  arena-radius: 135.0
+  # ดึงผู้เล่นที่อยู่ห่างเกินไปเข้ามาในสนาม (Abyssal Gravity Pull)
+  enable-gravity-pull: true

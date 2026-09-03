@@ -4,6 +4,7 @@ import com.example.voidscape.VoidscapePlugin;
 import com.example.voidscape.item.VoidItemManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -47,13 +48,18 @@ public class VoidItemListener implements Listener {
         this.itemManager = plugin.getItemManager();
     }
 
-    // 1. ดรอปผลึก Voidic Crystal และ Null Fruit จากเงาดำ
+    // 1. ดรอปผลึก Voidic Crystal / Echo Shard และ Null Fruit จากมอนสเตอร์แห่งความมืด
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
         if (entity.getPersistentDataContainer().has(plugin.getKeyShadowStalker(), PersistentDataType.BYTE)) {
             event.getDrops().clear();
-            event.getDrops().add(itemManager.createVoidCrystal(1));
+
+            // โอกาส 70% ดรอป Echo Shard (Voidic Crystal) 1-2 ชิ้น สำหรับใช้เบิกเนตร
+            if (ThreadLocalRandom.current().nextDouble() < 0.70) {
+                int count = 1 + (ThreadLocalRandom.current().nextDouble() < 0.35 ? 1 : 0);
+                event.getDrops().add(itemManager.createVoidCrystal(count));
+            }
 
             // โอกาส 35% ดรอปผลไม้ Null Fruit
             if (ThreadLocalRandom.current().nextDouble() < 0.35) {
@@ -115,19 +121,57 @@ public class VoidItemListener implements Listener {
         }
     }
 
-    // 3. คลิกขวาใช้งานไอเทมพิเศษ (Shadow Blade / Pocket Void)
+    // 3. คลิกขวาใช้งานไอเทมพิเศษ (Echo Shard / Pocket Void / Shadow Blade / Chests)
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+
+        Player player = event.getPlayer();
+
+        // 3.0 เปิดหีบสมบัติโบราณใน The Void ครั้งแรก -> เติมไอเทมสุ่มให้อัตโนมัติ
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null) {
+            if (event.getClickedBlock().getType() == Material.CHEST && player.getWorld().getName().equals(plugin.getVoidWorldName())) {
+                if (event.getClickedBlock().getState() instanceof org.bukkit.block.Chest chest) {
+                    if (chest.getInventory().isEmpty()) {
+                        populateVoidChest(chest.getInventory());
+                        player.playSound(event.getClickedBlock().getLocation(), Sound.BLOCK_CHEST_OPEN, 1.0f, 0.8f);
+                        player.sendMessage(Component.text("✨ คุณค้นพบหีบสมบัติโบราณแห่งมิติมืด!", NamedTextColor.GOLD));
+                    }
+                }
+            }
+        }
+
         Action action = event.getAction();
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
 
         ItemStack item = event.getItem();
         if (item == null) return;
 
-        Player player = event.getPlayer();
+        // 3.1 เบิกเนตรแห่งความมืด (Echo Shard / Voidic Crystal -> Void Sight 60 วินาที)
+        if (item.getType() == Material.ECHO_SHARD) {
+            event.setCancelled(true);
+            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+                item.subtract(1);
+            }
 
-        // 3.1 กระเป๋าหลุมดำ (Pocket Void)
+            itemManager.grantVoidSight(player, 60000L);
+
+            player.removePotionEffect(PotionEffectType.BLINDNESS);
+            player.removePotionEffect(PotionEffectType.DARKNESS);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 1200, 0, false, false, true));
+
+            Location loc = player.getLocation();
+            player.getWorld().playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.8f, 1.2f);
+            player.getWorld().playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 2.0f, 0.8f);
+            player.getWorld().playSound(loc, Sound.ENTITY_WARDEN_HEARTBEAT, 1.5f, 1.4f);
+            player.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, loc.clone().add(0, 1, 0), 25, 0.5, 0.5, 0.5, 0.05);
+
+            player.sendActionBar(Component.text("👁️ เบิกเนตรแห่งความมืด (Void Sight) ทำงาน! มองเห็นสว่างชัดเจน 60 วินาที", NamedTextColor.AQUA));
+            player.sendMessage(Component.text("👁️ คุณใช้ Echo Shard เบิกเนตรแห่งความมืด! ต้านทานหมอกมืดและมองเห็นชัดเจนเป็นเวลา 1 นาที", NamedTextColor.AQUA, TextDecoration.BOLD));
+            return;
+        }
+
+        // 3.2 กระเป๋าหลุมดำ (Pocket Void)
         if (itemManager.isVoidItem(item, "POCKET_VOID")) {
             event.setCancelled(true);
             player.playSound(player.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 1.0f, 0.9f);
@@ -135,11 +179,24 @@ public class VoidItemListener implements Listener {
             return;
         }
 
-        // 3.2 ดาบเงาทมิฬ (Shadow Blade - Shadow Dash)
+        // 3.3 ดาบเงาทมิฬ (Shadow Blade - Shadow Dash)
         if (itemManager.isVoidItem(item, "SHADOW_BLADE")) {
             event.setCancelled(true);
             handleShadowDash(player);
         }
+    }
+
+    private void populateVoidChest(org.bukkit.inventory.Inventory inv) {
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        inv.addItem(itemManager.createVoidCrystal(2 + rnd.nextInt(4)));
+        inv.addItem(itemManager.createNullFruit(1 + rnd.nextInt(3)));
+        if (rnd.nextDouble() < 0.40) {
+            inv.addItem(itemManager.createShadowBlade());
+        }
+        if (rnd.nextDouble() < 0.30) {
+            inv.addItem(itemManager.createPocketVoid());
+        }
+        inv.addItem(new ItemStack(Material.ENDER_PEARL, 2 + rnd.nextInt(4)));
     }
 
     private void handleShadowDash(Player player) {

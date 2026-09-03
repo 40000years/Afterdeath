@@ -1,12 +1,12 @@
 name: Voidscape
-version: '${project.version}'
+version: '1.5.0'
 main: com.example.voidscape.VoidscapePlugin
 api-version: '26.2'
 author: YourName
-description: Voidscape Lite - มิติลี้ลับ The Void เกาะลอยฟ้าหิน Bedrock และระบบหลอน Paranoia
+description: Voidscape v1.5.0 - มิติ The Void ดิ่งลึก 3 ชั้นจำกัด (Finite 3-Layer Dive) & Thunder Spires บรรยากาศ Mod แท้
 
 commands:
   voidscape:
     description: คำสั่งจัดการระบบ Voidscape
-    usage: /voidscape [tp|give <item>|reload]
+    usage: /voidscape [tp|spawn <mob>|boss <spawn|kill>|give <item>|reload]
     permission: voidscape.admin

@@ -1,11 +1,13 @@
 package com.example.voidscape;
 
+import com.example.voidscape.boss.VoidBossManager;
 import com.example.voidscape.command.VoidscapeCommand;
 import com.example.voidscape.generator.VoidChunkGenerator;
 import com.example.voidscape.item.VoidItemManager;
 import com.example.voidscape.listener.VoidEjectionListener;
 import com.example.voidscape.listener.VoidItemListener;
 import com.example.voidscape.listener.VoidPortalListener;
+import com.example.voidscape.mob.VoidMobManager;
 import com.example.voidscape.task.VoidStatusTask;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -20,43 +22,59 @@ public class VoidscapePlugin extends JavaPlugin {
     private String voidWorldName;
     private World voidWorld;
     private VoidItemManager itemManager;
+    private VoidMobManager mobManager;
+    private VoidBossManager bossManager;
     private VoidStatusTask statusTask;
     private NamespacedKey keyShadowStalker;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        getConfig().options().copyDefaults(true);
+        saveConfig();
+
         voidWorldName = getConfig().getString("dimension.world-name", "the_void");
 
         keyShadowStalker = new NamespacedKey(this, "is_shadow_stalker");
         itemManager = new VoidItemManager(this);
+        mobManager = new VoidMobManager(this);
 
         // โหลดหรือสร้างโลกมิติ The Void
         loadVoidWorld();
+
+        // เริ่มต้นระบบ Abyssal Warden Boss
+        bossManager = new VoidBossManager(this);
+        getServer().getPluginManager().registerEvents(bossManager, this);
 
         // ลงทะเบียน Event Listeners
         getServer().getPluginManager().registerEvents(new VoidPortalListener(this), this);
         getServer().getPluginManager().registerEvents(new VoidEjectionListener(this), this);
         getServer().getPluginManager().registerEvents(new VoidItemListener(this), this);
         getServer().getPluginManager().registerEvents(new com.example.voidscape.listener.VoidLockdownListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.example.voidscape.listener.VoidDiveListener(this), this);
 
-        // เริ่มต้น Background Task ตรวจจับ Voidic Infusion และ Paranoia (ทุกๆ 10 วินาที)
+        // เริ่มต้น Background Task ตรวจจับ Voidic Infusion, หมอกควัน, และเสกมอนสเตอร์ยักษ์ (ทุกๆ 2 วินาที)
         statusTask = new VoidStatusTask(this);
-        statusTask.runTaskTimer(this, 200L, 200L);
+        statusTask.runTaskTimer(this, 40L, 40L);
 
         // ลงทะเบียนคำสั่ง
         PluginCommand cmd = getCommand("voidscape");
         if (cmd != null) {
-            cmd.setExecutor(new VoidscapeCommand(this));
+            VoidscapeCommand executor = new VoidscapeCommand(this);
+            cmd.setExecutor(executor);
+            cmd.setTabCompleter(executor);
         }
 
-        getLogger().info("Voidscape Lite เปิดใช้งานเรียบร้อยแล้ว! 🌌");
+        getLogger().info("Voidscape v" + getDescription().getVersion() + " (Giant Mobs & Abyssal Boss) เปิดใช้งานเรียบร้อยแล้ว! 🌌");
     }
 
     @Override
     public void onDisable() {
         if (statusTask != null) {
             statusTask.cancel();
+        }
+        if (bossManager != null) {
+            bossManager.cleanup();
         }
         getLogger().info("Voidscape Lite ปิดการทำงานเรียบร้อยแล้ว");
     }
@@ -70,8 +88,8 @@ public class VoidscapePlugin extends JavaPlugin {
         voidWorld = creator.createWorld();
 
         if (voidWorld != null) {
-            // ตั้งค่าให้เกาะกลางเป็นจุดเกิดที่ปลอดภัย (Tier 1 Zenith Altar ที่ Y=261)
-            Location spawn = new Location(voidWorld, 0.5, 261.0, 0.5, 0f, 0f);
+            // ตั้งค่าให้เกาะกลางเป็นจุดเกิดที่ปลอดภัย (Layer 1 Zenith Altar ที่ Y=141)
+            Location spawn = new Location(voidWorld, 0.5, 141.0, 0.5, 0f, 0f);
             voidWorld.setSpawnLocation(spawn);
 
             // ปิดวงจรเวลากลางวัน ปิดมอนสเตอร์ปกติ และตั้งเวลาเที่ยงคืนตลอดกาล
@@ -79,7 +97,15 @@ public class VoidscapePlugin extends JavaPlugin {
             voidWorld.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
             voidWorld.setGameRule(GameRule.DO_MOB_SPAWNING, false);
             voidWorld.setTime(18000L); // เที่ยงคืนสนิท
-            voidWorld.setStorm(true);  // เมฆดำทะมึน บดบังแสงดาวและดวงจันทร์ ได้ความมืดสนิทจริง
+
+            // ตัดฝน/พายุออกเพื่อแก้ปัญหา Client Lag 100% จากการเรนเดอร์เม็ดฝนในความว่างเปล่า
+            boolean disableStorm = getConfig().getBoolean("performance.disable-storm", true);
+            if (disableStorm) {
+                voidWorld.setStorm(false);
+                voidWorld.setThundering(false);
+                voidWorld.setWeatherDuration(0);
+                voidWorld.setClearWeatherDuration(Integer.MAX_VALUE);
+            }
 
             getLogger().info("โหลดโลก The Void สำเร็จเรียบร้อย! 🌌 (โฟลเดอร์อยู่ที่: " + voidWorld.getWorldFolder().getAbsolutePath() + ")");
         } else {
@@ -112,5 +138,7 @@ public class VoidscapePlugin extends JavaPlugin {
     public String getVoidWorldName() { return voidWorldName; }
     public World getVoidWorld() { return voidWorld; }
     public VoidItemManager getItemManager() { return itemManager; }
+    public VoidMobManager getMobManager() { return mobManager; }
+    public VoidBossManager getBossManager() { return bossManager; }
     public NamespacedKey getKeyShadowStalker() { return keyShadowStalker; }
 }
