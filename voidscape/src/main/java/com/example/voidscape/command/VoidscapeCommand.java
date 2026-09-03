@@ -123,7 +123,8 @@ public class VoidscapeCommand implements CommandExecutor, TabCompleter {
 
                     var boss = plugin.getBossManager().spawnBoss(spawnLoc);
                     if (boss != null) {
-                        player.sendMessage(Component.text("✅ เสก Abyssal Warden Boss (HP 5,000 / Scale 4.5x Titan / 1-Hit Kill) สำเร็จ!", NamedTextColor.GREEN));
+                        double scaleVal = plugin.getConfig().getDouble("boss.scale", 22.5);
+                        player.sendMessage(Component.text("✅ เสก Abyssal Warden Boss (HP 5,000 / Scale " + String.format("%.1f", scaleVal) + "x Colossus / 1-Hit Kill) สำเร็จ!", NamedTextColor.GREEN));
                     } else {
                         player.sendMessage(Component.text("❌ ไม่สามารถเสกบอสได้ กรุณาตรวจสอบโลก The Void", NamedTextColor.RED));
                     }

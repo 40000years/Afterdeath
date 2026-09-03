@@ -55,6 +55,13 @@ function Invoke-BuildPlugin {
         $destTestJar = Join-Path $testServerPlugins ($Name + ".jar")
         Copy-Item $rootJar $destTestJar -Force
         Write-Host ("  [DEPLOYED] Copied to TestServer: " + $destTestJar) -ForegroundColor Magenta
+
+        $pluginDataDir = Join-Path $testServerPlugins $Name
+        $srcConfigFile = Join-Path $resDir "config.yml"
+        if ((Test-Path $pluginDataDir) -and (Test-Path $srcConfigFile)) {
+            Copy-Item $srcConfigFile (Join-Path $pluginDataDir "config.yml") -Force
+            Write-Host ("  [CONFIG] Synced config.yml to TestServer: " + $pluginDataDir) -ForegroundColor Cyan
+        }
     }
 }
 

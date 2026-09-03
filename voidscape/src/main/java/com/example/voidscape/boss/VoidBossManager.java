@@ -211,11 +211,12 @@ public class VoidBossManager implements Listener {
                 Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(4), Duration.ofSeconds(1))
             );
 
+            double currentScale = plugin.getConfig().getDouble("boss.scale", 22.5);
             for (Player p : world.getPlayers()) {
                 p.showTitle(title);
                 p.sendMessage(Component.text("═════════════════════════════════════════", NamedTextColor.DARK_RED));
                 p.sendMessage(Component.text("💀 ราชันย์ก้นบึ้งทมิฬ (The Abyssal Warden) ปรากฏกายขึ้นแล้ว!", NamedTextColor.RED, TextDecoration.BOLD));
-                p.sendMessage(Component.text("   HP: 5,000 | ขนาดไททัน 4.5x | พลังโจมตี 1-Hit Kill | ชั้นล่างสุด Tier 10", NamedTextColor.GRAY));
+                p.sendMessage(Component.text("   HP: 5,000 | ขนาดไททัน " + String.format("%.1f", currentScale) + "x | พลังโจมตี 1-Hit Kill | ชั้นล่างสุด Tier 10", NamedTextColor.GRAY));
                 p.sendMessage(Component.text("═════════════════════════════════════════", NamedTextColor.DARK_RED));
             }
 
@@ -228,12 +229,10 @@ public class VoidBossManager implements Listener {
     }
 
     /**
-     * อัปเกรด Warden ตัวใดๆ ให้กลายเป็นมหาบอส
-    /**
      * อัปเกรด Warden ตัวใดๆ ให้กลายเป็นมหาบอส (พร้อมระบบทำลายและเลี่ยง Attribute Cap 100%)
      */
     public void applyBossAttributes(Warden warden) {
-        double scale = plugin.getConfig().getDouble("boss.scale", 4.5);
+        double scale = plugin.getConfig().getDouble("boss.scale", 22.5);
         double maxHealth = plugin.getConfig().getDouble("boss.health", 5000.0);
         double attackDamage = plugin.getConfig().getDouble("boss.attack-damage", 2000.0);
         String name = plugin.getConfig().getString("boss.name", "💀 ราชันย์ก้นบึ้งทมิฬ (The Abyssal Warden)");
@@ -241,11 +240,21 @@ public class VoidBossManager implements Listener {
         this.maxBossHealth = maxHealth;
         this.currentBossHealth = maxHealth;
 
-        // 1. ขนาดตัวโมเดลยักษ์ไททันมหึมา (4.5x)
+        // 1. ขนาดตัวโมเดลยักษ์ไททันมหึมา (ขยายเพิ่มอีก 5 เท่า)
         try {
             AttributeInstance scaleAttr = warden.getAttribute(Attribute.SCALE);
             if (scaleAttr != null) {
-                scaleAttr.setBaseValue(scale);
+                try {
+                    scaleAttr.setBaseValue(scale);
+                } catch (IllegalArgumentException ex) {
+                    // หากค่าเกินขีดจำกัด Vanilla Cap (เช่น 16.0) ให้ตั้งค่าสูงสุดที่เอนจินรองรับ
+                    plugin.getLogger().warning("เอนจินจำกัด SCALE สูงสุดไว้ จึงปรับเป็นค่าสูงสุดที่ทำได้ (16.0)");
+                    try {
+                        scaleAttr.setBaseValue(16.0);
+                    } catch (Exception ex2) {
+                        scaleAttr.setBaseValue(10.0);
+                    }
+                }
             }
         } catch (Exception e) {
             plugin.getLogger().warning("ไม่สามารถตั้งค่า SCALE: " + e.getMessage());
