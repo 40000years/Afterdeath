@@ -1,0 +1,36 @@
+# ========================================================
+# AdvancedCombat Configuration (Vanilla Java 26.2 Parity)
+# ========================================================
+
+# ระบบค้อนทุบ (Vanilla Mace Smash Attack Parity)
+mace:
+  enabled: true
+  # ถ้าเปิดเป็น true จะคำนวณให้ผู้เล่นทุกคน (รวม Java ที่อาจเจอปัญหาแลค/ไม่ติด)
+  # ถ้าเป็น false จะเน้นคำนวณให้เฉพาะผู้เล่น Bedrock ที่ต่อผ่าน Geyser
+  apply-to-all: false
+  # ระยะตกขั้นต่ำในการคิดท่าทุบ (วานิลลา = 1.5 บล็อก)
+  min-fall-distance: 1.5
+  # ลบล้างดาเมจตกเมื่อทุบโดนเป้าหมาย (Vanilla behavior)
+  negate-fall-damage: true
+  # รัศมีคลื่นกระแทกผลักม็อบรอบข้าง (บล็อก)
+  knockback-radius: 2.5
+  # เสียงและเอฟเฟกต์ลม
+  play-effects: true
+
+# ระบบดาบฟันกวาด (Vanilla Sweep Attack Parity for Bedrock)
+sweep:
+  enabled: true
+  # เปิดให้เฉพาะผู้เล่น Bedrock (เพราะ Java มีระบบนี้ในตัวอยู่แล้ว)
+  bedrock-only: true
+  # รัศมีฟันกวาด (วานิลลา = 1.5 บล็อก)
+  radius: 1.5
+  # ดาเมจฟันกวาดคงที่ (วานิลลา = 1.0 หรือ 0.5 หัวใจ)
+  damage: 1.0
+
+# ระบบขวานสับโล่สตัน (Vanilla Axe Shield Disable)
+shield-stun:
+  enabled: true
+  # ระยะเวลาสตันโล่ (ticks) (100 ticks = 5 วินาที ตามวานิลลา Java)
+  cooldown-ticks: 100
+  # เล่นเสียงโล่แตก (ITEM_SHIELD_BREAK)
+  play-sound: true

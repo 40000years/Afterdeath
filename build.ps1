@@ -73,6 +73,18 @@ if ($Module -eq "all" -or $Module -eq "afterdeath") {
     Invoke-BuildPlugin -Name "afterdeath"
 }
 
+if ($Module -eq "all" -or $Module -eq "advanced-combat") {
+    Invoke-BuildPlugin -Name "advanced-combat"
+}
+
+if ($Module -eq "all" -or $Module -eq "nightvision-toggle") {
+    Invoke-BuildPlugin -Name "nightvision-toggle"
+}
+
+if ($Module -eq "all" -or $Module -eq "anti-freecam") {
+    Invoke-BuildPlugin -Name "anti-freecam"
+}
+
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host " Build Finished Successfully! " -ForegroundColor Green

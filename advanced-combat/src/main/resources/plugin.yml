@@ -1,0 +1,13 @@
+name: AdvancedCombat
+version: '1.0.0'
+main: com.example.advancedcombat.AdvancedCombatPlugin
+api-version: '26.2'
+author: YourName
+description: Bedrock & Vanilla Combat Parity for Paper & Geyser (Mace Smash, Sweep Attack, Axe Shield Stun)
+softdepend: [floodgate]
+
+commands:
+  advancedcombat:
+    description: คำสั่งจัดการปลั๊กอิน AdvancedCombat
+    usage: /advancedcombat [reload]
+    permission: advancedcombat.admin

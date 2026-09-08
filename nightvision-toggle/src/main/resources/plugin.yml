@@ -1,0 +1,12 @@
+name: NightVisionToggle
+version: '1.0.0'
+main: com.example.nightvision.NightVisionPlugin
+api-version: '26.2'
+author: YourName
+description: Infinite Night Vision Toggle with persistent state across deaths and worlds
+commands:
+  nv:
+    description: เปิดหรือปิดการมองเห็นในความมืด
+    usage: /nv [on|off|toggle|status|reload]
+    aliases: [nightvision]
+    permission: nightvision.use

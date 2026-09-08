@@ -1,0 +1,11 @@
+name: AntiFreecam
+version: '1.0.0'
+main: com.example.antifreecam.AntiFreecamPlugin
+api-version: '26.2'
+author: YourName
+description: Silent Container & Valuable Masking against Freecam (Anti-Xray style)
+commands:
+  antifreecam:
+    description: จัดการระบบ AntiFreecam
+    usage: /antifreecam [reload]
+    permission: antifreecam.admin

@@ -1,0 +1,21 @@
+# ========================================================
+# NightVision Toggle Configuration
+# ========================================================
+
+# ค่าเริ่มต้นสำหรับผู้เล่นใหม่ (true = เปิดอัตโนมัติ, false = ปิดเป็นค่าเริ่มต้น)
+default-enabled: false
+
+# ข้อความแจ้งเตือน (สามารถใช้สีแบบ MiniMessage หรือ NamedTextColor)
+messages:
+  prefix: "<dark_gray>[<aqua>NightVision</aqua>]</dark_gray> "
+  enabled: "<green>เปิดใช้งานการมองเห็นในความมืด (Night Vision: ON) เรียบร้อยแล้ว</green>"
+  disabled: "<red>ปิดใช้งานการมองเห็นในความมืด (Night Vision: OFF) เรียบร้อยแล้ว</red>"
+  status-on: "<gray>สถานะปัจจุบัน: <green>เปิดใช้งาน (ON)</green></gray>"
+  status-off: "<gray>สถานะปัจจุบัน: <red>ปิดใช้งาน (OFF)</red></gray>"
+  no-permission: "<red>คุณไม่มีสิทธิ์ใช้งานคำสั่งนี้</red>"
+  reload-success: "<green>รีโหลดการตั้งค่า NightVision เรียบร้อยแล้ว!</green>"
+
+# เล่นเสียงเมื่อสลับสถานะ
+play-sound: true
+sound-on: "BLOCK_NOTE_BLOCK_BELL"
+sound-off: "BLOCK_NOTE_BLOCK_BASS"

@@ -1,12 +1,16 @@
 name: Voidscape
-version: '1.5.0'
+version: '2.0.0'
 main: com.example.voidscape.VoidscapePlugin
 api-version: '26.2'
-author: YourName
-description: Voidscape v1.5.0 - มิติ The Void ดิ่งลึก 3 ชั้นจำกัด (Finite 3-Layer Dive) & Thunder Spires บรรยากาศ Mod แท้
-
+description: Rare floating mansion dungeons, alien guardians and endgame relics.
+softdepend: [floodgate]
 commands:
   voidscape:
-    description: คำสั่งจัดการระบบ Voidscape
-    usage: /voidscape [tp|spawn <mob>|boss <spawn|kill>|give <item>|reload]
-    permission: voidscape.admin
+    aliases: [void]
+    description: Explore Voidscape and claim dungeon relics
+    usage: /void help
+permissions:
+  voidscape.enter:
+    default: true
+  voidscape.admin:
+    default: op
