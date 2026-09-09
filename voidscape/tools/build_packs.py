@@ -38,13 +38,25 @@ def icon(name,draw=0):
   line(6,6,22,5,'d',5);line(21,6,25,18,'d',5)
   line(7,7,21,6,'v',3);line(22,8,26,19,'c',2);line(8,6,21,5,'g');rect(18,8,21,11,'g')
  elif name in ('nova_bow','storm_bow'):
+  # Vanilla bow transforms expect the arrow to point to the upper left of
+  # the texture, with the string behind the grip (towards the lower right).
+  # Transform the drawing coordinates before rasterizing to keep crisp lines.
+  def bow_line(x1,y1,x2,y2,c,width=1):
+   def point(x,y):
+    return round(16+0.5657*(y-x)),round(16-0.5657*(x+y-32))
+   line(*point(x1,y1),*point(x2,y2),c,width)
   color='v' if name=='nova_bow' else 'g'
   points=[(9,3),(17,5),(23,12),(23,19),(17,26),(9,28)]
-  for a,b in zip(points,points[1:]):line(*a,*b,'d',4)
-  for a,b in zip(points,points[1:]):line(a[0]+1,a[1]+1,b[0]+1,b[1]+1,color,2)
-  line(10,4,9-draw*2,16,'s');line(9-draw*2,16,10,29,'s')
-  rect(22,13,25,18,'c');rect(23,14,24,17,'w')
-  if draw:line(2,16,26,16,'g');line(23,13,27,16,'w');line(23,19,27,16,'w')
+  for a,b in zip(points,points[1:]):bow_line(*a,*b,'d',3)
+  for a,b in zip(points,points[1:]):bow_line(*a,*b,color,2)
+  nock=9-draw*2
+  bow_line(10,4,nock,16,'s');bow_line(nock,16,10,29,'s')
+  bow_line(23,13,23,18,'c',3);bow_line(23,14,23,17,'w')
+  if draw:
+   # The arrow follows the string instead of floating at a fixed position.
+   tip=34-draw*2
+   bow_line(nock,16,tip,16,'g')
+   bow_line(tip-4,13,tip,16,'w');bow_line(tip-4,19,tip,16,'w')
  elif name=='rift_blade':
   line(4,28,10,22,'d',4);line(5,28,11,22,'p',2)
   line(6,18,15,27,'d',3);line(6,19,15,28,'v')
@@ -84,8 +96,16 @@ def main():
  for name,(base,title) in ITEMS.items():
   pixels=icon(name);png(java/f'assets/voidscape/textures/item/{name}.png',pixels);png(bedrock/f'textures/items/{name}.png',pixels)
   textures['voidscape.'+name]={'textures':'textures/items/'+name}
-  model={'parent':'minecraft:item/handheld','textures':{'layer0':'voidscape:item/'+name}}
+  parent='handheld' if base in ('netherite_pickaxe','netherite_sword') else 'generated'
+  model={'parent':'minecraft:item/'+parent,'textures':{'layer0':'voidscape:item/'+name}}
   if base=='bow':model['parent']='minecraft:item/bow'
+  if base=='shield':
+   # This is a flat sprite, so entity-shield transforms do not fit its origin.
+   model['display']={
+    'firstperson_righthand':{'rotation':[0,-30,0],'translation':[0,-2,0],'scale':[0.8,0.8,0.8]},
+    'firstperson_lefthand':{'rotation':[0,30,0],'translation':[0,-2,0],'scale':[0.8,0.8,0.8]},
+    'thirdperson_righthand':{'rotation':[0,90,0],'translation':[0,3,1],'scale':[0.8,0.8,0.8]},
+    'thirdperson_lefthand':{'rotation':[0,-90,0],'translation':[0,3,1],'scale':[0.8,0.8,0.8]}}
   if name.endswith('mask'):
    face={direction:{'uv':[0,0,16,16],'texture':'#mask'} for direction in ['north','south','east','west','up','down']}
    model={'textures':{'mask':'voidscape:item/'+name},'elements':[{'from':[3,3,3],'to':[13,13,13],'faces':face}],
@@ -101,7 +121,7 @@ def main():
    definition={'model':{'type':'minecraft:condition','property':'minecraft:using_item','on_false':definition['model'],'on_true':{'type':'minecraft:range_dispatch','property':'minecraft:use_duration','scale':0.05,'fallback':stages[0]['model'],'entries':stages}}}
   write_json(java/f'assets/voidscape/items/{name}.json',definition)
   mappings['items'].setdefault('minecraft:'+base,[]).append({'type':'definition','model':'voidscape:'+name,'bedrock_identifier':'voidscape:'+name,'display_name':title,
-    'bedrock_options':{'icon':'voidscape.'+name,'allow_offhand':True,'display_handheld':not name.endswith('mask')}})
+    'bedrock_options':{'icon':'voidscape.'+name,'allow_offhand':True,'display_handheld':base in ('netherite_pickaxe','netherite_sword','bow')}})
  write_json(bedrock/'textures/item_texture.json',{'resource_pack_name':'voidscape','texture_name':'atlas.items','texture_data':textures})
  write_json(DIST/'geyser-mappings.json',mappings)
  png(java/'pack.png',icon('void_shard'));png(bedrock/'pack_icon.png',icon('void_shard'))

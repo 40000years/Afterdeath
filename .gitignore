@@ -4,3 +4,6 @@ target/
 .idea/
 *.iml
 .audit-plugins/
+__pycache__/
+*.pyc
+.vscode/

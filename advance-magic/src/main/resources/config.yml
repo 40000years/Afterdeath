@@ -1,0 +1,19 @@
+# Allies: the caster, their tamed animals, and members of their main-scoreboard team.
+pvp: true
+max-active-effects: 128
+max-targets-per-effect: 32
+meteor:
+  ignite-terrain: true
+  # Explosions damage entities but never remove terrain blocks.
+  damage: 18.0
+damage:
+  lightning: 12.0
+  dragon-per-second: 6.0
+  wither-skull: 8.0
+  shulker-impact: 4.0
+# Optional additive Java pack download; leave empty to install the pack manually.
+# Bedrock: install the .mcpack and mappings in Geyser (see README).
+resource-pack:
+  url: ''
+  sha1: ''
+  required: false

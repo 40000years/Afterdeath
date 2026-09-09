@@ -15,6 +15,7 @@
         <module>advanced-combat</module>
         <module>nightvision-toggle</module>
         <module>anti-freecam</module>
+        <module>advance-magic</module>
     </modules>
 
     <properties>

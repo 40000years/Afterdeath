@@ -60,7 +60,7 @@
         "bedrock_options": {
           "icon": "voidscape.eternal_aegis",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": false
         }
       }
     ],
@@ -73,7 +73,7 @@
         "bedrock_options": {
           "icon": "voidscape.void_shard",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": false
         }
       }
     ],

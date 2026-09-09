@@ -85,6 +85,11 @@ if ($Module -eq "all" -or $Module -eq "anti-freecam") {
     Invoke-BuildPlugin -Name "anti-freecam"
 }
 
+if ($Module -eq "all" -or $Module -eq "advance-magic") {
+    & (Join-Path $root "advance-magic/build.ps1")
+    if (!$?) { throw 'advance-magic build failed.' }
+}
+
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host " Build Finished Successfully! " -ForegroundColor Green
