@@ -9,7 +9,7 @@ import org.bukkit.event.*;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.*;
 import org.bukkit.util.Vector;
 import java.util.*;
 import java.util.function.*;
@@ -128,13 +128,182 @@ public final class ProjectileSpells implements Listener {
         });return true;
     }
     public boolean shulker(Player p) {
-        LivingEntity target=c.targetEntity(p,30);if(target==null)return false;
-        var effect=c.plugin.effects().start(p,100,(eff,age)->{
-            if(age==0)launch(eff,Spell.SHULKER_LEVITATION,ShulkerBullet.class,p.getEyeLocation().getDirection().multiply(0.6),bullet->bullet.setTarget(target),at->{});
-            if(age==6)launch(eff,Spell.SHULKER_LEVITATION,ShulkerBullet.class,p.getEyeLocation().getDirection().clone().add(new Vector(0,0.25,0)).normalize().multiply(0.6),bullet->bullet.setTarget(target),at->{});
-            return flight(eff,age);
+        LivingEntity targetedMob=c.targetEntity(p,30);
+        Location center;
+        if(targetedMob!=null) {
+            center=targetedMob.getLocation().clone().add(0,1.0,0);
+        } else {
+            Location hitBlock=c.targetPoint(p,30);
+            if(hitBlock!=null) center=hitBlock.clone().add(0,1.5,0);
+            else center=p.getEyeLocation().add(p.getEyeLocation().getDirection().multiply(15));
+        }
+        World world=p.getWorld();
+        if(!c.loaded(center))return false;
+
+        // 1. Weather: Unleash thunderstorm
+        world.setStorm(true);
+        world.setThundering(true);
+        world.setThunderDuration(6000);
+        world.strikeLightningEffect(center.clone().add(5,0,5));
+        world.strikeLightningEffect(center.clone().add(-5,0,-5));
+
+        // 2. Ender Dragon Death sound & initial roar
+        world.playSound(center,Sound.ENTITY_ENDER_DRAGON_DEATH,3.0f,0.9f);
+        world.playSound(center,Sound.ENTITY_ENDER_DRAGON_GROWL,2.5f,0.6f);
+
+        // 3. Stage 1: Gravitational Singularity & Dragon Death Ray Vortex (70 ticks = 3.5s)
+        var effect=c.plugin.effects().start(p,70,(eff,age)->{
+            if(!c.loaded(center))return false;
+
+            // Ascending Ender Dragon death rays straight up into the sky
+            for(int h=0;h<36;h+=3) {
+                world.spawnParticle(Particle.END_ROD,center.clone().add(0,h,0),2,0.4,0.6,0.4,0.03);
+                world.spawnParticle(Particle.DRAGON_BREATH,center.clone().add(0,h*0.6,0),3,0.5,0.5,0.5,0.02);
+            }
+            // Radial light beam flashes (like dragon dying)
+            for(int i=0;i<8;i++) {
+                double angle=i*(Math.PI/4)+age*0.15;
+                double rayDist=Math.min(10.0,age*0.25);
+                world.spawnParticle(Particle.FLASH,center.clone().add(Math.cos(angle)*rayDist,Math.sin(angle*2)*0.5,Math.sin(angle)*rayDist),1,0,0,0,0);
+            }
+
+            // Swirling black hole singularity ring
+            double ringR=Math.max(1.2,6.0-(age*0.07));
+            for(int i=0;i<12;i++) {
+                double a=i*(Math.PI/6)+age*0.25;
+                world.spawnParticle(Particle.REVERSE_PORTAL,center.clone().add(Math.cos(a)*ringR,Math.sin(a*3)*0.4,Math.sin(a)*ringR),3,0,0,0,0.02);
+                world.spawnParticle(Particle.PORTAL,center.clone().add(Math.cos(a)*ringR*0.7,0,Math.sin(a)*ringR*0.7),2,0.1,0.1,0.1,0.05);
+            }
+            world.spawnParticle(Particle.SQUID_INK,center,8,0.4,0.4,0.4,0.05);
+
+            // Gravitational suction sound
+            if(age%15==0)world.playSound(center,Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE,1.5f,0.5f);
+            if(age%20==0)world.playSound(center,Sound.ENTITY_WARDEN_HEARTBEAT,2.0f,1.3f);
+
+            // Mass gravitational pull: Sucks in all entities within 22 blocks
+            for(Entity e:world.getNearbyEntities(center,22,22,22)) {
+                if(e.equals(p))continue;
+                if(e instanceof LivingEntity||e instanceof Item||e instanceof Projectile) {
+                    Vector pull=center.toVector().subtract(e.getLocation().toVector());
+                    double dist=pull.length();
+                    if(dist>0.8) {
+                        e.setVelocity(pull.normalize().multiply(Math.min(1.1,0.35+dist*0.04)).setY(Math.min(0.7,(center.getY()-e.getLocation().getY())*0.2+0.15)));
+                    }
+                    if(e instanceof LivingEntity target) {
+                        if(!target.hasPotionEffect(PotionEffectType.LEVITATION)) {
+                            target.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION,40,1));
+                        }
+                        if(age%10==0&&c.affect(p,target,Spell.SHULKER_LEVITATION)) {
+                            c.damage(p,target,15,DamageType.MAGIC);
+                        }
+                    }
+                }
+            }
+            return true;
         });
+
+        // 4. Stage 2: Cataclysmic Detonation & Sculk Corruption (age 70 on close)
+        effect.onClose(()->{
+            if(!c.loaded(center))return;
+            // Massive explosion and sonic boom
+            world.spawnParticle(Particle.EXPLOSION_EMITTER,center,10,2.0,2.0,2.0,0.1);
+            world.spawnParticle(Particle.FLASH,center,8,1.0,1.0,1.0,0);
+            world.spawnParticle(Particle.DRAGON_BREATH,center,150,4.0,3.0,4.0,0.2);
+            world.playSound(center,Sound.ENTITY_GENERIC_EXPLODE,3.0f,0.5f);
+            world.playSound(center,Sound.ENTITY_WARDEN_SONIC_BOOM,2.0f,0.7f);
+            world.strikeLightningEffect(center);
+
+            // Huge burst damage to all caught enemies in 12 blocks
+            for(Entity e:world.getNearbyEntities(center,12,12,12)) {
+                if(e instanceof LivingEntity living&&!e.equals(p)) {
+                    if(c.affect(p,living,Spell.SHULKER_LEVITATION)) {
+                        c.damage(p,living,c.configuredDamage("damage.shulker-singularity-burst",120),DamageType.EXPLOSION);
+                        Vector knock=living.getLocation().toVector().subtract(center.toVector()).normalize().multiply(1.8).setY(0.7);
+                        living.setVelocity(knock);
+                    }
+                }
+            }
+
+            // 5. Sculk Corruption Zone (radius 7 blocks on surface)
+            createSculkWitherZone(p,center);
+        });
+
         return true;
+    }
+
+    private void createSculkWitherZone(Player p, Location center) {
+        World world=center.getWorld();
+        int cx=center.getBlockX(),cy=center.getBlockY(),cz=center.getBlockZ();
+        Map<Block,org.bukkit.block.data.BlockData> original=new HashMap<>();
+
+        for(int dx=-7;dx<=7;dx++) {
+            for(int dz=-7;dz<=7;dz++) {
+                if(dx*dx+dz*dz>49)continue;
+                int bx=cx+dx;
+                int bz=cz+dz;
+                Block surface=null;
+                for(int dy=3;dy>=-5;dy--) {
+                    Block b=world.getBlockAt(bx,cy+dy,bz);
+                    if(b.getType().isSolid()&&b.getType()!=Material.BEDROCK&&b.getType()!=Material.BARRIER&&b.getType()!=Material.NETHER_PORTAL) {
+                        surface=b;
+                        break;
+                    }
+                }
+                if(surface!=null&&!surface.getType().isAir()) {
+                    original.put(surface,surface.getBlockData());
+                    surface.setType(Math.abs(dx)<=1&&Math.abs(dz)<=1?Material.SCULK_CATALYST:Material.SCULK,false);
+                }
+            }
+        }
+
+        var sculkEffect=c.plugin.effects().start(p,300,(eff,age)->{
+            if(!c.loaded(center))return false;
+            // Particles rising from the sculk floor
+            if(age%6==0) {
+                for(int i=0;i<8;i++) {
+                    double rx=(Math.random()-0.5)*14.0;
+                    double rz=(Math.random()-0.5)*14.0;
+                    if(rx*rx+rz*rz<=49.0) {
+                        Location partLoc=center.clone().add(rx,0.2,rz);
+                        world.spawnParticle(Particle.SCULK_SOUL,partLoc,1,0.1,0.2,0.1,0.02);
+                        world.spawnParticle(Particle.SCULK_CHARGE_POP,partLoc,1,0,0,0,0);
+                    }
+                }
+            }
+            if(age%25==0) {
+                world.playSound(center,Sound.BLOCK_SCULK_CATALYST_BLOOM,1.2f,0.8f);
+            }
+            // Continuous heavy Wither III to all enemies stepping inside
+            if(age%10==0) {
+                for(Entity e:world.getNearbyEntities(center,7.5,4.0,7.5)) {
+                    if(e.equals(p))continue;
+                    if(e instanceof LivingEntity living) {
+                        if(c.affect(p,living,Spell.SHULKER_LEVITATION)) {
+                            living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER,100,2));
+                            living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,60,1));
+                            c.damage(p,living,10,DamageType.MAGIC);
+                            if(age%20==0) {
+                                living.getWorld().playSound(living.getLocation(),Sound.BLOCK_SCULK_SHRIEKER_SHRIEK,0.7f,1.3f);
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        });
+
+        sculkEffect.onClose(()->{
+            for(Map.Entry<Block,org.bukkit.block.data.BlockData> entry:original.entrySet()) {
+                Block b=entry.getKey();
+                if(b.getType()==Material.SCULK||b.getType()==Material.SCULK_CATALYST) {
+                    b.setBlockData(entry.getValue(),false);
+                }
+            }
+            if(c.loaded(center)) {
+                world.playSound(center,Sound.BLOCK_SCULK_BREAK,1.5f,0.8f);
+                world.spawnParticle(Particle.BLOCK,center,40,2.0,0.5,2.0,Material.SCULK.createBlockData());
+            }
+        });
     }
     public boolean dragon(Player p) {
         Location start=p.getEyeLocation().add(p.getEyeLocation().getDirection());Vector dir=p.getEyeLocation().getDirection();

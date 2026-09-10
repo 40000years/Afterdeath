@@ -15,7 +15,7 @@ public enum Spell {
     INVISIBILITY_SHROUD("Invisibility Shroud", Material.PHANTOM_MEMBRANE, 50, 30, 0xBBBEDF),
     POISON_SPORES("Poison Spores", Material.SPORE_BLOSSOM, 45, 10, 0xA5D957),
     WITHER_RAY("Wither Ray", Material.NETHER_STAR, 85, 12, 0x827A91),
-    SHULKER_LEVITATION("Shulker Levitation", Material.SHULKER_SHELL, 55, 15, 0xDFA4EC),
+    SHULKER_LEVITATION("Shulker Levitation", Material.SHULKER_SHELL, 95, 35, 0x110822),
     METEOR_STRIKE("Meteor Strike", Material.MAGMA_BLOCK, 90, 20, 0xFF8546),
     IRON_ARMOR("Iron Armor", Material.IRON_BLOCK, 60, 35, 0xCCD8E0),
     TIME_DILATION("Time Dilation", Material.CLOCK, 80, 25, 0x6ADAD2),

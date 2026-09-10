@@ -48,13 +48,24 @@ public final class WandService implements Listener {
     public ItemStack createCore(Spell spell) {
         ItemStack item=new ItemStack(CORE_BASE);
         var meta=item.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD+"✦ Core of "+coreTitle(spell));
-        meta.setLore(List.of(
-            ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
-            ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+spell.title+" Wand",
-            ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
-            ChatColor.DARK_PURPLE+"Obtained from Evergarden Vault"
-        ));
+        if(spell==Spell.SHULKER_LEVITATION) {
+            meta.setDisplayName(ChatColor.BLACK+""+ChatColor.BOLD+"✦ Core of Levitation "+ChatColor.DARK_RED+"[MYTHIC]");
+            meta.setLore(List.of(
+                ChatColor.DARK_GRAY+"[ระดับตำนาน - MYTHIC] แกนเวทมนตร์โบราณต้องห้าม",
+                ChatColor.DARK_PURPLE+""+ChatColor.MAGIC+"Forbidden Dragon Heart",
+                ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.BLACK+""+ChatColor.BOLD+"Shulker Levitation Wand",
+                ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
+                ChatColor.RED+"✦ อัตราดรอปต่ำสุดใน Evergarden Vault (เรทตำนาน 0.2%)"
+            ));
+        } else {
+            meta.setDisplayName(ChatColor.GOLD+"✦ Core of "+coreTitle(spell));
+            meta.setLore(List.of(
+                ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
+                ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+spell.title+" Wand",
+                ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
+                ChatColor.DARK_PURPLE+"Obtained from Evergarden Vault"
+            ));
+        }
         var modelData=meta.getCustomModelDataComponent();
         modelData.setStrings(List.of("advance_magic:core_"+spell.id()));
         meta.setCustomModelDataComponent(modelData);
@@ -78,8 +89,19 @@ public final class WandService implements Listener {
     public ItemStack create(Spell spell) {
         ItemStack item=new ItemStack(BASE);
         var meta=item.getItemMeta();
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE+spell.title+" Wand");
-        meta.setLore(List.of(ChatColor.GRAY+"Right-click to cast",ChatColor.AQUA+"Mana: "+spell.mana+" / Cooldown: "+spell.cooldown+"s"));
+        if(spell==Spell.SHULKER_LEVITATION) {
+            meta.setDisplayName(ChatColor.BLACK+""+ChatColor.BOLD+"✦ Shulker Levitation Wand "+ChatColor.DARK_GRAY+"[ตำนาน]");
+            meta.setLore(List.of(
+                ChatColor.DARK_GRAY+"[ระดับตำนาน - MYTHIC]",
+                ChatColor.DARK_PURPLE+""+ChatColor.MAGIC+"Ancient Dragon Singularity",
+                ChatColor.GRAY+"คลิกขวาเพื่อปลดปล่อยหายนะมิติบรรพกาล",
+                ChatColor.AQUA+"Mana: "+spell.mana+" / Cooldown: "+spell.cooldown+"s",
+                ChatColor.RED+"⚡ พายุฟ้าผ่า · มังกรจุติ · มหาหลุมดำกลืนมิติ · ดินแดน Sculk Wither III"
+            ));
+        } else {
+            meta.setDisplayName(ChatColor.LIGHT_PURPLE+spell.title+" Wand");
+            meta.setLore(List.of(ChatColor.GRAY+"Right-click to cast",ChatColor.AQUA+"Mana: "+spell.mana+" / Cooldown: "+spell.cooldown+"s"));
+        }
         meta.setUnbreakable(true);
         meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
         // The vanilla model is a safe fallback when a client has no resource pack.
@@ -112,11 +134,22 @@ public final class WandService implements Listener {
         meta.getPersistentDataContainer().set(castsKey,PersistentDataType.INTEGER,count);
         double effectiveCd=Math.max(Math.max(1.0,spell.cooldown*0.2),(double)spell.cooldown-(count/5)*5.0);
         double reduction=(count/5)*5.0;
-        meta.setLore(List.of(
-            ChatColor.GRAY+"Right-click to cast",
-            ChatColor.AQUA+"Mana: "+spell.mana+" / Cooldown: "+String.format(Locale.ROOT,"%.1f",effectiveCd)+"s"+ChatColor.DARK_GRAY+" (Base: "+spell.cooldown+"s)",
-            ChatColor.LIGHT_PURPLE+"Mastery: "+ChatColor.WHITE+count+" casts"+(reduction>0?ChatColor.YELLOW+" [-"+String.format(Locale.ROOT,"%.0f",reduction)+"s CD]":"")
-        ));
+        if(spell==Spell.SHULKER_LEVITATION) {
+            meta.setLore(List.of(
+                ChatColor.DARK_GRAY+"[ระดับตำนาน - MYTHIC]",
+                ChatColor.DARK_PURPLE+""+ChatColor.MAGIC+"Ancient Dragon Singularity",
+                ChatColor.GRAY+"คลิกขวาเพื่อปลดปล่อยหายนะมิติบรรพกาล",
+                ChatColor.AQUA+"Mana: "+spell.mana+" / Cooldown: "+String.format(Locale.ROOT,"%.1f",effectiveCd)+"s"+ChatColor.DARK_GRAY+" (Base: "+spell.cooldown+"s)",
+                ChatColor.LIGHT_PURPLE+"Mastery: "+ChatColor.WHITE+count+" casts"+(reduction>0?ChatColor.YELLOW+" [-"+String.format(Locale.ROOT,"%.0f",reduction)+"s CD]":""),
+                ChatColor.RED+"⚡ พายุฟ้าผ่า · มังกรจุติ · มหาหลุมดำกลืนมิติ · ดินแดน Sculk Wither III"
+            ));
+        } else {
+            meta.setLore(List.of(
+                ChatColor.GRAY+"Right-click to cast",
+                ChatColor.AQUA+"Mana: "+spell.mana+" / Cooldown: "+String.format(Locale.ROOT,"%.1f",effectiveCd)+"s"+ChatColor.DARK_GRAY+" (Base: "+spell.cooldown+"s)",
+                ChatColor.LIGHT_PURPLE+"Mastery: "+ChatColor.WHITE+count+" casts"+(reduction>0?ChatColor.YELLOW+" [-"+String.format(Locale.ROOT,"%.0f",reduction)+"s CD]":"")
+            ));
+        }
         item.setItemMeta(meta);
         return count;
     }

@@ -71,13 +71,24 @@ public final class RelicService implements Listener {
     public ItemStack createMagicCore(MagicCore core) {
         ItemStack item=new ItemStack(Material.HEART_OF_THE_SEA);
         ItemMeta meta=item.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD+"✦ "+core.title());
-        meta.setLore(List.of(
-            ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
-            ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+core.wandTitle()+" Wand",
-            ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
-            ChatColor.DARK_PURPLE+"Obtained from Evergarden Vault"
-        ));
+        if(core.id().equals("shulker_levitation")) {
+            meta.setDisplayName(ChatColor.BLACK+""+ChatColor.BOLD+"✦ Core of Levitation "+ChatColor.DARK_RED+"[MYTHIC]");
+            meta.setLore(List.of(
+                ChatColor.DARK_GRAY+"[ระดับตำนาน - MYTHIC] แกนเวทมนตร์โบราณต้องห้าม",
+                ChatColor.DARK_PURPLE+""+ChatColor.MAGIC+"Forbidden Dragon Heart",
+                ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.BLACK+""+ChatColor.BOLD+"Shulker Levitation Wand",
+                ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
+                ChatColor.RED+"✦ อัตราดรอปต่ำสุดใน Evergarden Vault (เรทตำนาน 0.2%)"
+            ));
+        } else {
+            meta.setDisplayName(ChatColor.GOLD+"✦ "+core.title());
+            meta.setLore(List.of(
+                ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
+                ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+core.wandTitle()+" Wand",
+                ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
+                ChatColor.DARK_PURPLE+"Obtained from Evergarden Vault"
+            ));
+        }
         var modelData=meta.getCustomModelDataComponent();
         modelData.setStrings(List.of("advance_magic:core_"+core.id()));
         meta.setCustomModelDataComponent(modelData);
@@ -160,8 +171,14 @@ public final class RelicService implements Listener {
             Relic[] tools={Relic.RIFT_PICKAXE,Relic.SMELTER_PICKAXE,Relic.STORM_BOW};
             return create(tools[r.nextInt(tools.length)],1);
         }
-        // 10% สุ่มแกนเวทมนตร์ Core of ... (สุ่ม 1 ใน 15 แบบ)
-        MagicCore core = MAGIC_CORES.get(r.nextInt(MAGIC_CORES.size()));
+        // 10% สุ่มแกนเวทมนตร์ Core of ... (แกนระดับตำนาน Core of Levitation มีเรทดรอปต่ำสุด 2% ของแกน หรือ 0.2% ของกล่องทั้งหมด)
+        MagicCore core;
+        if(r.nextDouble()<0.02) {
+            core=MAGIC_CORES.stream().filter(c->c.id().equals("shulker_levitation")).findFirst().orElse(MAGIC_CORES.get(0));
+        } else {
+            List<MagicCore> normalCores=MAGIC_CORES.stream().filter(c->!c.id().equals("shulker_levitation")).toList();
+            core=normalCores.get(r.nextInt(normalCores.size()));
+        }
         return createMagicCore(core);
     }
     public ItemStack createGuideBook() {
@@ -174,8 +191,9 @@ public final class RelicService implements Listener {
             Component.text("§1§lการสร้างประตูมิติ\n§01. สร้างกรอบคล้าย Nether Portal ด้วย §5Crying Obsidian§0 ขนาดเริ่มต้น 4x5 (ช่องใน 2x3 หรือใหญ่กว่า)\n\n§02. จุดไฟด้วย §6Flint & Steel§0, §cFire Charge§0 หรือ §bEye of Ender§0 ในกรอบ\n\n§03. ประตูสีม่วงจะเปิดออกทันที!"),
             Component.text("§1§lสำรวจสวนลอยฟ้า\n§0เดินตามทางแสงไปวิหาร หรือใช้ §5Elytra§0 สำรวจต่อ สร้างบ้านบนทุ่งนอกเขตวิหารได้\n\n§0วิหารโบราณทั้ง 3 ธาตุมีอยู่ §c§lไม่จำกัดทั่วทั้งมิติ§r§0 (เกิดซ้ำเรื่อยๆ ทุกๆ ~280 บล็อก)\n\n§0วิหารใกล้จุดเกิดที่สุด:\n§51. วิหารความมืด§0 (มุ่งหน้าทิศเหนือ Z = -250)\n§92. วิหารดวงดาว§0 (ทิศ ต.อ.เฉียงใต้ X = 220, Z = 130)\n§63. วิหารกาลเวลา§0 (ทิศ ต.ต.เฉียงใต้ X = -220, Z = 130)\n\n§8พิมพ์ /evergarden locate เพื่อดูพิกัดวิหารใกล้ตัวคุณ"),
             Component.text("§1§lกฎการท้าทาย\n§0"+plugin.integer("combat.waves",5,2,12)+" เวฟ แล้วตามด้วยบอส\n- คลิกที่แท่น §5Lodestone§0 กลางวิหารเพื่อเรียกผู้พิทักษ์\n\n§0⚠ §c§lคำเตือน:§r§0 ห้ามนำเรือหรือรถรางมาขังมอนสเตอร์เด็ดขาด! พลังวิหารจะขับไล่ยานพาหนะทันที"),
-            Component.text("§1§lรางวัล & Evergarden Vault\n§0- เมื่อชนะการต่อสู้ §dEvergarden Key§0 จะเด้งเข้าตัวผู้เล่นทันที\n- นำไปเปิด §5Evergarden Vault§0\n- §cเปิดได้คนละ 1 ครั้งต่อกล่อง!§0\n\n§0§lโอกาสดรอป (30/30/20/10/10):§r\n§b• 30%§0 Diamond Block\n§8• 30%§0 Netherite Ingot\n§e• 20%§0 Armor Trim สุ่ม\n§d• 10%§0 อุปกรณ์พิเศษ\n§5• 10%§0 สุ่มแกน Core of ... (1 ใน 15 แบบ)"),
-            Component.text("§1§lแกนเวทย์ & อุปกรณ์\n§0• §6แกน Core of ... (10%)§0: สุ่ม 1 ใน 15 แบบ นำไปล้อมด้วย Netherite Ingot หรือ Nether Star รวม 8 ชิ้น ที่โต๊ะคราฟต์เพื่อสร้างคทาเวทมนตร์ Advance Magic!\n\n§0• §bที่ขุด 3x3§0: ขุดพื้นที่ 3x3 บล็อกพร้อมกัน\n• §6ที่ขุดหลอมอัตโนมัติ§0: ขุดทรายได้กระจก ขุดแร่ได้แท่งโลหะ\n• §dธนูสายฟ้า§0: ยิงธนูผ่าสายฟ้าต่อเนื่อง")
+            Component.text("§1§lรางวัล & Evergarden Vault\n§0- เมื่อชนะการต่อสู้ §dEvergarden Key§0 จะเด้งเข้าตัวผู้เล่นทันที\n- นำไปเปิด §5Evergarden Vault§0\n- §cเปิดได้คนละ 1 ครั้งต่อกล่อง!§0\n\n§0§lโอกาสดรอป:\n§b• 30%§0 Diamond Block\n§8• 30%§0 Netherite Ingot\n§e• 20%§0 Armor Trim สุ่ม\n§d• 10%§0 อุปกรณ์พิเศษ\n§5• 9.8%§0 แกนเวทมนตร์ทั่วไป\n§4• 0.2%§0 §0§l§kUnknown Ancient Core§r"),
+            Component.text("§1§lแกนเวทย์ & อุปกรณ์\n§0• §6แกน Core of ...§0: นำไปล้อมด้วย Netherite Ingot หรือ Nether Star รวม 8 ชิ้น ที่โต๊ะคราฟต์เพื่อสร้างคทาเวทมนตร์ Advance Magic!\n\n§0• §bที่ขุด 3x3§0: ขุดพื้นที่ 3x3 บล็อกพร้อมกัน\n• §6ที่ขุดหลอมอัตโนมัติ§0: ขุดทรายได้กระจก ขุดแร่ได้แท่งโลหะ\n• §dธนูสายฟ้า§0: ยิงธนูผ่าสายฟ้าต่อเนื่อง"),
+            Component.text("§0§l✦ §kUnknown Mythic Wand§r§0 ✦\n§8[ตำนานมหาคทาต้องห้าม]\n\n§0บันทึกลับโบราณกล่าวถึงคทาหายนะที่สาบสูญ:\n§5§kABXQWZLKMNVOPTRSYJ\n§8§kENDER DRAGON SINGULARITY\n§4§kCATACLYSMIC CALAMITY\n§0§kVOID SCULK WITHER DOMAIN\n\n§c§lอัตราการค้นพบ:\n§4§l• เรทดรอป: 0.2% §8(เรทต่ำสุดในวิหาร)\n\n§0ผู้ใดครอบครองจะสามารถเปลี่ยนฟ้าดินเป็นพายุคลั่ง เรียกมังกรจุติ หลุมดำกลืนมิติ และแผ่ดินแดน Sculk Wither III")
         ));
         book.setItemMeta(meta);
         return book;
