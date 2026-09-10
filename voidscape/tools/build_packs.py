@@ -1,4 +1,5 @@
 """Build original, tiny pixel-art relic assets and Java/Bedrock packs. Standard library only."""
+"""Build original, tiny pixel-art relic assets and Java/Bedrock packs. Standard library only."""
 import hashlib, json, struct, zlib, zipfile
 from pathlib import Path
 
@@ -6,12 +7,16 @@ ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / 'target' / 'resource-packs'
 DIST = ROOT / 'dist'
 PALETTE = {'d':(20,18,35,255),'p':(79,48,113,255),'v':(151,94,199,255),
-           'c':(62,177,185,255),'g':(151,255,238,255),'w':(232,255,248,255),'s':(88,105,124,255)}
+           'c':(62,177,185,255),'g':(151,255,238,255),'w':(232,255,248,255),'s':(88,105,124,255),
+           'o':(255,133,51,255),'r':(220,50,40,255),'y':(255,215,60,255)}
 ITEMS = {
- 'rift_pickaxe':('netherite_pickaxe','Rift Excavator'), 'nova_bow':('bow','Nova Bow'),
- 'storm_bow':('bow','Storm Verdict'), 'rift_blade':('netherite_sword','Rift Blade'),
- 'eternal_aegis':('shield','Eternal Aegis'), 'void_shard':('echo_shard','Ancient Void Shard'),
- 'hollow_mask':('carved_pumpkin','Hollow Knight Mask'), 'captain_mask':('carved_pumpkin','Hollow Captain Mask')}
+ 'void_key':('trial_key','Void Key'),
+ 'rift_pickaxe':('netherite_pickaxe','Rift Excavator'),
+ 'smelter_pickaxe':('netherite_pickaxe',"Smelter's Pickaxe"),
+ 'storm_bow':('bow','Storm Verdict'),
+ 'nova_bow':('bow','Nova Bow'),
+ 'rift_blade':('netherite_sword','Rift Blade'),
+ 'eternal_aegis':('shield','Eternal Aegis')}
 
 def write_json(path, value):
  path.parent.mkdir(parents=True,exist_ok=True)
@@ -33,7 +38,19 @@ def icon(name,draw=0):
   for n in range(length+1):
    x=round(x1+(x2-x1)*n/length);y=round(y1+(y2-y1)*n/length)
    rect(x,y,x+width-1,y+width-1,c)
- if name=='rift_pickaxe':
+ if name=='void_key':
+  line(11,21,22,10,'d',3);line(12,21,22,11,'p',2);line(13,20,22,11,'c')
+  for y in range(5,14):rect(18,y,26,y,'d')
+  for y in range(6,13):rect(19,y,25,y,'v')
+  for y in range(8,11):rect(21,y,23,y,'d')
+  rect(22,9,22,9,'g')
+  rect(7,24,11,26,'d');rect(8,24,10,25,'c')
+  rect(12,27,14,29,'d');rect(12,27,13,28,'g')
+ elif name=='smelter_pickaxe':
+  line(5,27,23,9,'d',4);line(6,27,23,10,'r',2);line(7,26,23,10,'o')
+  line(6,6,22,5,'d',5);line(21,6,25,18,'d',5)
+  line(7,7,21,6,'r',3);line(22,8,26,19,'o',2);line(8,6,21,5,'y');rect(18,8,21,11,'y')
+ elif name=='rift_pickaxe':
   line(5,27,23,9,'d',4);line(6,27,23,10,'p',2);line(7,26,23,10,'c')
   line(6,6,22,5,'d',5);line(21,6,25,18,'d',5)
   line(7,7,21,6,'v',3);line(22,8,26,19,'c',2);line(8,6,21,5,'g');rect(18,8,21,11,'g')
@@ -118,13 +135,25 @@ def main():
     stage=f'{name}_pulling_{n}';png(java/f'assets/voidscape/textures/item/{stage}.png',icon(name,n+1))
     write_json(java/f'assets/voidscape/models/item/{stage}.json',{'parent':'minecraft:item/bow','textures':{'layer0':'voidscape:item/'+stage}})
     stages.append({'threshold':[0,0.65,0.9][n],'model':{'type':'minecraft:model','model':'voidscape:item/'+stage}})
+  if name.endswith('mask'):
+   face={direction:{'uv':[0,0,16,16],'texture':'#mask'} for direction in ['north','south','east','west','up','down']}
+   model={'textures':{'mask':'voidscape:item/'+name},'elements':[{'from':[3,3,3],'to':[13,13,13],'faces':face}],
+          'display':{'head':{'rotation':[0,0,0],'translation':[0,0,0],'scale':[1.4,1.4,1.4]},'gui':{'rotation':[20,35,0],'scale':[0.8,0.8,0.8]}}}
+  write_json(java/f'assets/voidscape/models/item/{name}.json',model)
+  definition={'model':{'type':'minecraft:model','model':'voidscape:item/'+name}}
+  if base=='bow':
+   stages=[]
+   for n in range(3):
+    stage=f'{name}_pulling_{n}';png(java/f'assets/voidscape/textures/item/{stage}.png',icon(name,n+1))
+    write_json(java/f'assets/voidscape/models/item/{stage}.json',{'parent':'minecraft:item/bow','textures':{'layer0':'voidscape:item/'+stage}})
+    stages.append({'threshold':[0,0.65,0.9][n],'model':{'type':'minecraft:model','model':'voidscape:item/'+stage}})
    definition={'model':{'type':'minecraft:condition','property':'minecraft:using_item','on_false':definition['model'],'on_true':{'type':'minecraft:range_dispatch','property':'minecraft:use_duration','scale':0.05,'fallback':stages[0]['model'],'entries':stages}}}
   write_json(java/f'assets/voidscape/items/{name}.json',definition)
   mappings['items'].setdefault('minecraft:'+base,[]).append({'type':'definition','model':'voidscape:'+name,'bedrock_identifier':'voidscape:'+name,'display_name':title,
     'bedrock_options':{'icon':'voidscape.'+name,'allow_offhand':True,'display_handheld':base in ('netherite_pickaxe','netherite_sword','bow')}})
  write_json(bedrock/'textures/item_texture.json',{'resource_pack_name':'voidscape','texture_name':'atlas.items','texture_data':textures})
  write_json(DIST/'geyser-mappings.json',mappings)
- png(java/'pack.png',icon('void_shard'));png(bedrock/'pack_icon.png',icon('void_shard'))
+ png(java/'pack.png',icon('void_key'));png(bedrock/'pack_icon.png',icon('void_key'))
  archive(java,DIST/'voidscape-java.zip');archive(bedrock,DIST/'voidscape-bedrock.mcpack')
  hashes={f.name:hashlib.sha1(f.read_bytes()).hexdigest() for f in [DIST/'voidscape-java.zip',DIST/'voidscape-bedrock.mcpack']}
  write_json(DIST/'pack-hashes.json',hashes)

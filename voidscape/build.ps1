@@ -18,11 +18,11 @@ $builtJar = Join-Path $outputDir 'voidscape.jar'
 if ($LASTEXITCODE -ne 0) { throw 'JAR packaging failed.' }
 $distDir = Join-Path $moduleRoot 'dist'
 New-Item -ItemType Directory -Force -Path $distDir | Out-Null
-Copy-Item -LiteralPath $builtJar -Destination (Join-Path $distDir 'voidscape-2.0.0.jar') -Force
+Copy-Item -LiteralPath $builtJar -Destination (Join-Path $distDir 'voidscape-3.0.0.jar') -Force
 Copy-Item -LiteralPath $builtJar -Destination (Join-Path $workspaceRoot 'voidscape.jar') -Force
 if (!$SkipPacks) {
     & python (Join-Path $moduleRoot 'tools/build_packs.py')
     if ($LASTEXITCODE -ne 0) { throw 'Resource pack build failed.' }
 }
-Write-Output ('Built Voidscape 2.0: ' + (Join-Path $distDir 'voidscape-2.0.0.jar'))
+Write-Output ('Built Voidscape 3.0: ' + (Join-Path $distDir 'voidscape-3.0.0.jar'))
 Write-Output ('Classes: ' + $classesDir)

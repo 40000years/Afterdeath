@@ -1,53 +1,37 @@
-# Voidscape 2.0 — tuned initially for Sharpness VIII / Protection VIII.
+# Voidscape 2.0 — Advance Magic Expansion
 config-version: 2
 dimension:
-  # Separate world; placement settings freeze in world-layout.yml after first boot.
   world-name: the_void_v2
   seed: 72819345
   border-size: 24000
 structures:
-  major:
-    # One candidate per 2048x2048 region, 45% occupied; approximate exploration rarity, not an exact vanilla rate.
-    spacing-chunks: 128
-    chance: 0.45
-    reset-hours: 12
+  spacing-chunks: 48
+  chance: 0.70
   minor:
-    # One candidate per 640x640 region, 65% occupied; excluded near major dungeons.
-    spacing-chunks: 40
-    chance: 0.65
-    reset-hours: 3
+    reset-hours: 2
 performance:
-  max-active-dungeons: 4
-  max-dungeon-mobs: 48
+  max-active-dungeons: 6
+  max-dungeon-mobs: 64
   max-special-projectiles: 64
   idle-reset-seconds: 60
 portal:
-  # Sneak on deep bedrock for 3 seconds, or /void enter.
+  # Create a Nether Portal shape out of Crying Obsidian and ignite with Fire Charge or Eye of Ender.
   entry-worlds: [world]
-  bedrock-trigger-y: -56
-  stand-seconds: 3
 combat:
-  # Mansion: three phases. Sanctum: one. Each phase stays below the engine health cap.
-  boss-health-per-phase: 1200
-  boss-skill-damage: 65
+  boss-skill-damage: 35
 rewards:
-  major-shards: 8
-  minor-shards: 2
-  relic-chance: 0.30
-  forge-cost: 24
-  minimum-participation-seconds: 20
+  # Vault Loot Table Percentages:
+  # 10% Advance Magic Core Item (Enchanted Golden Apple, Nether Star, Dragon's Breath, etc.)
+  # 30% Diamond Block
+  # 30% Netherite Ingot
+  # 20% Random Armor Trim Smithing Template
+  # 10% Special Equipment (Rift 3x3 Pickaxe, Smelter Pickaxe, Storm Bow)
 relics:
   allow-pvp: false
-  shield:
-    duration-seconds: 3
-    cooldown-seconds: 75
-  blink:
-    distance: 8
-    cooldown-seconds: 8
   bow:
     cooldown-seconds: 5
 resource-pack:
-  # Direct HTTPS download of dist/voidscape-java.zip, filled after hosting the pack.
   url: ''
   sha1: ''
   required: false
+

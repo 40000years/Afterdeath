@@ -20,37 +20,116 @@ import java.util.*;
 
 public final class RelicService implements Listener {
     public enum Relic {
-        RIFT_PICKAXE(Material.NETHERITE_PICKAXE,"อีเต้อแยกพิภพ","ขุด 3×3 · ย่อตัวเพื่อขุดทีละก้อน"),
+        VOID_KEY(Material.TRIAL_KEY,"กุญแจมิติ Void","ใช้สำหรับเปิด Void Vault ในวิหารโบราณ"),
+        RIFT_PICKAXE(Material.NETHERITE_PICKAXE,"อีเต้อแยกพิภพ","ขุด 3×3 บล็อกพร้อมกัน · ย่อตัวเพื่อขุดทีละก้อน"),
+        SMELTER_PICKAXE(Material.NETHERITE_PICKAXE,"อีเต้อหลอมเพลิงมิติ","หลอมบล็อกที่ขุดอัตโนมัติ (ทราย->กระจก, แร่->แท่งโลหะ)"),
+        STORM_BOW(Material.BOW,"ธนูพิพากษาสายฟ้า","ยิงธนูผ่าสายฟ้าต่อเนื่องใส่ศัตรู"),
         NOVA_BOW(Material.BOW,"ธนูสะเก็ดดาว","ชาร์จเต็ม: ระเบิดพลังงาน · ไม่ทำลายบล็อก"),
-        STORM_BOW(Material.BOW,"ธนูพิพากษา","ชาร์จเต็ม: สายฟ้าต่อเนื่องสูงสุด 3 เป้าหมาย"),
         RIFT_BLADE(Material.NETHERITE_SWORD,"ดาบกรีดมิติ","คลิกขวา: วาร์ปไปข้างหน้า · ต้องมีทางโล่ง"),
-        ETERNAL_AEGIS(Material.SHIELD,"โล่แห่งความอมตะ","คลิกขวา: อมตะ 3 วินาที · โจมตีไม่ได้ขณะใช้งาน"),
-        VOID_SHARD(Material.ECHO_SHARD,"ผลึกโบราณ","สะสม 24 ชิ้น · /void forge <ชื่อไอเทม>");
+        ETERNAL_AEGIS(Material.SHIELD,"โล่แห่งความอมตะ","คลิกขวา: อมตะ 3 วินาที · โจมตีไม่ได้ขณะใช้งาน");
         public final Material material; public final String title,lore;
         Relic(Material m,String t,String l){material=m;title=t;lore=l;}
         public String id(){return name().toLowerCase(Locale.ROOT);}
     }
     private final VoidscapePlugin plugin;
-    private final NamespacedKey type,shot,shotOwner,shieldUntil;
+    private final NamespacedKey type,shot,shotOwner,shieldUntil,voidKeyTag;
     private final Set<UUID> mining=new HashSet<>();
     private final Map<UUID,Long> arrows=new HashMap<>();
+    private static final Material[] WAND_CORES = {
+        Material.ENCHANTED_GOLDEN_APPLE, Material.NETHER_STAR, Material.DRAGON_BREATH,
+        Material.REINFORCED_DEEPSLATE, Material.LODESTONE, Material.SCULK_CATALYST,
+        Material.SPORE_BLOSSOM, Material.SHULKER_SHELL, Material.BLUE_ICE
+    };
+    private static final Material[] ARMOR_TRIMS = {
+        Material.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE, Material.SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE,
+        Material.WARD_ARMOR_TRIM_SMITHING_TEMPLATE, Material.VEX_ARMOR_TRIM_SMITHING_TEMPLATE,
+        Material.RIB_ARMOR_TRIM_SMITHING_TEMPLATE, Material.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE,
+        Material.TIDE_ARMOR_TRIM_SMITHING_TEMPLATE, Material.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE,
+        Material.RAISER_ARMOR_TRIM_SMITHING_TEMPLATE, Material.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE,
+        Material.HOST_ARMOR_TRIM_SMITHING_TEMPLATE, Material.FLOW_ARMOR_TRIM_SMITHING_TEMPLATE,
+        Material.BOLT_ARMOR_TRIM_SMITHING_TEMPLATE, Material.EYE_ARMOR_TRIM_SMITHING_TEMPLATE,
+        Material.DUNE_ARMOR_TRIM_SMITHING_TEMPLATE, Material.COAST_ARMOR_TRIM_SMITHING_TEMPLATE,
+        Material.WILD_ARMOR_TRIM_SMITHING_TEMPLATE, Material.SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE
+    };
     public RelicService(VoidscapePlugin plugin) {
         this.plugin=plugin; type=plugin.key("relic_v2");shot=plugin.key("shot");shotOwner=plugin.key("shot_owner");shieldUntil=plugin.key("shield_until");
+        voidKeyTag=plugin.key("void_key");
     }
     public ItemStack create(Relic relic,int count) {
         ItemStack item=new ItemStack(relic.material,Math.min(relic.material.getMaxStackSize(),Math.max(1,count)));
         ItemMeta meta=item.getItemMeta();
-        meta.displayName(Component.text(relic.title,NamedTextColor.AQUA));
-        meta.lore(List.of(Component.text(relic.lore,NamedTextColor.GRAY),Component.text("VOIDSCAPE · RELIC",NamedTextColor.DARK_PURPLE)));
+        meta.displayName(Component.text(relic.title,relic==Relic.VOID_KEY?NamedTextColor.LIGHT_PURPLE:NamedTextColor.AQUA));
+        meta.lore(List.of(
+            Component.text(relic.lore,NamedTextColor.GRAY),
+            Component.text(relic==Relic.VOID_KEY?"VOIDSCAPE · TRIAL KEY":"VOIDSCAPE · RELIC",NamedTextColor.DARK_PURPLE)
+        ));
         meta.setItemModel(new NamespacedKey("voidscape",relic.id()));
         meta.getPersistentDataContainer().set(type,PersistentDataType.STRING,relic.name());
-        if(relic!=Relic.VOID_SHARD) {
+        if(relic==Relic.VOID_KEY) {
+            meta.getPersistentDataContainer().set(voidKeyTag,PersistentDataType.BYTE,(byte)1);
+        } else {
             meta.addEnchant(Enchantment.UNBREAKING,3,true);
-            if(relic==Relic.RIFT_PICKAXE) {meta.addEnchant(Enchantment.EFFICIENCY,5,true);meta.addEnchant(Enchantment.FORTUNE,3,true);}
+            if(relic==Relic.RIFT_PICKAXE||relic==Relic.SMELTER_PICKAXE) {meta.addEnchant(Enchantment.EFFICIENCY,5,true);meta.addEnchant(Enchantment.FORTUNE,3,true);}
             if(relic==Relic.RIFT_BLADE) meta.addEnchant(Enchantment.SHARPNESS,8,true);
             if(relic==Relic.NOVA_BOW||relic==Relic.STORM_BOW) meta.addEnchant(Enchantment.POWER,6,true);
         }
         item.setItemMeta(meta); return item;
+    }
+    public boolean isVoidKey(ItemStack item) {
+        if(item==null||!item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(voidKeyTag,PersistentDataType.BYTE)
+            || type(item)==Relic.VOID_KEY;
+    }
+    public ItemStack createVoidKey() {
+        return create(Relic.VOID_KEY,1);
+    }
+    public ItemStack rollVaultReward() {
+        Random r=new Random();
+        double roll=r.nextDouble();
+        // 10% Advance Magic Core Item
+        if(roll<0.10) {
+            Material coreMat=WAND_CORES[r.nextInt(WAND_CORES.length)];
+            ItemStack core=new ItemStack(coreMat,1);
+            ItemMeta meta=core.getItemMeta();
+            meta.displayName(Component.text("✦ แกนคทาเวทมนตร์",NamedTextColor.LIGHT_PURPLE));
+            meta.lore(List.of(
+                Component.text("แกนพลังงานบริสุทธิ์สำหรับคราฟต์คทา Advance Magic",NamedTextColor.GRAY),
+                Component.text("ส่วนขยาย ADVANCE MAGIC · VOIDSCAPE",NamedTextColor.DARK_PURPLE)
+            ));
+            core.setItemMeta(meta);
+            return core;
+        }
+        // 30% Diamond Block
+        if(roll<0.40) {
+            return new ItemStack(Material.DIAMOND_BLOCK,1);
+        }
+        // 30% Netherite Ingot
+        if(roll<0.70) {
+            return new ItemStack(Material.NETHERITE_INGOT,1);
+        }
+        // 20% Random Armor Trim
+        if(roll<0.90) {
+            Material trimMat=ARMOR_TRIMS[r.nextInt(ARMOR_TRIMS.length)];
+            return new ItemStack(trimMat,1);
+        }
+        // 10% Special Tool
+        Relic[] tools={Relic.RIFT_PICKAXE,Relic.SMELTER_PICKAXE,Relic.STORM_BOW};
+        return create(tools[r.nextInt(tools.length)],1);
+    }
+    public ItemStack createGuideBook() {
+        ItemStack book=new ItemStack(Material.WRITTEN_BOOK);
+        org.bukkit.inventory.meta.BookMeta meta=(org.bukkit.inventory.meta.BookMeta)book.getItemMeta();
+        meta.setTitle("บันทึกมิติ Voidscape");
+        meta.setAuthor("ผู้พิทักษ์มิติ");
+        meta.pages(List.of(
+            Component.text("§1§lมิติความว่างเปล่า\n§0(Voidscape Realm)\n§8ส่วนขยาย Advance Magic\n\n§0ยินดีต้อนรับสู่มิติแห่งความว่างเปล่า!\nที่นี่เต็มไปด้วยเกาะลอยฟ้าและวิหารโบราณ 3 แห่งที่ซ่อนพลังเวทมนตร์อันยิ่งใหญ่ไว้"),
+            Component.text("§1§lการสำรวจ (การบิน)\n§0สวมใส่ §5Elytra§0 และใช้พลุบินสำรวจไปตามเกาะลอยฟ้า\n\n§0วิหารโบราณ 3 รูปแบบ:\n§51. วิหารความมืด\n§92. วิหารดวงดาว\n§63. วิหารกาลเวลา"),
+            Component.text("§1§lกฎการท้าทาย\n§0- คลิกที่แท่น §5Lodestone§0 กลางวิหารเพื่อเรียกผู้พิทักษ์\n\n§0⚠ §c§lคำเตือน:§r§0 ห้ามนำเรือหรือรถรางมาขังมอนสเตอร์เด็ดขาด! พลังวิหารจะขับไล่ยานพาหนะทันที"),
+            Component.text("§1§lรางวัล & Void Vault\n§0- เมื่อชนะการต่อสู้ §dVoid Key§0 จะเด้งเข้าตัวผู้เล่นทันที\n- นำไปเปิด §5Void Vault§0\n- §cเปิดได้คนละ 1 ครั้งต่อกล่อง!§0\n\n§0§lโอกาสดรอป:§r\n§5• 10%§0 แกนคทา Magic\n§b• 30%§0 Diamond Block\n§8• 30%§0 Netherite Ingot\n§e• 20%§0 Armor Trim สุ่ม\n§d• 10%§0 อุปกรณ์พิเศษ"),
+            Component.text("§1§lอุปกรณ์พิเศษ (10%)\n§0• §bที่ขุด 3x3§0: ขุดพื้นที่ 3x3 บล็อกพร้อมกัน\n• §6ที่ขุดหลอมอัตโนมัติ§0: ขุดทรายได้กระจก ขุดแร่ได้แท่งโลหะ\n• §dธนูสายฟ้า§0: ยิงธนูผ่าสายฟ้าต่อเนื่องใส่ศัตรู")
+        ));
+        book.setItemMeta(meta);
+        return book;
     }
     public Relic type(ItemStack item) {
         if(item==null||!item.hasItemMeta()) return null;
@@ -181,14 +260,40 @@ public final class RelicService implements Listener {
             } finally {mining.remove(id);}
         });
     }
-    public boolean forge(Player p,Relic relic) {
-        if(relic==Relic.VOID_SHARD)return false;
-        int cost=plugin.integer("rewards.forge-cost",24,1,256),count=0;
-        for(ItemStack item:p.getInventory().getStorageContents())if(type(item)==Relic.VOID_SHARD)count+=item.getAmount();
-        if(count<cost){plugin.message(p,"ต้องมีผลึกโบราณ "+cost+" ชิ้น");return false;}
-        if(p.getInventory().firstEmpty()<0){plugin.message(p,"เว้นช่องว่างในกระเป๋า 1 ช่องก่อน");return false;}
-        for(ItemStack item:p.getInventory().getStorageContents())if(type(item)==Relic.VOID_SHARD&&cost>0){int n=Math.min(cost,item.getAmount());item.subtract(n);cost-=n;}
-        p.getInventory().addItem(create(relic,1));p.saveData();plugin.message(p,"หลอม "+relic.title+" สำเร็จ");return true;
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void smeltMine(BlockBreakEvent e) {
+        Player p=e.getPlayer();
+        if(p.getGameMode()!=GameMode.SURVIVAL)return;
+        ItemStack held=p.getInventory().getItemInMainHand();
+        if(type(held)!=Relic.SMELTER_PICKAXE)return;
+        Block block=e.getBlock();
+        ItemStack smelted=smeltResult(block.getType());
+        if(smelted==null)return;
+        e.setDropItems(false);
+        e.setExpToDrop(Math.max(e.getExpToDrop(),1));
+        Location loc=block.getLocation().add(0.5,0.5,0.5);
+        block.getWorld().dropItemNaturally(loc,smelted);
+        block.getWorld().spawnParticle(Particle.FLAME,loc,6,0.2,0.2,0.2,0.02);
+        block.getWorld().spawnParticle(Particle.SMOKE,loc,3,0.1,0.1,0.1,0.01);
+        p.playSound(loc,Sound.BLOCK_FURNACE_FIRE_CRACKLE,0.6f,1.2f);
+    }
+    private ItemStack smeltResult(Material m) {
+        return switch(m) {
+            case SAND, RED_SAND -> new ItemStack(Material.GLASS,1);
+            case IRON_ORE, DEEPSLATE_IRON_ORE, RAW_IRON_BLOCK -> new ItemStack(Material.IRON_INGOT,m==Material.RAW_IRON_BLOCK?9:1);
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE, RAW_GOLD_BLOCK -> new ItemStack(Material.GOLD_INGOT,m==Material.RAW_GOLD_BLOCK?9:1);
+            case COPPER_ORE, DEEPSLATE_COPPER_ORE, RAW_COPPER_BLOCK -> new ItemStack(Material.COPPER_INGOT,m==Material.RAW_COPPER_BLOCK?9:1);
+            case ANCIENT_DEBRIS -> new ItemStack(Material.NETHERITE_SCRAP,1);
+            case COBBLESTONE -> new ItemStack(Material.STONE,1);
+            case COBBLED_DEEPSLATE -> new ItemStack(Material.DEEPSLATE,1);
+            case STONE -> new ItemStack(Material.SMOOTH_STONE,1);
+            case CLAY -> new ItemStack(Material.TERRACOTTA,1);
+            case NETHERRACK -> new ItemStack(Material.NETHER_BRICK,1);
+            case WET_SPONGE -> new ItemStack(Material.SPONGE,1);
+            case CACTUS -> new ItemStack(Material.GREEN_DYE,1);
+            case OAK_LOG, SPRUCE_LOG, BIRCH_LOG, JUNGLE_LOG, ACACIA_LOG, DARK_OAK_LOG, MANGROVE_LOG, CHERRY_LOG -> new ItemStack(Material.CHARCOAL,1);
+            default -> null;
+        };
     }
     public void tick() {
         long now=System.currentTimeMillis();

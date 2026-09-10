@@ -1,6 +1,19 @@
 {
   "format_version": 2,
   "items": {
+    "minecraft:trial_key": [
+      {
+        "type": "definition",
+        "model": "voidscape:void_key",
+        "bedrock_identifier": "voidscape:void_key",
+        "display_name": "Void Key",
+        "bedrock_options": {
+          "icon": "voidscape.void_key",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      }
+    ],
     "minecraft:netherite_pickaxe": [
       {
         "type": "definition",
@@ -12,20 +25,20 @@
           "allow_offhand": true,
           "display_handheld": true
         }
-      }
-    ],
-    "minecraft:bow": [
+      },
       {
         "type": "definition",
-        "model": "voidscape:nova_bow",
-        "bedrock_identifier": "voidscape:nova_bow",
-        "display_name": "Nova Bow",
+        "model": "voidscape:smelter_pickaxe",
+        "bedrock_identifier": "voidscape:smelter_pickaxe",
+        "display_name": "Smelter's Pickaxe",
         "bedrock_options": {
-          "icon": "voidscape.nova_bow",
+          "icon": "voidscape.smelter_pickaxe",
           "allow_offhand": true,
           "display_handheld": true
         }
-      },
+      }
+    ],
+    "minecraft:bow": [
       {
         "type": "definition",
         "model": "voidscape:storm_bow",
@@ -33,6 +46,17 @@
         "display_name": "Storm Verdict",
         "bedrock_options": {
           "icon": "voidscape.storm_bow",
+          "allow_offhand": true,
+          "display_handheld": true
+        }
+      },
+      {
+        "type": "definition",
+        "model": "voidscape:nova_bow",
+        "bedrock_identifier": "voidscape:nova_bow",
+        "display_name": "Nova Bow",
+        "bedrock_options": {
+          "icon": "voidscape.nova_bow",
           "allow_offhand": true,
           "display_handheld": true
         }
@@ -59,43 +83,6 @@
         "display_name": "Eternal Aegis",
         "bedrock_options": {
           "icon": "voidscape.eternal_aegis",
-          "allow_offhand": true,
-          "display_handheld": false
-        }
-      }
-    ],
-    "minecraft:echo_shard": [
-      {
-        "type": "definition",
-        "model": "voidscape:void_shard",
-        "bedrock_identifier": "voidscape:void_shard",
-        "display_name": "Ancient Void Shard",
-        "bedrock_options": {
-          "icon": "voidscape.void_shard",
-          "allow_offhand": true,
-          "display_handheld": false
-        }
-      }
-    ],
-    "minecraft:carved_pumpkin": [
-      {
-        "type": "definition",
-        "model": "voidscape:hollow_mask",
-        "bedrock_identifier": "voidscape:hollow_mask",
-        "display_name": "Hollow Knight Mask",
-        "bedrock_options": {
-          "icon": "voidscape.hollow_mask",
-          "allow_offhand": true,
-          "display_handheld": false
-        }
-      },
-      {
-        "type": "definition",
-        "model": "voidscape:captain_mask",
-        "bedrock_identifier": "voidscape:captain_mask",
-        "display_name": "Hollow Captain Mask",
-        "bedrock_options": {
-          "icon": "voidscape.captain_mask",
           "allow_offhand": true,
           "display_handheld": false
         }

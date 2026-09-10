@@ -18,6 +18,12 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
         Player p=sender instanceof Player player?player:null;
         if(Set.of("give","locate","pregen","reload","status").contains(sub)&&!sender.hasPermission("voidscape.admin")){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
         switch(sub) {
+            case "guide" -> {
+                if(p!=null) {
+                    p.openBook(plugin.relics().createGuideBook());
+                    p.playSound(p.getLocation(),Sound.ITEM_BOOK_PAGE_TURN,0.8f,1.0f);
+                }
+            }
             case "enter" -> {if(p!=null&&p.hasPermission("voidscape.enter")){if(p.getWorld()==plugin.world())plugin.travel().leave(p,false);else plugin.travel().enter(p);}}
             case "tp" -> {
                 if(p==null)return true;
@@ -28,45 +34,46 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
                         plugin.message(p,"วาร์ปมายังจุดเกิดเกาะกลางมิติ");
                         return true;
                     }
-                    var kind=dest.contains("sanctum")?DungeonLayout.Kind.SANCTUM:DungeonLayout.Kind.DREADSHIP;
+                    var kind=dest.contains("astral")?DungeonLayout.Kind.SANCTUM_ASTRAL:
+                             dest.contains("time")?DungeonLayout.Kind.SANCTUM_TIME:
+                             DungeonLayout.Kind.SANCTUM_DARK;
                     int x=p.getWorld()==plugin.world()?p.getLocation().getBlockX():0,z=p.getWorld()==plugin.world()?p.getLocation().getBlockZ():0;
                     var s=plugin.layout().locate(x,z,kind,8);
                     if(s==null){plugin.message(sender,"ไม่พบสิ่งก่อสร้างในระยะค้นหา");return true;}
-                    int ty=kind==DungeonLayout.Kind.DREADSHIP&&dest.contains("ship")?135:97;
-                    p.teleport(new Location(plugin.world(),s.x()+0.5,ty,s.z()+0.5));
-                    plugin.message(p,"วาร์ปไปยัง "+s.kind()+" พิกัด X="+s.x()+" Y="+ty+" Z="+s.z());
+                    p.teleport(new Location(plugin.world(),s.x()+0.5,97,s.z()+8.5));
+                    plugin.message(p,"วาร์ปไปยัง "+s.kind().displayName+" พิกัด X="+s.x()+" Y=97 Z="+(s.z()+8));
                     return true;
                 }
                 if(p.hasPermission("voidscape.enter")){if(p.getWorld()==plugin.world())plugin.travel().leave(p,false);else plugin.travel().enter(p);}
             }
             case "leave" -> {if(p!=null&&p.getWorld()==plugin.world())plugin.travel().leave(p,false);}
-            case "claim" -> {if(p!=null)plugin.dungeons().claim(p);}
-            case "forge" -> {if(p!=null)try{plugin.relics().forge(p,Relic.valueOf(args[1].toUpperCase(Locale.ROOT)));}catch(RuntimeException e){plugin.message(sender,"/void forge rift_pickaxe|nova_bow|storm_bow|rift_blade|eternal_aegis");}}
             case "give" -> {
                 try {
                     Relic r=Relic.valueOf(args[1].toUpperCase(Locale.ROOT));Player target=args.length>2?Bukkit.getPlayerExact(args[2]):p;
                     if(target==null){plugin.message(sender,"ระบุผู้เล่นออนไลน์ด้วย");return true;}
                     if(target.getInventory().firstEmpty()<0){plugin.message(sender,"กระเป๋าผู้รับเต็ม");return true;}
-                    target.getInventory().addItem(plugin.relics().create(r,r==Relic.VOID_SHARD?24:1));plugin.message(sender,"มอบ "+r.id()+" แล้ว");
+                    target.getInventory().addItem(plugin.relics().create(r,1));plugin.message(sender,"มอบ "+r.id()+" แล้ว");
                 }catch(RuntimeException e){plugin.message(sender,"/void give <ชื่อไอเทม> [ผู้เล่น]");}
             }
             case "locate" -> {
-                var kind=args.length>1&&args[1].equalsIgnoreCase("sanctum")?DungeonLayout.Kind.SANCTUM:DungeonLayout.Kind.DREADSHIP;
+                var kind=args.length>1&&args[1].toLowerCase(Locale.ROOT).contains("astral")?DungeonLayout.Kind.SANCTUM_ASTRAL:
+                         args.length>1&&args[1].toLowerCase(Locale.ROOT).contains("time")?DungeonLayout.Kind.SANCTUM_TIME:
+                         DungeonLayout.Kind.SANCTUM_DARK;
                 int x=p!=null&&p.getWorld()==plugin.world()?p.getLocation().getBlockX():0,z=p!=null&&p.getWorld()==plugin.world()?p.getLocation().getBlockZ():0;
                 var s=plugin.layout().locate(x,z,kind,8);
                 if(s==null){plugin.message(sender,"ไม่พบในขอบเขตค้นหา");}
                 else {
                     int dist=(int)Math.hypot(s.x()-x,s.z()-z);
-                    plugin.message(sender,s.kind()+" X="+s.x()+" Z="+s.z()+" · ทางเข้า Y=97 (ห่าง "+dist+" บล็อก)");
+                    plugin.message(sender,s.kind().displayName+" X="+s.x()+" Z="+s.z()+" · ทางเข้า Y=97 (ห่าง "+dist+" บล็อก)");
                 }
             }
             case "pregen" -> pregen(sender,args);
-            case "reload" -> {plugin.reloadConfig();plugin.message(sender,"โหลดการต่อสู้/รางวัลแล้ว · ตำแหน่ง structure คงเดิมตาม world-layout.yml");}
-            case "status" -> plugin.message(sender,"Voidscape 2.0 · "+plugin.world().getName()+" · ดัน "+plugin.dungeons().activeCount()+" · มอน "+plugin.dungeons().mobCount()+" · pregen "+generated+"/"+total);
+            case "reload" -> {plugin.reloadConfig();plugin.message(sender,"โหลดการตั้งค่าแล้ว · ตำแหน่งวิหารคงเดิมตาม world-layout.yml");}
+            case "status" -> plugin.message(sender,"Voidscape 2.0 · "+plugin.world().getName()+" · การต่อสู้ "+plugin.dungeons().activeCount()+" · มอน "+plugin.dungeons().mobCount()+" · pregen "+generated+"/"+total);
             default -> {
-                plugin.message(sender,"Voidscape 2.0 · /void enter · leave · claim · forge <ไอเทม>");
-                plugin.message(sender,"สำรวจหาเรือเหนือคฤหาสน์ · คลิกผนึกเพื่อเริ่มต่อสู้ · สะสมผลึกแลกของ");
-                if(sender.hasPermission("voidscape.admin"))plugin.message(sender,"แอดมิน: tp [dreadship|sanctum|spawn] · locate · give · status · pregen · reload");
+                plugin.message(sender,"Voidscape 2.0 (Advance Magic Expansion) · /void guide · /void leave");
+                plugin.message(sender,"สร้างประตู Crying Obsidian แล้วจุดด้วย Fire Charge หรือ Eye of Ender เพื่อเดินทาง");
+                if(sender.hasPermission("voidscape.admin"))plugin.message(sender,"แอดมิน: tp [dark|astral|time|spawn] · locate · give · status · pregen · reload");
             }
         }
         return true;
@@ -89,10 +96,10 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
     }
     @Override public List<String> onTabComplete(CommandSender sender,Command command,String alias,String[] args) {
         List<String> c=new ArrayList<>();
-        if(args.length==1){c.addAll(List.of("help","enter","leave","claim","forge"));if(sender.hasPermission("voidscape.admin"))c.addAll(List.of("tp","give","locate","status","reload","pregen"));}
-        if(args.length==2&&args[0].equalsIgnoreCase("tp")&&sender.hasPermission("voidscape.admin"))c.addAll(List.of("dreadship","ship","sanctum","spawn"));
-        if(args.length==2&&(args[0].equalsIgnoreCase("forge")||args[0].equalsIgnoreCase("give")&&sender.hasPermission("voidscape.admin")))for(Relic r:Relic.values())c.add(r.id());
-        if(args.length==2&&args[0].equalsIgnoreCase("locate")&&sender.hasPermission("voidscape.admin"))c.addAll(List.of("dreadship","sanctum"));
+        if(args.length==1){c.addAll(List.of("help","guide","enter","leave"));if(sender.hasPermission("voidscape.admin"))c.addAll(List.of("tp","give","locate","status","reload","pregen"));}
+        if(args.length==2&&args[0].equalsIgnoreCase("tp")&&sender.hasPermission("voidscape.admin"))c.addAll(List.of("dark","astral","time","spawn"));
+        if(args.length==2&&args[0].equalsIgnoreCase("give")&&sender.hasPermission("voidscape.admin"))for(Relic r:Relic.values())c.add(r.id());
+        if(args.length==2&&args[0].equalsIgnoreCase("locate")&&sender.hasPermission("voidscape.admin"))c.addAll(List.of("dark","astral","time"));
         return c.stream().filter(s->s.startsWith(args[args.length-1].toLowerCase(Locale.ROOT))).toList();
     }
 }

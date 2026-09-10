@@ -1,7 +1,6 @@
 package com.example.voidscape.dungeon;
 
 import com.example.voidscape.VoidscapePlugin;
-import com.example.voidscape.item.RelicService.Relic;
 import com.example.voidscape.world.DungeonLayout;
 import com.example.voidscape.world.DungeonLayout.Site;
 import net.kyori.adventure.text.Component;
@@ -19,22 +18,19 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.potion.*;
 import org.bukkit.util.Vector;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
 public final class DungeonManager implements Listener {
-    private enum Species { HOLLOW, STALKER, WEAVER, CAPTAIN }
-    private static final int[][] MAIN_SEALS={{-25,97,-16},{25,104,16},{-25,111,16}};
-    private static final int[][] MINOR_SEALS={{0,97,8}};
+    private enum Species { MINION, CASTER, STALKER, BOSS }
     private static final class Encounter {
         final Site site; final Map<UUID,Species> mobs=new HashMap<>();
         final Map<UUID,Integer> presence=new HashMap<>();
-        int seals=0,wave=-1,phase=0; boolean bossStarted=false,finished=false;
-        long lastPresent=System.currentTimeMillis(),lastSkill=0,warningAt=0,phaseUntil=0;
-        Location warning; UUID caster; BossBar bar;
+        int wave=0; boolean bossStarted=false,finished=false;
+        long lastPresent=System.currentTimeMillis(),lastSkill=0,warningAt=0;
+        Location warning; BossBar bar;
         Encounter(Site site){this.site=site;}
     }
     private final VoidscapePlugin plugin;
@@ -47,15 +43,17 @@ public final class DungeonManager implements Listener {
     private final YamlConfiguration ledger;
     private final File file;
     private boolean storageHealthy=true;
+
     public DungeonManager(VoidscapePlugin plugin)throws IOException {
         this.plugin=plugin;mobKey=plugin.key("dungeon_mob");runKey=plugin.key("runtime");
         file=new File(plugin.getDataFolder(),"dungeons.yml");
         ledger=new YamlConfiguration();
         if(file.exists())try{ledger.load(file);}catch(Exception e){throw new IOException("Cannot safely read reward ledger",e);}
-        // Persistent tags are authoritative. Remove only our stale encounter entities, never named vanilla mobs.
         for(Entity e:plugin.world().getEntities())if(e.getPersistentDataContainer().has(mobKey))e.remove();
     }
+
     private String path(Site s){return "sites."+s.id();}
+
     private boolean save() {
         try {
             Path dest=file.toPath(),tmp=dest.resolveSibling("dungeons.yml.tmp");
@@ -63,181 +61,264 @@ public final class DungeonManager implements Listener {
             try{Files.move(tmp,dest,StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);}
             catch(AtomicMoveNotSupportedException e){Files.move(tmp,dest,StandardCopyOption.REPLACE_EXISTING);}
             return true;
-        }catch(IOException e){storageHealthy=false;plugin.getLogger().log(java.util.logging.Level.SEVERE,"Reward storage failed; new encounters/claims disabled",e);return false;}
+        }catch(IOException e){storageHealthy=false;plugin.getLogger().log(java.util.logging.Level.SEVERE,"Reward storage failed",e);return false;}
     }
+
     public boolean inCombat(Player p){return combatUntil.getOrDefault(p.getUniqueId(),0L)>System.currentTimeMillis();}
     public int mobCount(){return owners.size();} public int activeCount(){return active.size();}
     private boolean playable(Player p){return p.isOnline()&&!p.isDead()&&(p.getGameMode()==GameMode.SURVIVAL||p.getGameMode()==GameMode.ADVENTURE);}
+
     private List<Player> players(Site site) {
         List<Player> result=new ArrayList<>();
         for(Player p:plugin.world().getPlayers())if(playable(p)&&p.getY()>60&&p.getY()<170&&site.contains(p.getX(),p.getZ(),12))result.add(p);
         return result;
     }
+
     private Location position(Site s,int x,int y,int z){return new Location(plugin.world(),s.x()+x+0.5,y,s.z()+z+0.5);}
-    private int[][] seals(Site site){return site.kind()==DungeonLayout.Kind.DREADSHIP?MAIN_SEALS:MINOR_SEALS;}
+
     @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true)
     public void interact(PlayerInteractEvent e) {
         Player p=e.getPlayer();Block block=e.getClickedBlock();
         if(p.getWorld()!=plugin.world()||block==null||!e.getAction().isRightClick()||e.getHand()!=EquipmentSlot.HAND||!playable(p))return;
         Site site=plugin.layout().at(block.getX(),block.getZ(),0);if(site==null)return;
-        if(block.getType()==Material.VAULT){e.setCancelled(true);claim(p);return;}
-        if(block.getType()!=Material.LODESTONE)return;
-        int index=-1;int[][] marks=seals(site);
-        for(int i=0;i<marks.length;i++)if(block.getX()==site.x()+marks[i][0]&&block.getY()==marks[i][1]&&block.getZ()==site.z()+marks[i][2])index=i;
-        if(index<0)return;e.setCancelled(true);
-        if(!storageHealthy){plugin.message(p,"คลังรางวัลไม่พร้อม · แจ้งแอดมิน");return;}
+
+        // Vault interaction
+        if(block.getType()==Material.VAULT) {
+            e.setCancelled(true);
+            openVault(p,site,block);
+            return;
+        }
+
+        // Altar Lodestone interaction at (site.x, 97, site.z + 8)
+        if(block.getType()!=Material.LODESTONE||block.getX()!=site.x()||block.getY()!=97||block.getZ()!=site.z()+8)return;
+        e.setCancelled(true);
+
+        if(!storageHealthy){plugin.message(p,"ระบบบันทึกไม่พร้อม · แจ้งแอดมิน");return;}
         long next=ledger.getLong(path(site)+".next-open",0);
-        if(next>System.currentTimeMillis()){plugin.message(p,"ผนึกกำลังฟื้นตัว · อีก "+Math.max(1,(next-System.currentTimeMillis())/60000)+" นาที");return;}
+        if(next>System.currentTimeMillis()){plugin.message(p,"วิหารกำลังฟื้นตัว · อีก "+Math.max(1,(next-System.currentTimeMillis())/60000)+" นาที");return;}
+
         Encounter encounter=active.get(site.id());
-        if(encounter==null) {
-            if(active.size()>=plugin.integer("performance.max-active-dungeons",4,1,12)){plugin.message(p,"มีการต่อสู้หลายแห่งอยู่ · ลองใหม่ภายหลัง");return;}
-            encounter=new Encounter(site);active.put(site.id(),encounter);
+        if(encounter!=null) {
+            plugin.message(p,"การต่อสู้ในวิหารนี้กำลังดำเนินอยู่!");
+            return;
         }
-        if((encounter.seals&(1<<index))!=0){plugin.message(p,"ผนึกนี้ถูกปลดแล้ว");return;}
-        if(!encounter.mobs.isEmpty()||encounter.bossStarted){plugin.message(p,"กำจัดผู้เฝ้าผนึกก่อน");return;}
-        if(mobCount()+4>plugin.integer("performance.max-dungeon-mobs",48,4,128)){plugin.message(p,"พลังผนึกยังไม่พร้อม · ลองใหม่ภายหลัง");return;}
-        encounter.wave=index;
-        List<Player> team=players(site);
-        int amount=Math.min(6,2+Math.min(team.size(),4));
-        int[] marker=marks[index];
-        for(int i=0;i<amount;i++) {
-            Species kind=Species.values()[(i+index+(int)Math.floorMod(site.variant(),3))%3];
-            Location spawn=position(site,marker[0]+(i%2==0?-3:3),marker[1],marker[2]+(i<2?-3:3));
-            spawn(encounter,kind,spawn,team.size());
-        }
-        if(encounter.mobs.isEmpty()){plugin.message(p,"ไม่สามารถเรียกผู้เฝ้าได้ · ตรวจระบบป้องกันการเกิดมอนสเตอร์");return;}
-        for(Player member:team){encounter.presence.putIfAbsent(member.getUniqueId(),0);plugin.message(member,"ผนึกตื่นแล้ว · กำจัดผู้เฝ้าแห่งความว่างเปล่า");}
+        if(active.size()>=plugin.integer("performance.max-active-dungeons",6,1,16)){plugin.message(p,"มีการต่อสู้หลายแห่งในมิติ · ลองใหม่ภายหลัง");return;}
+        if(mobCount()+6>plugin.integer("performance.max-dungeon-mobs",64,4,128)){plugin.message(p,"พลังงานมิติยังไม่คงที่ · ลองใหม่ภายหลัง");return;}
+
+        encounter=new Encounter(site);
+        active.put(site.id(),encounter);
+        startWave(encounter,1);
     }
+
+    private void openVault(Player p,Site site,Block block) {
+        String openedPath=path(site)+".opened."+p.getUniqueId();
+        if(ledger.getBoolean(openedPath,false)) {
+            plugin.message(p,"คุณเคยเปิดกล่องสมบัตินี้ไปแล้ว (เปิดได้คนละ 1 ครั้งต่อวิหาร)");
+            p.playSound(p.getLocation(),Sound.BLOCK_CHEST_LOCKED,0.7f,1.0f);
+            return;
+        }
+
+        ItemStack hand=p.getInventory().getItemInMainHand();
+        if(!plugin.relics().isVoidKey(hand)) {
+            if(hand.getType()==Material.TRIAL_KEY||hand.getType()==Material.OMINOUS_TRIAL_KEY) {
+                plugin.message(p,"กุญแจ Trial จากโลกปกติไม่สามารถเปิด Void Vault ได้! ต้องใช้ Void Key จากวิหาร");
+            } else {
+                plugin.message(p,"ต้องใช้ Void Key ในการเปิดกล่องสมบัตินี้ (เปิดได้คนละ 1 ครั้ง)");
+            }
+            p.playSound(p.getLocation(),Sound.BLOCK_CHEST_LOCKED,0.7f,1.0f);
+            return;
+        }
+
+        // Consume Void Key
+        hand.subtract(1);
+        ledger.set(openedPath,true);
+        save();
+
+        // Roll reward from 100% loot table
+        ItemStack reward=plugin.relics().rollVaultReward();
+        var leftover=p.getInventory().addItem(reward);
+        if(!leftover.isEmpty()) {
+            p.getWorld().dropItemNaturally(block.getLocation().add(0.5,1.2,0.5),reward);
+        }
+
+        // Vault fanfare
+        p.playSound(block.getLocation(),Sound.BLOCK_VAULT_OPEN_SHUTTER,1.0f,1.0f);
+        p.playSound(block.getLocation(),Sound.UI_TOAST_CHALLENGE_COMPLETE,0.8f,1.2f);
+        p.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION,block.getLocation().add(0.5,1.0,0.5),30,0.4,0.4,0.4,0.05);
+        p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,block.getLocation().add(0.5,1.0,0.5),25,0.3,0.5,0.3,0.1);
+
+        String rewardName=reward.getItemMeta()!=null&&reward.getItemMeta().hasDisplayName()?
+            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(reward.getItemMeta().displayName()):
+            reward.getType().name();
+        plugin.message(p,"✦ ปลดล็อก Void Vault สำเร็จ! คุณได้รับ "+rewardName);
+    }
+
+    private void startWave(Encounter enc,int waveNum) {
+        enc.wave=waveNum;
+        List<Player> team=players(enc.site);
+        for(Player member:team) {
+            enc.presence.putIfAbsent(member.getUniqueId(),0);
+            plugin.message(member,"✦ ระลอกที่ "+waveNum+"/2: ผู้พิทักษ์แห่ง"+enc.site.kind().displayName+"ปรากฏตัว!");
+            member.playSound(member.getLocation(),Sound.EVENT_RAID_HORN,0.7f,1.1f);
+        }
+        int count=Math.min(6,2+team.size());
+        for(int i=0;i<count;i++) {
+            Species sp=i%2==0?Species.MINION:Species.CASTER;
+            Location loc=position(enc.site,(i%3-1)*6,97,8+(i>2?4:-4));
+            spawn(enc,sp,loc,team.size());
+        }
+    }
+
+    private void spawnBoss(Encounter enc) {
+        enc.bossStarted=true;
+        List<Player> team=players(enc.site);
+        Location loc=position(enc.site,0,97,8);
+        LivingEntity boss=spawn(enc,Species.BOSS,loc,team.size());
+        if(boss!=null) {
+            String title=switch(enc.site.kind()) {
+                case SANCTUM_DARK -> "จอมมารแห่งความมืด (Shadow Overlord)";
+                case SANCTUM_ASTRAL -> "อัครเทวทูตดวงดาว (Astral Archon)";
+                case SANCTUM_TIME -> "ผู้พิทักษ์กาลเวลา (Chronos Vanguard)";
+            };
+            enc.bar=Bukkit.createBossBar(title,BarColor.PURPLE,BarStyle.SEGMENTED_10);
+            for(Player p:team) {
+                enc.bar.addPlayer(p);
+                plugin.message(p,"⚠ บอสแห่งวิหารปรากฏตัว: "+title+"!");
+                p.playSound(p.getLocation(),Sound.ENTITY_WITHER_SPAWN,0.7f,1.0f);
+            }
+        }
+    }
+
     private LivingEntity spawn(Encounter enc,Species species,Location where,int teamSize) {
         if(where.getWorld()!=plugin.world()||!where.getWorld().isChunkLoaded(where.getBlockX()>>4,where.getBlockZ()>>4))return null;
-        if(owners.size()>=plugin.integer("performance.max-dungeon-mobs",48,4,128))return null;
-        Class<? extends Mob> type=species==Species.WEAVER?Vex.class:species==Species.STALKER?Enderman.class:WitherSkeleton.class;
+        if(owners.size()>=plugin.integer("performance.max-dungeon-mobs",64,4,128))return null;
+
+        Class<? extends Mob> type=switch(species) {
+            case BOSS -> switch(enc.site.kind()) {
+                case SANCTUM_DARK -> WitherSkeleton.class;
+                case SANCTUM_ASTRAL -> Stray.class;
+                case SANCTUM_TIME -> PiglinBrute.class;
+            };
+            case CASTER -> Vex.class;
+            case STALKER -> Enderman.class;
+            case MINION -> switch(enc.site.kind()) {
+                case SANCTUM_DARK -> WitherSkeleton.class;
+                case SANCTUM_ASTRAL -> Stray.class;
+                case SANCTUM_TIME -> PiglinBrute.class;
+            };
+        };
+
         Mob mob=plugin.world().spawn(where,type,m->{
             m.getPersistentDataContainer().set(mobKey,PersistentDataType.STRING,enc.site.id());
             m.getPersistentDataContainer().set(runKey,PersistentDataType.STRING,runId);
-            double health=species==Species.CAPTAIN?plugin.integer("combat.boss-health-per-phase",1200,100,1800):species==Species.HOLLOW?120:species==Species.STALKER?90:65;
-            health=Math.min(2000,health*(1+Math.max(0,Math.min(teamSize,4)-2)*0.25));
-            m.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);m.setHealth(m.getAttribute(Attribute.MAX_HEALTH).getValue());
-            if(m.getAttribute(Attribute.ATTACK_DAMAGE)!=null)m.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(species==Species.CAPTAIN?plugin.integer("combat.boss-attack-damage",22,4,60):species==Species.HOLLOW?plugin.integer("combat.hollow-attack-damage",12,2,40):plugin.integer("combat.stalker-attack-damage",10,2,30));
-            if(m.getAttribute(Attribute.SCALE)!=null)m.getAttribute(Attribute.SCALE).setBaseValue(species==Species.CAPTAIN?2.2:species==Species.WEAVER?1.8:1.15);
-            if(m.getAttribute(Attribute.FOLLOW_RANGE)!=null)m.getAttribute(Attribute.FOLLOW_RANGE).setBaseValue(28);
-            if(m.getAttribute(Attribute.KNOCKBACK_RESISTANCE)!=null)m.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(species==Species.CAPTAIN?0.9:0.35);
-            if(m.getAttribute(Attribute.ARMOR)!=null)m.getAttribute(Attribute.ARMOR).setBaseValue(species==Species.CAPTAIN?16:8);
-            m.setPersistent(false);m.setRemoveWhenFarAway(true);
-            m.customName(Component.text(switch(species){case HOLLOW->"อัศวินเกราะกลวง";case STALKER->"นักล่าเสียงสะท้อน";case WEAVER->"ผู้เย็บรอยแยก";case CAPTAIN->enc.site.kind()==DungeonLayout.Kind.DREADSHIP?"กัปตันไร้ร่าง":"ผู้พิทักษ์มหาวิหาร";},NamedTextColor.LIGHT_PURPLE));
+            double health=species==Species.BOSS?950:species==Species.MINION?120:70;
+            health=Math.min(2000,health*(1+Math.max(0,Math.min(teamSize,4)-1)*0.25));
+            m.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);
+            m.setHealth(m.getAttribute(Attribute.MAX_HEALTH).getValue());
+            if(m.getAttribute(Attribute.ATTACK_DAMAGE)!=null)
+                m.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(species==Species.BOSS?24:14);
+            if(m.getAttribute(Attribute.SCALE)!=null)
+                m.getAttribute(Attribute.SCALE).setBaseValue(species==Species.BOSS?2.0:1.1);
+            if(m.getAttribute(Attribute.KNOCKBACK_RESISTANCE)!=null)
+                m.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(species==Species.BOSS?0.9:0.4);
+            if(m.getAttribute(Attribute.ARMOR)!=null)
+                m.getAttribute(Attribute.ARMOR).setBaseValue(species==Species.BOSS?16:8);
+            m.setPersistent(false);
+            m.setRemoveWhenFarAway(true);
             m.setCustomNameVisible(true);
-            if(m instanceof Vex vex)vex.setLimitedLifetime(false);
-            if(m instanceof WitherSkeleton) {
-                var equipment=m.getEquipment();
-                ItemStack helmet=new ItemStack(Material.CARVED_PUMPKIN);ItemMeta meta=helmet.getItemMeta();
-                meta.setItemModel(new NamespacedKey("voidscape",species==Species.CAPTAIN?"captain_mask":"hollow_mask"));helmet.setItemMeta(meta);
-                equipment.setHelmet(helmet);equipment.setHelmetDropChance(0);
-                equipment.setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));equipment.setChestplateDropChance(0);
-                equipment.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));equipment.setLeggingsDropChance(0);
-                equipment.setBoots(new ItemStack(Material.NETHERITE_BOOTS));equipment.setBootsDropChance(0);
-                equipment.setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));equipment.setItemInMainHandDropChance(0);
+
+            String name=species==Species.BOSS?
+                (enc.site.kind()==DungeonLayout.Kind.SANCTUM_DARK?"จอมมารแห่งความมืด":
+                 enc.site.kind()==DungeonLayout.Kind.SANCTUM_ASTRAL?"อัครเทวทูตดวงดาว":"ผู้พิทักษ์กาลเวลา"):
+                (species==Species.CASTER?"ภูตพลังเวท":species==Species.MINION?"อัศวินแห่งวิหาร":"นักล่ามิติ");
+            m.customName(Component.text(name,species==Species.BOSS?NamedTextColor.GOLD:NamedTextColor.LIGHT_PURPLE));
+
+            if(m instanceof Vex vex) vex.setLimitedLifetime(false);
+            if(m.getEquipment()!=null) {
+                if(species==Species.BOSS) {
+                    m.getEquipment().setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
+                    m.getEquipment().setChestplateDropChance(0);
+                    m.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
+                    m.getEquipment().setItemInMainHandDropChance(0);
+                } else if(m instanceof WitherSkeleton||m instanceof PiglinBrute) {
+                    m.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
+                    m.getEquipment().setItemInMainHandDropChance(0);
+                }
             }
         });
+
         if(!mob.isValid()||mob.isDead())return null;
-        enc.mobs.put(mob.getUniqueId(),species);owners.put(mob.getUniqueId(),enc);
+        enc.mobs.put(mob.getUniqueId(),species);
+        owners.put(mob.getUniqueId(),enc);
         return mob;
     }
+
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void creature(CreatureSpawnEvent e) {
         if(e.getLocation().getWorld()==plugin.world()&&!runId.equals(e.getEntity().getPersistentDataContainer().get(runKey,PersistentDataType.STRING)))e.setCancelled(true);
     }
-    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void entityTeleport(EntityTeleportEvent e){if(owners.containsKey(e.getEntity().getUniqueId()))e.setCancelled(true);}
-    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void changeBlock(EntityChangeBlockEvent e){if(e.getBlock().getWorld()==plugin.world())e.setCancelled(true);}
+
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void damage(EntityDamageByEntityEvent e) {
         Encounter enc=owners.get(e.getEntity().getUniqueId());
-        Entity source=e.getDamager();Player attacker=source instanceof Player p?p:source instanceof Projectile pr&&pr.getShooter() instanceof Player p?p:null;
-        if(enc!=null) {
-            if(attacker!=null&&(attacker.getWorld()!=plugin.world()||!enc.site.contains(attacker.getX(),attacker.getZ(),12))){e.setCancelled(true);return;}
-            Species kind=enc.mobs.get(e.getEntity().getUniqueId());
-            if(kind==Species.HOLLOW&&attacker!=null) {
-                Vector toward=attacker.getLocation().toVector().subtract(e.getEntity().getLocation().toVector()).setY(0);
-                if(toward.lengthSquared()>0.01&&toward.normalize().dot(e.getEntity().getLocation().getDirection().setY(0).normalize())>0.35)
-                    e.setDamage(e.getDamage()*0.35);
+        Entity source=e.getDamager();
+        Player attacker=source instanceof Player p?p:source instanceof Projectile pr&&pr.getShooter() instanceof Player p?p:null;
+        if(enc!=null&&attacker!=null) {
+            if(attacker.getWorld()!=plugin.world()||!enc.site.contains(attacker.getX(),attacker.getZ(),12)) {
+                e.setCancelled(true);return;
             }
-            if(attacker!=null)combatUntil.put(attacker.getUniqueId(),System.currentTimeMillis()+10000);
+            combatUntil.put(attacker.getUniqueId(),System.currentTimeMillis()+10000);
         }
     }
-    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void mobDamage(EntityDamageEvent e) {
-        Encounter enc=owners.get(e.getEntity().getUniqueId());if(enc==null)return;
-        if(e.getCause()==EntityDamageEvent.DamageCause.VOID||e.getCause()==EntityDamageEvent.DamageCause.FALL){e.setCancelled(true);return;}
-        if(enc.mobs.get(e.getEntity().getUniqueId())!=Species.CAPTAIN)return;
-        if(System.currentTimeMillis()<enc.phaseUntil){e.setCancelled(true);return;}
-        LivingEntity boss=(LivingEntity)e.getEntity();
-        int phases=enc.site.kind()==DungeonLayout.Kind.DREADSHIP?3:1;
-        if(e.getFinalDamage()>=boss.getHealth()&&enc.phase<phases-1) {
-            e.setCancelled(true);enc.phase++;boss.setHealth(boss.getAttribute(Attribute.MAX_HEALTH).getValue());
-            enc.phaseUntil=System.currentTimeMillis()+2500;enc.warningAt=0;
-            for(Player p:players(enc.site))plugin.message(p,"ร่างแตกสลายและประกอบใหม่ · ระยะ "+(enc.phase+1)+"/"+phases);
-        }
-    }
+
     @EventHandler(priority=EventPriority.HIGHEST)
     public void death(EntityDeathEvent e) {
         Encounter enc=owners.remove(e.getEntity().getUniqueId());if(enc==null)return;
         Species species=enc.mobs.remove(e.getEntity().getUniqueId());
         e.getDrops().clear();e.setDroppedExp(0);
         if(!runId.equals(e.getEntity().getPersistentDataContainer().get(runKey,PersistentDataType.STRING)))return;
-        if(species==Species.CAPTAIN){finish(enc);return;}
-        if(enc.mobs.isEmpty()&&!enc.bossStarted&&enc.wave>=0) {
-            enc.seals|=1<<enc.wave;enc.wave=-1;
-            for(Player p:players(enc.site))plugin.message(p,"ปลดผนึก "+Integer.bitCount(enc.seals)+"/"+seals(enc.site).length+
-                (Integer.bitCount(enc.seals)==seals(enc.site).length?" · ไปยัง "+(enc.site.kind()==DungeonLayout.Kind.DREADSHIP?"ดาดฟ้าเรือ":"แท่นกลางวิหาร"):" · ค้นหาผนึกต่อไป"));
+
+        if(species==Species.BOSS) {
+            finish(enc);
+            return;
+        }
+
+        if(enc.mobs.isEmpty()&&!enc.bossStarted) {
+            if(enc.wave<2) {
+                startWave(enc,enc.wave+1);
+            } else {
+                spawnBoss(enc);
+            }
         }
     }
+
     private void finish(Encounter enc) {
-        if(enc.finished)return;enc.finished=true;
-        boolean major=enc.site.kind()==DungeonLayout.Kind.DREADSHIP;
-        ledger.set(path(enc.site)+".next-open",System.currentTimeMillis()+plugin.integer(major?"structures.major.reset-hours":"structures.minor.reset-hours",major?12:3,1,168)*3600000L);
-        int shards=plugin.integer(major?"rewards.major-shards":"rewards.minor-shards",major?8:2,1,64);
+        if(enc.finished)return;
+        enc.finished=true;
+        ledger.set(path(enc.site)+".next-open",System.currentTimeMillis()+plugin.integer("structures.minor.reset-hours",2,1,72)*3600000L);
+        save();
+
         for(var member:enc.presence.entrySet()) {
-            // Presence throughout a fight counts, including support players; last hit is irrelevant.
-            if(member.getValue()<plugin.integer("rewards.minimum-participation-seconds",20,1,300)*2)continue;
-            String token=UUID.randomUUID().toString(),root="pending."+member.getKey()+"."+token;
-            ledger.set(root+".shards",shards);
-            if(major&&new Random().nextDouble()<plugin.getConfig().getDouble("rewards.relic-chance",0.30))
-                ledger.set(root+".relic",Relic.values()[new Random().nextInt(5)].name());
-            Player p=Bukkit.getPlayer(member.getKey());if(p!=null)plugin.message(p,"พิชิตสำเร็จ! รางวัลพร้อมรับ · /void claim หรือคลิกคลังรางวัล");
+            Player p=Bukkit.getPlayer(member.getKey());
+            if(p!=null&&playable(p)&&enc.site.contains(p.getX(),p.getZ(),18)) {
+                ItemStack key=plugin.relics().createVoidKey();
+                var leftover=p.getInventory().addItem(key);
+                if(!leftover.isEmpty()) p.getWorld().dropItemNaturally(p.getLocation(),key);
+                plugin.message(p,"✦ พิชิตวิหารสำเร็จ! ได้รับ Void Key เข้ากระเป๋าแล้ว · นำไปไข Void Vault");
+                p.playSound(p.getLocation(),Sound.UI_TOAST_CHALLENGE_COMPLETE,0.8f,1.0f);
+            }
         }
-        save();remove(enc);active.remove(enc.site.id());
+        remove(enc);
+        active.remove(enc.site.id());
     }
-    public void claim(Player p) {
-        if(!storageHealthy){plugin.message(p,"คลังรางวัลไม่พร้อม · แจ้งแอดมิน");return;}
-        String root="pending."+p.getUniqueId();var section=ledger.getConfigurationSection(root);
-        if(section==null||section.getKeys(false).isEmpty()){plugin.message(p,"ยังไม่มีรางวัลค้างรับ · ต้องมีส่วนร่วมในการพิชิตดัน");return;}
-        NamespacedKey receiptKey=plugin.key("reward_receipts");
-        String receipts=p.getPersistentDataContainer().getOrDefault(receiptKey,PersistentDataType.STRING,"");
-        Set<String> applied=new LinkedHashSet<>(Arrays.asList(receipts.split(",")));applied.remove("");
-        for(String token:new ArrayList<>(section.getKeys(false))) {
-            if(applied.contains(token)){ledger.set(root+"."+token,null);continue;}
-            List<ItemStack> reward=new ArrayList<>();reward.add(plugin.relics().create(Relic.VOID_SHARD,section.getInt(token+".shards",1)));
-            String relic=section.getString(token+".relic");if(relic!=null)reward.add(plugin.relics().create(Relic.valueOf(relic),1));
-            Inventory simulation=Bukkit.createInventory(null,36);
-            ItemStack[] contents=p.getInventory().getStorageContents();
-            for(int i=0;i<contents.length;i++)if(contents[i]!=null)contents[i]=contents[i].clone();
-            simulation.setContents(contents);
-            if(!simulation.addItem(reward.toArray(ItemStack[]::new)).isEmpty()){plugin.message(p,"กระเป๋าเต็ม · รางวัลยังอยู่ในคลัง รับใหม่ได้");break;}
-            p.getInventory().setStorageContents(simulation.getContents());applied.add(token);
-            p.getPersistentDataContainer().set(receiptKey,PersistentDataType.STRING,String.join(",",applied));
-            // Items and receipt are in the same player save. A crash before ledger pruning cannot duplicate them.
-            p.saveData();ledger.set(root+"."+token,null);
-            plugin.message(p,"รับรางวัลจากการพิชิตแล้ว");
-        }
-        if(save()) {while(applied.size()>128)applied.remove(applied.iterator().next());p.getPersistentDataContainer().set(receiptKey,PersistentDataType.STRING,String.join(",",applied));}
-    }
+
     public void tick() {
         long now=System.currentTimeMillis();combatUntil.values().removeIf(t->t<now);
         for(Player p:plugin.world().getPlayers()) {
             Site s=plugin.layout().at(p.getLocation().getBlockX(),p.getLocation().getBlockZ(),12);
-            if(s!=null&&!s.id().equals(seen.put(p.getUniqueId(),s.id())))plugin.message(p,
-                s.kind()==DungeonLayout.Kind.DREADSHIP?"ค้นพบคฤหาสน์เรืออับปาง · คลิกผนึก Lodestone ทั้ง 3 ชั้นเพื่อท้าทายกัปตัน":"ค้นพบมหาวิหารเงา · คลิกผนึกกลางวิหารเพื่อเริ่ม");
+            if(s!=null&&!s.id().equals(seen.put(p.getUniqueId(),s.id()))) {
+                plugin.message(p,"ค้นพบ "+s.kind().displayName+" · คลิกแท่น Lodestone กลางวิหารเพื่อเริ่มการท้าทาย");
+            }
         }
         for(Encounter enc:new ArrayList<>(active.values())) {
             List<Player> team=players(enc.site);
@@ -248,65 +329,61 @@ public final class DungeonManager implements Listener {
                 continue;
             }
             enc.lastPresent=now;
-            if(!enc.mobs.isEmpty())for(Player p:team){enc.presence.merge(p.getUniqueId(),1,Integer::sum);combatUntil.put(p.getUniqueId(),now+10000);}
-            // Missing/unloaded entities never count as defeated. Reset that wave so chunk unload cannot grant seals.
-            if(enc.mobs.keySet().stream().anyMatch(id->Bukkit.getEntity(id)==null)) {
-                remove(enc);active.remove(enc.site.id());continue;
+            for(Player p:team){enc.presence.merge(p.getUniqueId(),1,Integer::sum);combatUntil.put(p.getUniqueId(),now+10000);}
+
+            if(enc.bar!=null) {
+                for(Player p:new ArrayList<>(enc.bar.getPlayers()))if(!team.contains(p))enc.bar.removePlayer(p);
+                for(Player p:team)enc.bar.addPlayer(p);
             }
-            if(Integer.bitCount(enc.seals)==seals(enc.site).length&&!enc.bossStarted) {
-                boolean upstairs=enc.site.kind()!=DungeonLayout.Kind.DREADSHIP||team.stream().anyMatch(p->p.getY()>=134);
-                if(upstairs) {
-                    Location spawn=position(enc.site,0,enc.site.kind()==DungeonLayout.Kind.DREADSHIP?135:97,0);
-                    LivingEntity boss=spawn(enc,Species.CAPTAIN,spawn,team.size());
-                    if(boss!=null){enc.bossStarted=true;enc.bar=Bukkit.createBossBar("ผู้เฝ้าสมบัติมิติ",BarColor.PURPLE,BarStyle.SEGMENTED_10);}
-                }
-            }
+
             for(var entry:new ArrayList<>(enc.mobs.entrySet())) {
                 if(!(Bukkit.getEntity(entry.getKey()) instanceof Mob mob))continue;
+
+                // Anti-Boat Cheese: Force eject and delete any vehicle immediately
+                if(mob.isInsideVehicle()) {
+                    Entity vehicle=mob.getVehicle();
+                    mob.leaveVehicle();
+                    if(vehicle instanceof Boat||vehicle instanceof Minecart) vehicle.remove();
+                }
+
                 mob.setAI(true);
                 Player target=team.stream().min(Comparator.comparingDouble(p->p.getLocation().distanceSquared(mob.getLocation()))).orElse(null);
-                if(target!=null&&entry.getValue()==Species.STALKER&&!target.isSprinting()&&target.getLocation().distanceSquared(mob.getLocation())>100)target=null;
                 mob.setTarget(target);
+
+                // Anti-out-of-bounds recall
                 if(mob.getY()<75||!enc.site.contains(mob.getX(),mob.getZ(),8)) {
-                    Location back=position(enc.site,0,enc.bossStarted&&enc.site.kind()==DungeonLayout.Kind.DREADSHIP?135:97,0);
-                    // EntityTeleportEvent protects portals, so an internal recall uses a short-lived flag.
+                    Location back=position(enc.site,0,97,8);
                     owners.remove(mob.getUniqueId());mob.teleport(back);owners.put(mob.getUniqueId(),enc);
                 }
-                if(entry.getValue()==Species.CAPTAIN&&target!=null)bossTick(enc,mob,target,team,now);
-                if(entry.getValue()==Species.WEAVER&&now/1000%6==0) {
-                    for(UUID id:enc.mobs.keySet())if(Bukkit.getEntity(id) instanceof LivingEntity ally&&ally!=mob&&ally.getLocation().distanceSquared(mob.getLocation())<144) {
-                        ally.setHealth(Math.min(ally.getAttribute(Attribute.MAX_HEALTH).getValue(),ally.getHealth()+2));break;
+
+                // Boss skills
+                if(entry.getValue()==Species.BOSS&&target!=null) {
+                    if(enc.bar!=null) {
+                        enc.bar.setProgress(Math.max(0,Math.min(1,mob.getHealth()/mob.getAttribute(Attribute.MAX_HEALTH).getValue())));
+                    }
+                    if(enc.warningAt==0&&now-enc.lastSkill>6000) {
+                        enc.warning=target.getLocation();enc.warningAt=now+2200;enc.lastSkill=now;
+                        for(Player p:team){plugin.message(p,"⚠ คำสาปมิติ · รีบออกจากวงเวท!");p.playSound(enc.warning,Sound.BLOCK_RESPAWN_ANCHOR_CHARGE,0.6f,0.6f);}
+                    }
+                    if(enc.warningAt>0) {
+                        for(Player p:team)for(int i=0;i<8;i++) {
+                            double angle=i*Math.PI/4;
+                            p.spawnParticle(Particle.SOUL_FIRE_FLAME,enc.warning.clone().add(Math.cos(angle)*3.5,0.15,Math.sin(angle)*3.5),1,0,0,0,0);
+                        }
+                        if(now>=enc.warningAt) {
+                            enc.warningAt=0;
+                            for(Player p:team)if(p.getWorld()==enc.warning.getWorld()&&p.getLocation().distanceSquared(enc.warning)<=16) {
+                                p.damage(plugin.integer("combat.boss-skill-damage",35,10,160),mob);
+                            }
+                            for(Player p:team)p.playSound(enc.warning,Sound.ENTITY_WARDEN_SONIC_BOOM,0.7f,0.8f);
+                        }
                     }
                 }
             }
         }
     }
-    private void bossTick(Encounter enc,Mob boss,Player target,List<Player> team,long now) {
-        if(enc.bar!=null) {
-            enc.bar.setTitle("กัปตันไร้ร่าง · ระยะ "+(enc.phase+1)+" · "+(int)boss.getHealth()+" HP");
-            enc.bar.setProgress(Math.max(0,Math.min(1,boss.getHealth()/boss.getAttribute(Attribute.MAX_HEALTH).getValue())));
-            for(Player p:new ArrayList<>(enc.bar.getPlayers()))if(!team.contains(p))enc.bar.removePlayer(p);
-            for(Player p:team)enc.bar.addPlayer(p);
-        }
-        if(enc.warningAt==0&&now-enc.lastSkill>6500-enc.phase*700&&now>enc.phaseUntil) {
-            enc.warning=target.getLocation();enc.warningAt=now+2200;enc.caster=boss.getUniqueId();enc.lastSkill=now;
-            for(Player p:team){plugin.message(p,"⚠ สมอพิพากษา · ออกจากวงแสง!");p.playSound(enc.warning,Sound.BLOCK_RESPAWN_ANCHOR_CHARGE,0.6f,0.6f);}
-        }
-        if(enc.warningAt>0) {
-            double radius=4+enc.phase;
-            for(Player p:team)for(int i=0;i<12;i++) {
-                double angle=i*Math.PI/6;
-                p.spawnParticle(Particle.SOUL_FIRE_FLAME,enc.warning.clone().add(Math.cos(angle)*radius,0.15,Math.sin(angle)*radius),1,0,0,0,0);
-            }
-            if(now>=enc.warningAt) {
-                enc.warningAt=0;
-                for(Player p:team)if(p.getWorld()==enc.warning.getWorld()&&p.getLocation().distanceSquared(enc.warning)<=radius*radius)
-                    p.damage(plugin.integer("combat.boss-skill-damage",32,10,160),boss);
-                for(Player p:team)p.playSound(enc.warning,Sound.ENTITY_WARDEN_SONIC_BOOM,0.7f,0.8f);
-            }
-        }
-    }
-    private boolean protectedBlock(Block b){return b.getWorld()==plugin.world()&&plugin.layout().at(b.getX(),b.getZ(),0)!=null&&b.getY()>=94&&b.getY()<=160;}
+
+    private boolean protectedBlock(Block b){return b.getWorld()==plugin.world()&&plugin.layout().at(b.getX(),b.getZ(),0)!=null&&b.getY()>=94&&b.getY()<=140;}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void breakBlock(BlockBreakEvent e){if(protectedBlock(e.getBlock())&&!(e.getPlayer().getGameMode()==GameMode.CREATIVE&&e.getPlayer().hasPermission("voidscape.admin")))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
@@ -315,12 +392,6 @@ public final class DungeonManager implements Listener {
     public void explode(EntityExplodeEvent e){e.blockList().removeIf(this::protectedBlock);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void explode(BlockExplodeEvent e){e.blockList().removeIf(this::protectedBlock);}
-    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void fluid(BlockFromToEvent e){if(protectedBlock(e.getToBlock()))e.setCancelled(true);}
-    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void piston(BlockPistonExtendEvent e){if(e.getBlocks().stream().anyMatch(b->protectedBlock(b)||protectedBlock(b.getRelative(e.getDirection()))))e.setCancelled(true);}
-    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void piston(BlockPistonRetractEvent e){if(e.getBlocks().stream().anyMatch(this::protectedBlock))e.setCancelled(true);}
     @EventHandler public void quit(PlayerQuitEvent e){seen.remove(e.getPlayer().getUniqueId());}
     @EventHandler public void changeWorld(PlayerChangedWorldEvent e){seen.remove(e.getPlayer().getUniqueId());}
     @EventHandler public void chunk(org.bukkit.event.world.ChunkLoadEvent e) {
