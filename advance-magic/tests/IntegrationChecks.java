@@ -58,7 +58,13 @@ public final class IntegrationChecks extends JavaPlugin {
         check(player.isOnline()&&player.isValid(),"real server-backed test actor is online");
         for(Spell s:Spell.values()) {
             ItemStack wand=plugin.wands().create(s);
-            check(plugin.wands().spell(wand)==s&&wand.getItemMeta().getItemModel().toString().equals("advance_magic:"+s.id()),"wand PDC and model "+s.id());
+            check(plugin.wands().spell(wand)==s&&!wand.getItemMeta().hasItemModel()
+                    &&wand.getItemMeta().getCustomModelDataComponent().getStrings().equals(List.of("advance_magic:"+s.id())),"wand PDC and vanilla-safe model selector "+s.id());
+            ItemStack old=wand.clone();var oldMeta=old.getItemMeta();oldMeta.setItemModel(new NamespacedKey("advance_magic",s.id()));
+            oldMeta.setCustomModelDataComponent(null);oldMeta.setDisplayName("Keep my custom name");old.setItemMeta(oldMeta);
+            check(plugin.wands().migrate(old)&&!old.getItemMeta().hasItemModel()&&plugin.wands().spell(old)==s
+                    &&old.getItemMeta().getDisplayName().equals("Keep my custom name"),"legacy wand migration preserves PDC and name "+s.id());
+            check(!plugin.wands().migrate(old),"legacy migration is idempotent "+s.id());
             Recipe recipe=Bukkit.getRecipe(new NamespacedKey(plugin,s.id()));
             check(recipe instanceof ShapedRecipe&&((ShapedRecipe)recipe).getShape().length==3&&Arrays.stream(((ShapedRecipe)recipe).getShape()).allMatch(row->row.length()==3),"recipe shape "+s.id());
             var choices=((ShapedRecipe)recipe).getChoiceMap();
@@ -67,6 +73,22 @@ public final class IntegrationChecks extends JavaPlugin {
             check(ingredients,"recipe ingredients "+s.id());
         }
         check(plugin.wands().spell(new ItemStack(Material.CARROT_ON_A_STICK))==null,"vanilla item cannot cast");
+        check(!plugin.wands().migrate(new ItemStack(Material.CARROT_ON_A_STICK)),"migration leaves vanilla items alone");
+        check(plugin.getConfig().getBoolean("resource-pack.enabled")&&plugin.getConfig().getBoolean("resource-pack.host.enabled"),"automatic packs enabled by default, including existing configs");
+        for(String asset:List.of("advance-magic-java.zip","advance-magic-bedrock.mcpack","geyser-mappings.json","advance-magic-guide-th.png"))
+            check(new java.io.File(plugin.getDataFolder(),"resource-packs/"+asset).length()>0,"embedded asset extracted: "+asset);
+        plugin.getConfig().set("resource-pack.host.public-host","127.0.0.1");
+        String packUrl=plugin.packs().url(player);
+        check(packUrl.startsWith("http://127.0.0.1:"),"automatic pack public URL");
+        try(var client=java.net.http.HttpClient.newHttpClient()) {
+            var response=client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(packUrl)).build(),java.net.http.HttpResponse.BodyHandlers.ofByteArray());
+            check(response.statusCode()==200&&Arrays.equals(response.body(),java.nio.file.Files.readAllBytes(plugin.getDataFolder().toPath().resolve("resource-packs/advance-magic-java.zip"))),"running plugin serves exact embedded ZIP");
+        }catch(Exception e){throw new RuntimeException(e);}
+        plugin.getConfig().set("resource-pack.url","not-a-url");check(plugin.packs().url(player).isEmpty(),"invalid external URL is rejected");
+        plugin.getConfig().set("resource-pack.url","");plugin.getConfig().set("resource-pack.host.public-host","::1");
+        check(plugin.packs().url(player).startsWith("http://[::1]:"),"IPv6 pack URL is bracketed");
+        plugin.getConfig().set("resource-pack.host.public-host","127.0.0.1");
+        plugin.packs().offer(player);
         var account=plugin.mana().account(player);
         check(account.reserve(Spell.LIGHTNING_STRIKE.id(),60,8,System.currentTimeMillis()),"mana reservation");
         plugin.mana().quit(player);

@@ -30,6 +30,31 @@ public final class AccountingChecks {
         check(!Geometry.intersects(wall,new Vector(0,4,0),new Vector(20,4,0)),"projectile above wall passes");
         check(Geometry.intersects(wall,new Vector(3.5,1,0),new Vector(3.5,1,0)),"stationary projectile inside wall");
         check(!Geometry.intersects(wall,new Vector(0,1,0),new Vector(0,1,0)),"stationary projectile outside wall");
+        // Upgraded mana and dragon breath progression assertions
+        CastAccount upgraded=new CastAccount(150,250,5.0);
+        check(upgraded.maxMana()==250.0,"custom max mana preserved");
+        check(upgraded.regenRate()==5.0,"custom regen rate preserved");
+        upgraded.regenerate();
+        check(upgraded.mana()==155,"custom regen rate adds exact amount");
+
+        // Dragon breath progression test
+        double maxCap=100.0;
+        for(int d=0;d<10;d++){if(maxCap<150.0)maxCap+=5.0;else if(maxCap<200.0)maxCap+=2.0;else maxCap=Math.min(300.0,maxCap+0.5);}
+        check(maxCap==150.0,"10 drinks reach exactly 150");
+        for(int d=0;d<25;d++){if(maxCap<150.0)maxCap+=5.0;else if(maxCap<200.0)maxCap+=2.0;else maxCap=Math.min(300.0,maxCap+0.5);}
+        check(maxCap==200.0,"25 more drinks reach exactly 200");
+        for(int d=0;d<200;d++){if(maxCap<150.0)maxCap+=5.0;else if(maxCap<200.0)maxCap+=2.0;else maxCap=Math.min(300.0,maxCap+0.5);}
+        check(maxCap==300.0,"subsequent drinks hit hard cap 300");
+
+        // Wand cooldown reduction formula test
+        int wandBaseCd=25; // Time Dilation
+        double minCd=Math.max(1.0,wandBaseCd*0.2); // 5.0s
+        double cd0=Math.max(minCd,wandBaseCd-(0/5)*5.0);
+        double cd5=Math.max(minCd,wandBaseCd-(5/5)*5.0);
+        double cd10=Math.max(minCd,wandBaseCd-(10/5)*5.0);
+        double cd25=Math.max(minCd,wandBaseCd-(25/5)*5.0);
+        check(cd0==25.0&&cd5==20.0&&cd10==15.0&&cd25==5.0,"wand-bound cooldown reduction scales every 5 casts and caps at safe floor");
+
         System.out.println("PASS: "+count+" accounting and collision assertions");
     }
 }

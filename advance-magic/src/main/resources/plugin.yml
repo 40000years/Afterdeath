@@ -3,11 +3,12 @@ version: 1.0.0
 main: com.example.advancemagic.AdvanceMagicPlugin
 api-version: '26.2'
 description: Fifteen server-side spells, mana and craftable wands.
-softdepend: [Geyser-Spigot, floodgate]
+softdepend: [floodgate]
+loadbefore: [Geyser-Spigot]
 commands:
   magic:
     description: List spells, inspect mana or give a wand.
-    usage: /magic [list|mana|give <player> <spell>]
+    usage: /magic [list|mana|pack [resend]|give <player> <spell>]
 permissions:
   advance-magic.cast:
     default: true

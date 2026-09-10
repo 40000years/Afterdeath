@@ -77,7 +77,7 @@ public final class ProjectileSpells implements Listener {
                 c.particles(at,Particle.EXPLOSION,1,0);
                 at.getWorld().playSound(at,Sound.ENTITY_GENERIC_EXPLODE,0.5f,1.4f);
                 for(var e:c.nearby(p,at,3,false))if(c.affect(p,e,Spell.WITHER_RAY)) {
-                    c.damage(p,e,c.configuredDamage("damage.wither-skull",8),DamageType.EXPLOSION);
+                    c.damage(p,e,c.configuredDamage("damage.wither-skull",40),DamageType.EXPLOSION);
                     c.potion(e,PotionEffectType.WITHER,100,1);
                 }
             });
@@ -107,7 +107,7 @@ public final class ProjectileSpells implements Listener {
             }
             if(age%5==0)for(var target:c.nearby(p,at,4,false))
                 if(age>=nextDamage.getOrDefault(target.getUniqueId(),0)&&c.affect(p,target,Spell.DRAGONS_BREATH)) {
-                    c.damage(p,target,c.configuredDamage("damage.dragon-per-second",6),DamageType.MAGIC);
+                    c.damage(p,target,c.configuredDamage("damage.dragon-per-second",30),DamageType.MAGIC);
                     nextDamage.put(target.getUniqueId(),age+20);
                 }
             return true;
@@ -152,7 +152,7 @@ public final class ProjectileSpells implements Listener {
         c.particles(at,Particle.EXPLOSION_EMITTER,1,0);c.ring(at,6,Spell.METEOR_STRIKE);
         at.getWorld().playSound(at,Sound.ENTITY_GENERIC_EXPLODE,1.5f,0.6f);
         for(var e:c.nearby(p,at,6,false))if(c.affect(p,e,Spell.METEOR_STRIKE)) {
-            c.damage(p,e,c.configuredDamage("meteor.damage",18),DamageType.EXPLOSION);
+            c.damage(p,e,c.configuredDamage("meteor.damage",90),DamageType.EXPLOSION);
             var ignite=new EntityCombustByEntityEvent(p,e,4.0f);Bukkit.getPluginManager().callEvent(ignite);
             if(!ignite.isCancelled())e.setFireTicks(Math.max(e.getFireTicks(),(int)(ignite.getDuration()*20)));
         }
@@ -176,7 +176,7 @@ public final class ProjectileSpells implements Listener {
         if(denied||!shot.owner.isOnline()||shot.owner.isDead()||shot.owner.getWorld()!=at.getWorld()||!c.loaded(at))return;
         if(shot.spell==Spell.SHULKER_LEVITATION) {
             if(e.getHitEntity() instanceof LivingEntity target&&c.enemy(shot.owner,target)&&c.affect(shot.owner,target,shot.spell)) {
-                c.damage(shot.owner,target,c.configuredDamage("damage.shulker-impact",4),DamageType.MAGIC);
+                c.damage(shot.owner,target,c.configuredDamage("damage.shulker-impact",20),DamageType.MAGIC);
                 c.potion(target,PotionEffectType.LEVITATION,80,1);
             }
         } else shot.impact.accept(at);

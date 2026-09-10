@@ -4,167 +4,272 @@
     "minecraft:carrot_on_a_stick": [
       {
         "type": "definition",
-        "model": "advance_magic:lightning_strike",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:lightning_strike"
+        },
         "bedrock_identifier": "advance_magic:lightning_strike",
         "display_name": "Lightning Strike Wand",
         "bedrock_options": {
           "icon": "advance_magic.lightning_strike",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:frost_nova",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:frost_nova"
+        },
         "bedrock_identifier": "advance_magic:frost_nova",
         "display_name": "Frost Nova Wand",
         "bedrock_options": {
           "icon": "advance_magic.frost_nova",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:shadow_step",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:shadow_step"
+        },
         "bedrock_identifier": "advance_magic:shadow_step",
         "display_name": "Shadow Step Wand",
         "bedrock_options": {
           "icon": "advance_magic.shadow_step",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:natures_bloom",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:natures_bloom"
+        },
         "bedrock_identifier": "advance_magic:natures_bloom",
         "display_name": "Nature's Bloom Wand",
         "bedrock_options": {
           "icon": "advance_magic.natures_bloom",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:earth_wall",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:earth_wall"
+        },
         "bedrock_identifier": "advance_magic:earth_wall",
         "display_name": "Earth Wall Wand",
         "bedrock_options": {
           "icon": "advance_magic.earth_wall",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:dragons_breath",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:dragons_breath"
+        },
         "bedrock_identifier": "advance_magic:dragons_breath",
         "display_name": "Dragon's Breath Wand",
         "bedrock_options": {
           "icon": "advance_magic.dragons_breath",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:void_pull",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:void_pull"
+        },
         "bedrock_identifier": "advance_magic:void_pull",
         "display_name": "Void Pull Wand",
         "bedrock_options": {
           "icon": "advance_magic.void_pull",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:invisibility_shroud",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:invisibility_shroud"
+        },
         "bedrock_identifier": "advance_magic:invisibility_shroud",
         "display_name": "Invisibility Shroud Wand",
         "bedrock_options": {
           "icon": "advance_magic.invisibility_shroud",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:poison_spores",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:poison_spores"
+        },
         "bedrock_identifier": "advance_magic:poison_spores",
         "display_name": "Poison Spores Wand",
         "bedrock_options": {
           "icon": "advance_magic.poison_spores",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:wither_ray",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:wither_ray"
+        },
         "bedrock_identifier": "advance_magic:wither_ray",
         "display_name": "Wither Ray Wand",
         "bedrock_options": {
           "icon": "advance_magic.wither_ray",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:shulker_levitation",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:shulker_levitation"
+        },
         "bedrock_identifier": "advance_magic:shulker_levitation",
         "display_name": "Shulker Levitation Wand",
         "bedrock_options": {
           "icon": "advance_magic.shulker_levitation",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:meteor_strike",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:meteor_strike"
+        },
         "bedrock_identifier": "advance_magic:meteor_strike",
         "display_name": "Meteor Strike Wand",
         "bedrock_options": {
           "icon": "advance_magic.meteor_strike",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:iron_armor",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:iron_armor"
+        },
         "bedrock_identifier": "advance_magic:iron_armor",
         "display_name": "Iron Armor Wand",
         "bedrock_options": {
           "icon": "advance_magic.iron_armor",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:time_dilation",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:time_dilation"
+        },
         "bedrock_identifier": "advance_magic:time_dilation",
         "display_name": "Time Dilation Wand",
         "bedrock_options": {
           "icon": "advance_magic.time_dilation",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
         "type": "definition",
-        "model": "advance_magic:soul_drain",
+        "model": "minecraft:carrot_on_a_stick",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:soul_drain"
+        },
         "bedrock_identifier": "advance_magic:soul_drain",
         "display_name": "Soul Drain Wand",
         "bedrock_options": {
           "icon": "advance_magic.soul_drain",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       }
     ]

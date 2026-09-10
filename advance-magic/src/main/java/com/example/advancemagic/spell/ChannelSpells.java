@@ -15,7 +15,7 @@ public final class ChannelSpells {
             if(age%3==0)c.beam(p.getEyeLocation(),target.getEyeLocation(),Particle.SOUL);
             if(age>0&&age%20==0) {
                 if(!c.affect(p,target,Spell.SOUL_DRAIN))return false;
-                double drained=c.damage(p,target,8,DamageType.MAGIC);
+                double drained=c.damage(p,target,40,DamageType.MAGIC);
                 c.heal(p,drained);
             }
             return true;

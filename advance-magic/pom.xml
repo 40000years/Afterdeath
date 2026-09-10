@@ -3,5 +3,18 @@
   <modelVersion>4.0.0</modelVersion>
   <parent><groupId>com.example</groupId><artifactId>my-plugins-parent</artifactId><version>1.0.0</version></parent>
   <artifactId>advance-magic</artifactId>
-  <build><finalName>advance-magic</finalName></build>
+  <build>
+    <finalName>advance-magic</finalName>
+    <resources>
+      <resource><directory>src/main/resources</directory><filtering>false</filtering></resource>
+      <resource>
+        <directory>dist</directory><targetPath>resource-packs</targetPath><filtering>false</filtering>
+        <includes>
+          <include>advance-magic-java.zip</include><include>advance-magic-bedrock.mcpack</include>
+          <include>geyser-mappings.json</include><include>pack-hashes.json</include>
+          <include>wand-preview.html</include><include>advance-magic-guide-th.png</include>
+        </includes>
+      </resource>
+    </resources>
+  </build>
 </project>

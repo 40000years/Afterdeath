@@ -21,7 +21,7 @@ public final class AreaSpells implements Listener {
         final Projectile projectile;
         Vector natural,last;
         Slowed(Projectile projectile){this.projectile=projectile;natural=projectile.getVelocity();last=natural.clone();}
-        void update(){natural.add(projectile.getVelocity().subtract(last));last=natural.clone().multiply(0.2);projectile.setVelocity(last);}
+        void update(){natural.add(projectile.getVelocity().subtract(last));last=natural.clone().multiply(0.1);projectile.setVelocity(last);}
         void restore(){if(projectile.isValid())projectile.setVelocity(natural.add(projectile.getVelocity().subtract(last)));}
     }
     private final Map<UUID,Slowed> slowed=new HashMap<>();
@@ -31,7 +31,7 @@ public final class AreaSpells implements Listener {
         // The vanilla effect sends native lightning packets without uncontrolled fire or extra damage.
         at.getWorld().strikeLightningEffect(at);
         for(var e:c.nearby(p,at,5,false))if(c.affect(p,e,Spell.LIGHTNING_STRIKE))
-            c.damage(p,e,c.configuredDamage("damage.lightning",12),DamageType.LIGHTNING_BOLT);
+            c.damage(p,e,c.configuredDamage("damage.lightning",60),DamageType.LIGHTNING_BOLT);
         c.ring(at,5,Spell.LIGHTNING_STRIKE);return true;
     }
     public boolean frost(Player p) {
@@ -86,14 +86,19 @@ public final class AreaSpells implements Listener {
     @EventHandler(priority=EventPriority.HIGHEST) public void land(EntityChangeBlockEvent e){if(wallBlocks.contains(e.getEntity().getUniqueId()))e.setCancelled(true);}
     public boolean time(Player p) {
         Location center=p.getLocation();UUID id=UUID.randomUUID();
-        var effect=c.plugin.effects().start(p,80,(scope,age)->{
+        var effect=c.plugin.effects().start(p,300,(scope,age)->{
             if(!c.loaded(center))return false;
             if(age%5==0) {
                 c.ring(center,6,Spell.TIME_DILATION);
                 c.ring(center.clone().add(0,3,0),Math.sqrt(27),Spell.TIME_DILATION);
                 for(var e:c.nearby(p,center,6,false))if(c.affect(p,e,Spell.TIME_DILATION)) {
-                    c.potion(e,PotionEffectType.SLOWNESS,6,5);
-                    c.potion(e,PotionEffectType.MINING_FATIGUE,6,4);
+                    c.potion(e,PotionEffectType.SLOWNESS,10,6);
+                    c.potion(e,PotionEffectType.MINING_FATIGUE,10,4);
+                    c.potion(e,PotionEffectType.WEAKNESS,10,2);
+                }
+                for(var ally:c.nearby(p,center,6,true)) {
+                    c.potion(ally,PotionEffectType.SPEED,10,1);
+                    c.potion(ally,PotionEffectType.HASTE,10,1);
                 }
             }
             return true;

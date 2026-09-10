@@ -34,20 +34,37 @@ public final class MobilitySpells {
     }
     public boolean shroud(Player p){c.plugin.statuses().shroud(p);return true;}
     public boolean armor(Player p) {
-        c.potion(p,PotionEffectType.RESISTANCE,160,2);
-        c.potion(p,PotionEffectType.SLOWNESS,160,0);
+        c.potion(p,PotionEffectType.RESISTANCE,1200,3);
+        c.potion(p,PotionEffectType.FIRE_RESISTANCE,1200,0);
+        c.potion(p,PotionEffectType.ABSORPTION,1200,3);
+        c.potion(p,PotionEffectType.STRENGTH,1200,1);
+        c.potion(p,PotionEffectType.SPEED,1200,0);
         c.plugin.statuses().armor(p);
-        c.ring(p.getLocation(),1.1,Spell.IRON_ARMOR);
-        p.getWorld().playSound(p.getLocation(),Sound.ITEM_ARMOR_EQUIP_IRON,1,0.7f);return true;
+        c.ring(p.getLocation(),1.5,Spell.IRON_ARMOR);
+        p.getWorld().playSound(p.getLocation(),Sound.ITEM_ARMOR_EQUIP_NETHERITE,1.2f,0.8f);
+        p.getWorld().playSound(p.getLocation(),Sound.BLOCK_ANVIL_USE,0.8f,1.2f);
+        return true;
     }
     public boolean bloom(Player p) {
         Location center=p.getLocation();
-        for(var ally:c.nearby(p,center,5,true))if(c.affect(p,ally,Spell.NATURES_BLOOM)) {
-            c.potion(ally,PotionEffectType.REGENERATION,160,1);
-            c.potion(ally,PotionEffectType.ABSORPTION,160,1);
-            c.particles(ally.getLocation().add(0,1,0),Particle.HAPPY_VILLAGER,16,0.5);
+        java.util.List<PotionEffectType> negative=java.util.List.of(
+            PotionEffectType.POISON,PotionEffectType.WITHER,PotionEffectType.SLOWNESS,
+            PotionEffectType.WEAKNESS,PotionEffectType.BLINDNESS,PotionEffectType.NAUSEA,
+            PotionEffectType.DARKNESS,PotionEffectType.MINING_FATIGUE,PotionEffectType.HUNGER
+        );
+        for(var ally:c.nearby(p,center,8,true))if(c.affect(p,ally,Spell.NATURES_BLOOM)) {
+            for(PotionEffectType neg:negative)ally.removePotionEffect(neg);
+            c.potion(ally,PotionEffectType.REGENERATION,900,3);
+            c.potion(ally,PotionEffectType.ABSORPTION,900,4);
+            c.potion(ally,PotionEffectType.STRENGTH,900,1);
+            c.potion(ally,PotionEffectType.SPEED,900,1);
+            if(ally instanceof Player pl) c.heal(pl,12.0);
+            else if(ally.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH)!=null)
+                ally.setHealth(Math.min(ally.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue(),ally.getHealth()+12.0));
+            c.particles(ally.getLocation().add(0,1,0),Particle.HAPPY_VILLAGER,25,0.6);
         }
-        c.plugin.effects().start(p,20,(effect,age)->{if(age%4==0)c.ring(center,Math.min(5,age/3.0+0.5),Spell.NATURES_BLOOM);return true;});
+        c.plugin.effects().start(p,30,(effect,age)->{if(age%3==0)c.ring(center,Math.min(8,age/3.0+0.5),Spell.NATURES_BLOOM);return true;});
+        p.getWorld().playSound(center,Sound.BLOCK_BEACON_ACTIVATE,1.0f,1.4f);
         return true;
     }
 }

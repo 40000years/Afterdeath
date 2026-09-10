@@ -8,6 +8,7 @@ import base64
 import html
 import json
 import re
+import shutil
 import struct
 import tempfile
 import zipfile
@@ -98,25 +99,34 @@ def main():
         write_json(bedrock / 'manifest.json', {
             'format_version': 2,
             'header': {'name': 'Advance Magic', 'description': '15 arcane wands for Geyser',
-                       'uuid': '2a3e0ee7-a0df-4102-a03f-a81275edb570', 'version': [1, 0, 0], 'min_engine_version': [1, 21, 80]},
-            'modules': [{'type': 'resources', 'uuid': '071b416b-df41-4c86-9ea4-7d6c3dfc02ac', 'version': [1, 0, 0]}]})
-        atlas, definitions = {}, []
+                       'uuid': '2a3e0ee7-a0df-4102-a03f-a81275edb570', 'version': [1, 0, 1], 'min_engine_version': [1, 21, 80]},
+            'modules': [{'type': 'resources', 'uuid': '071b416b-df41-4c86-9ea4-7d6c3dfc02ac', 'version': [1, 0, 1]}]})
+        atlas, definitions, cases = {}, [], []
         for index, (name, title, color) in enumerate(spells()):
-            pixels = wand(color, index)
-            png(java / f'assets/advance_magic/textures/item/{name}.png', pixels)
-            png(bedrock / f'textures/items/{name}.png', pixels)
+            source = ROOT / f'art/wands/{name}.png'
+            if not source.is_file():
+                raise FileNotFoundError(f'Missing final wand texture: {source}')
+            for destination in (java / f'assets/advance_magic/textures/item/{name}.png', bedrock / f'textures/items/{name}.png'):
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, destination)
             write_json(java / f'assets/advance_magic/models/item/{name}.json', {
                 'parent': 'minecraft:item/handheld', 'textures': {'layer0': f'advance_magic:item/{name}'}})
             write_json(java / f'assets/advance_magic/items/{name}.json', {
                 'model': {'type': 'minecraft:model', 'model': f'advance_magic:item/{name}'}})
             atlas[f'advance_magic.{name}'] = {'textures': f'textures/items/{name}'}
-            definitions.append({'type': 'definition', 'model': f'advance_magic:{name}',
+            cases.append({'when': f'advance_magic:{name}', 'model': {'type': 'minecraft:model', 'model': f'advance_magic:item/{name}'}})
+            definitions.append({'type': 'definition', 'model': 'minecraft:carrot_on_a_stick',
+                                'predicate': {'type': 'match', 'property': 'custom_model_data', 'index': 0, 'value': f'advance_magic:{name}'},
                                 'bedrock_identifier': f'advance_magic:{name}', 'display_name': title + ' Wand',
-                                'bedrock_options': {'icon': f'advance_magic.{name}', 'allow_offhand': True, 'display_handheld': True}})
+                                'bedrock_options': {'icon': f'advance_magic.{name}', 'allow_offhand': True, 'display_handheld': True, 'creative_category': 'equipment'}})
+        # A missing pack falls back to Minecraft's normal item; a loaded pack selects only our exact IDs.
+        write_json(java / 'assets/minecraft/items/carrot_on_a_stick.json', {'model': {
+            'type': 'minecraft:select', 'property': 'minecraft:custom_model_data', 'index': 0, 'cases': cases,
+            'fallback': {'type': 'minecraft:model', 'model': 'minecraft:item/carrot_on_a_stick'}}})
         write_json(bedrock / 'textures/item_texture.json', {'resource_pack_name': 'advance_magic', 'texture_name': 'atlas.items', 'texture_data': atlas})
         write_json(DIST / 'geyser-mappings.json', {'format_version': 2, 'items': {'minecraft:carrot_on_a_stick': definitions}})
-        png(java / 'pack.png', wand(0xAC7CFF, 1))
-        png(bedrock / 'pack_icon.png', wand(0xAC7CFF, 1))
+        shutil.copyfile(ROOT / 'art/wands/frost_nova.png', java / 'pack.png')
+        shutil.copyfile(ROOT / 'art/wands/frost_nova.png', bedrock / 'pack_icon.png')
         archive(java, DIST / 'advance-magic-java.zip')
         archive(bedrock, DIST / 'advance-magic-bedrock.mcpack')
         cards = []

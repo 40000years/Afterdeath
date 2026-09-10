@@ -5,15 +5,29 @@ max-targets-per-effect: 32
 meteor:
   ignite-terrain: true
   # Explosions damage entities but never remove terrain blocks.
-  damage: 18.0
+  damage: 90.0
 damage:
-  lightning: 12.0
-  dragon-per-second: 6.0
-  wither-skull: 8.0
-  shulker-impact: 4.0
-# Optional additive Java pack download; leave empty to install the pack manually.
-# Bedrock: install the .mcpack and mappings in Geyser (see README).
+  lightning: 60.0
+  dragon-per-second: 30.0
+  wither-skull: 40.0
+  shulker-impact: 20.0
+# Bundled pack is automatically offered one tick after joining.
 resource-pack:
+  enabled: true
+  # Optional external direct URL. Empty = serve the embedded ZIP automatically.
   url: ''
+  # Empty = embedded ZIP's SHA-1. Set this for a modified externally hosted pack.
   sha1: ''
   required: false
+  host:
+    enabled: true
+    bind: '0.0.0.0'
+    # Players must be able to access this TCP port (allocate it on hosting panels).
+    port: 8187
+    # Empty = hostname the player joined. Set explicitly for proxies/SRV records.
+    public-host: ''
+    # Optional HTTP(S) reverse-proxy base URL. The pack path is appended.
+    public-url: ''
+  geyser:
+    # Copies Advance Magic's own files during onLoad, before Geyser starts.
+    auto-install: true
