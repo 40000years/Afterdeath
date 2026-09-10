@@ -65,12 +65,25 @@ function Invoke-BuildPlugin {
     }
 }
 
-if ($Module -eq "all" -or $Module -eq "voidscape") {
-    & (Join-Path $root "voidscape/build.ps1")
-    if (!$?) { throw 'voidscape build failed.' }
+if ($Module -eq "all" -or $Module -eq "evergarden") {
+    & (Join-Path $root "evergarden/build.ps1")
+    if (!$?) { throw 'evergarden build failed.' }
     if (Test-Path $testServerPlugins) {
-        Copy-Item (Join-Path $root "voidscape.jar") (Join-Path $testServerPlugins "voidscape.jar") -Force
-        Write-Host "  [DEPLOYED] Copied voidscape.jar to TestServer" -ForegroundColor Magenta
+        $legacyVoidJar = Join-Path $testServerPlugins "voidscape.jar"
+        if (Test-Path $legacyVoidJar) {
+            try {
+                Remove-Item $legacyVoidJar -Force -ErrorAction Stop
+                Write-Host "  [CLEANUP] Removed legacy voidscape.jar from TestServer" -ForegroundColor Yellow
+            } catch {
+                Write-Host "  [WARNING] Could not remove legacy voidscape.jar (server is currently running). Please stop TestServer and delete voidscape.jar manually." -ForegroundColor Red
+            }
+        }
+        try {
+            Copy-Item (Join-Path $root "evergarden.jar") (Join-Path $testServerPlugins "evergarden.jar") -Force -ErrorAction Stop
+            Write-Host "  [DEPLOYED] Copied evergarden.jar to TestServer" -ForegroundColor Magenta
+        } catch {
+            Write-Host "  [WARNING] Could not copy evergarden.jar (file may be in use by running server)." -ForegroundColor Red
+        }
     }
 }
 

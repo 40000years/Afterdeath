@@ -53,13 +53,14 @@ public final class WandService implements Listener {
             ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
             ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+spell.title+" Wand",
             ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
-            ChatColor.DARK_PURPLE+"Obtained from Void Vault in Voidscape"
+            ChatColor.DARK_PURPLE+"Obtained from Evergarden Vault"
         ));
         var modelData=meta.getCustomModelDataComponent();
         modelData.setStrings(List.of("advance_magic:core_"+spell.id()));
         meta.setCustomModelDataComponent(modelData);
         meta.getPersistentDataContainer().set(coreKey,PersistentDataType.STRING,spell.id());
         meta.getPersistentDataContainer().set(new NamespacedKey("voidscape","magic_core"),PersistentDataType.STRING,spell.id());
+        meta.getPersistentDataContainer().set(new NamespacedKey("evergarden","magic_core"),PersistentDataType.STRING,spell.id());
         item.setItemMeta(meta);
         return item;
     }
@@ -68,8 +69,10 @@ public final class WandService implements Listener {
         var pdc=item.getItemMeta().getPersistentDataContainer();
         String id=pdc.get(coreKey,PersistentDataType.STRING);
         String legacy=pdc.get(new NamespacedKey("voidscape","magic_core"),PersistentDataType.STRING);
+        String evergarden=pdc.get(new NamespacedKey("evergarden","magic_core"),PersistentDataType.STRING);
         if(id!=null&&legacy!=null&&!id.equals(legacy))return null;
-        if(id==null) id=legacy;
+        if(id!=null&&evergarden!=null&&!id.equals(evergarden))return null;
+        if(id==null) id=evergarden!=null?evergarden:legacy;
         return id==null?null:Spell.parse(id);
     }
     public ItemStack create(Spell spell) {

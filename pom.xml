@@ -11,7 +11,7 @@
 
     <modules>
         <module>afterdeath</module>
-        <module>voidscape</module>
+        <module>evergarden</module>
         <module>advanced-combat</module>
         <module>nightvision-toggle</module>
         <module>anti-freecam</module>

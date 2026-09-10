@@ -11,7 +11,7 @@ Targets Bukkit APIs available in **Spigot/Paper 1.21.11+**. Compiled to Java 21 
 3. Give a test wand with `/magic give <online-player> lightning_strike` (operator permission).
 4. Right-click/use the wand in either hand. A main-hand wand takes priority if both hands contain wands. On Bedrock use the normal use/interact control; wands use `CARROT_ON_A_STICK` so use input works without a client mod. Wands are unbreakable and recognized by PDC, never by their visible name.
 
-Every wand uses a **tagged Magic Core from a Voidscape Void Vault** in the center of a 3×3 grid. Fill the eight outer slots with **Netherite Ingots or Nether Stars** (mixing is supported). The core determines the spell. Ordinary Heart of the Sea items and the old vanilla ingredient cores cannot craft wands. Renamed cores and older Voidscape-tagged cores remain compatible.
+Every wand uses a **tagged Magic Core from an Evergarden Vault** in the center of a 3×3 grid. Fill the eight outer slots with **Netherite Ingots or Nether Stars** (mixing is supported). The core determines the spell. Ordinary Heart of the Sea items and the old vanilla ingredient cores cannot craft wands. Renamed cores, older Voidscape-tagged cores, and Evergarden-tagged cores remain compatible.
 
 ```text
 Ingot / Star | Ingot / Star | Ingot / Star
@@ -19,9 +19,9 @@ Ingot / Star | Magic Core   | Ingot / Star
 Ingot / Star | Ingot / Star | Ingot / Star
 ```
 
-Defeat two shrine waves and the boss, collect a Void Key, and open a Void Vault once per player per shrine. Rewards: 30% Diamond Block, 30% Netherite Ingot, 20% armor trim, 10% special equipment, 10% random Magic Core. The 15 cores are equally likely within the core category (about 0.67% per specific core per vault). A vanilla Trial Key does not open this vault.
+Defeat five shrine waves (the Evergarden default) and the boss, collect an Evergarden Key, and open an Evergarden Vault once per player per shrine. Rewards: 30% Diamond Block, 30% Netherite Ingot, 20% armor trim, 10% special equipment, 10% random Magic Core. The 15 cores are equally likely within the core category (about 0.67% per specific core per vault). A vanilla Trial Key does not open this vault.
 
-[Thai infographic](dist/advance-magic-guide-th.png) · `/magic list` · `/void guide`
+[Thai infographic](dist/advance-magic-guide-th.png) · `/magic list` · `/evergarden guide`
 
 Permissions: `advance-magic.cast` and `advance-magic.craft` default to everyone; `advance-magic.admin` defaults to operators. Failed targeting, blocked casts and unsafe blink destinations refund mana and do not start a cooldown. Mana and cooldown expiry times persist in player PDC across reconnects and normal restarts; death does not refill mana. Regeneration occurs while online, once every 20 server ticks. Spell durations are server ticks, while cooldowns use elapsed wall-clock time.
 
@@ -57,7 +57,7 @@ Shroud uses Bukkit's plugin-scoped `hidePlayer`/`showPlayer`, which sends the hi
 
 Open `dist/wand-preview.html` for a self-contained preview of all wand textures.
 
-For Java, install the ZIP manually or host it at a direct HTTPS download URL, then set `resource-pack.url` and `resource-pack.sha1` in the plugin config using `dist/pack-hashes.json`. Restart after editing config. The plugin adds its pack with a unique UUID so it can coexist with the Voidscape pack. The default URL is blank; no pack has been uploaded or remotely deployed.
+For Java, install the ZIP manually or host it at a direct HTTPS download URL, then set `resource-pack.url` and `resource-pack.sha1` in the plugin config using `dist/pack-hashes.json`. Restart after editing config. The plugin adds its pack with a unique UUID so it can coexist with the Evergarden pack. The default URL is blank; no pack has been uploaded or remotely deployed.
 
 For Bedrock through Geyser:
 

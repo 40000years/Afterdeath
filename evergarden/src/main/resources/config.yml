@@ -1,0 +1,51 @@
+# Evergarden — Twilight Gardens / Advance Magic
+config-version: 2
+dimension:
+  world-name: the_void_v2
+  seed: 72819345
+  border-size: 24000
+  # Fixed twilight: light gardens, dark sky, visible stars.
+  time: 13000
+structures:
+  spacing-chunks: 18
+  chance: 0.85
+  minor:
+    reset-hours: 2
+performance:
+  max-active-dungeons: 6
+  max-dungeon-mobs: 64
+  max-special-projectiles: 64
+  idle-reset-seconds: 60
+portal:
+  # Create a Nether Portal shape out of Crying Obsidian and ignite with Fire Charge or Eye of Ender.
+  entry-worlds: [world]
+combat:
+  # Five guardian waves, followed by one boss. Range 2-12.
+  waves: 5
+  custom-appearance: true
+  boss-skill-damage: 35
+rewards:
+  # Vault Loot Table Percentages:
+  # 10% tagged Magic Core (one of 15, equal chance); ordinary items are not cores.
+  # 30% Diamond Block
+  # 30% Netherite Ingot
+  # 20% Random Armor Trim Smithing Template
+  # 10% Special Equipment (Rift 3x3 Pickaxe, Smelter Pickaxe, Storm Bow)
+relics:
+  allow-pvp: false
+  bow:
+    cooldown-seconds: 5
+resource-pack:
+  enabled: true
+  host:
+    enabled: true
+    bind: 0.0.0.0
+    port: 8188
+    public-host: ''
+    public-url: ''
+  geyser:
+    auto-install: true
+  url: ''
+  sha1: ''
+  required: false
+

@@ -1,0 +1,238 @@
+{
+  "format_version": 2,
+  "items": {
+    "minecraft:trial_key": [
+      {
+        "type": "definition",
+        "model": "minecraft:trial_key",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:void_key"
+        },
+        "bedrock_identifier": "voidscape:void_key",
+        "display_name": "Evergarden Key",
+        "bedrock_options": {
+          "icon": "voidscape.void_key",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      }
+    ],
+    "minecraft:netherite_pickaxe": [
+      {
+        "type": "definition",
+        "model": "minecraft:netherite_pickaxe",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:rift_pickaxe"
+        },
+        "bedrock_identifier": "voidscape:rift_pickaxe",
+        "display_name": "Rift Excavator",
+        "bedrock_options": {
+          "icon": "voidscape.rift_pickaxe",
+          "allow_offhand": true,
+          "display_handheld": true
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:netherite_pickaxe",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:smelter_pickaxe"
+        },
+        "bedrock_identifier": "voidscape:smelter_pickaxe",
+        "display_name": "Smelter's Pickaxe",
+        "bedrock_options": {
+          "icon": "voidscape.smelter_pickaxe",
+          "allow_offhand": true,
+          "display_handheld": true
+        }
+      }
+    ],
+    "minecraft:bow": [
+      {
+        "type": "definition",
+        "model": "minecraft:bow",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:storm_bow"
+        },
+        "bedrock_identifier": "voidscape:storm_bow",
+        "display_name": "Storm Verdict",
+        "bedrock_options": {
+          "icon": "voidscape.storm_bow",
+          "allow_offhand": true,
+          "display_handheld": true
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:bow",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:nova_bow"
+        },
+        "bedrock_identifier": "voidscape:nova_bow",
+        "display_name": "Nova Bow",
+        "bedrock_options": {
+          "icon": "voidscape.nova_bow",
+          "allow_offhand": true,
+          "display_handheld": true
+        }
+      }
+    ],
+    "minecraft:netherite_sword": [
+      {
+        "type": "definition",
+        "model": "minecraft:netherite_sword",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:rift_blade"
+        },
+        "bedrock_identifier": "voidscape:rift_blade",
+        "display_name": "Rift Blade",
+        "bedrock_options": {
+          "icon": "voidscape.rift_blade",
+          "allow_offhand": true,
+          "display_handheld": true
+        }
+      }
+    ],
+    "minecraft:shield": [
+      {
+        "type": "definition",
+        "model": "minecraft:shield",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:eternal_aegis"
+        },
+        "bedrock_identifier": "voidscape:eternal_aegis",
+        "display_name": "Eternal Aegis",
+        "bedrock_options": {
+          "icon": "voidscape.eternal_aegis",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      }
+    ],
+    "minecraft:carved_pumpkin": [
+      {
+        "type": "definition",
+        "model": "minecraft:carved_pumpkin",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:thorn_mask"
+        },
+        "bedrock_identifier": "voidscape:thorn_mask",
+        "display_name": "Thorn Mask",
+        "bedrock_options": {
+          "icon": "voidscape.thorn_mask",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:carved_pumpkin",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:thorn_crown"
+        },
+        "bedrock_identifier": "voidscape:thorn_crown",
+        "display_name": "Thorn Crown",
+        "bedrock_options": {
+          "icon": "voidscape.thorn_crown",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:carved_pumpkin",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:astral_mask"
+        },
+        "bedrock_identifier": "voidscape:astral_mask",
+        "display_name": "Astral Mask",
+        "bedrock_options": {
+          "icon": "voidscape.astral_mask",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:carved_pumpkin",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:astral_crown"
+        },
+        "bedrock_identifier": "voidscape:astral_crown",
+        "display_name": "Astral Crown",
+        "bedrock_options": {
+          "icon": "voidscape.astral_crown",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:carved_pumpkin",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:chrono_mask"
+        },
+        "bedrock_identifier": "voidscape:chrono_mask",
+        "display_name": "Chrono Mask",
+        "bedrock_options": {
+          "icon": "voidscape.chrono_mask",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:carved_pumpkin",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:chrono_crown"
+        },
+        "bedrock_identifier": "voidscape:chrono_crown",
+        "display_name": "Chrono Crown",
+        "bedrock_options": {
+          "icon": "voidscape.chrono_crown",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      }
+    ]
+  }
+}
