@@ -8,9 +8,17 @@ meteor:
   damage: 90.0
 damage:
   lightning: 60.0
+  lightning-secondary: 30.0
+  frost-shatter: 35.0
+  earth-wall-rupture: 25.0
   dragon-per-second: 30.0
   wither-skull: 40.0
   shulker-impact: 20.0
+  void-collapse: 45.0
+  shadow-step-rupture: 25.0
+  soul-nova: 35.0
+  shroud-ambush: 50.0
+  natures-bloom-thorns: 20.0
 # Bundled pack is automatically offered one tick after joining.
 resource-pack:
   enabled: true

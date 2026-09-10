@@ -27,6 +27,8 @@ public final class StatusService implements Listener {
     public boolean armored(Player p){return armor.containsKey(p.getUniqueId());}
     public boolean isShrouded(Player p){return shrouds.containsKey(p.getUniqueId());}
 
+    private final Set<UUID> ambushProjectiles=new HashSet<>();
+
     public void hideEquipment(Player p) {
         ItemStack air=new ItemStack(Material.AIR);
         for(EquipmentSlot slot:EquipmentSlot.values()) {
@@ -54,6 +56,14 @@ public final class StatusService implements Listener {
         hideEquipment(p);
         for(Player viewer:Bukkit.getOnlinePlayers())if(!viewer.equals(p))viewer.hidePlayer(plugin,p);
         for(Entity e:p.getNearbyEntities(48,48,48))if(e instanceof Mob mob&&p.equals(mob.getTarget()))mob.setTarget(null);
+
+        // Stage 1: Phantom Mirage & Vanish Puff
+        Location loc=p.getLocation().add(0,1,0);
+        loc.getWorld().playSound(loc,Sound.ENTITY_ILLUSIONER_MIRROR_MOVE,1.2f,1.2f);
+        loc.getWorld().playSound(loc,Sound.ENTITY_PHANTOM_BITE,1.0f,1.4f);
+        plugin.context().particles(loc,Particle.CAMPFIRE_COSY_SMOKE,25,0.8);
+        plugin.context().particles(loc,Particle.PORTAL,35,0.6);
+        plugin.context().ring(p.getLocation(),3.0,com.example.advancemagic.spell.Spell.INVISIBILITY_SHROUD);
     }
     private void removeOwnedPotion(Player p,PotionEffectType type,int amp,long remaining) {
         var effect=p.getPotionEffect(type);
@@ -67,6 +77,9 @@ public final class StatusService implements Listener {
         removeOwnedPotion(p,PotionEffectType.SPEED,2,Math.max(0,s.end-tick));
         removeOwnedPotion(p,PotionEffectType.NIGHT_VISION,0,Math.max(0,s.end-tick));
         removeOwnedPotion(p,PotionEffectType.RESISTANCE,1,Math.max(0,s.end-tick));
+        // Evade puff on reveal
+        Location loc=p.getLocation().add(0,1,0);
+        plugin.context().particles(loc,Particle.SMOKE,15,0.4);
     }
     public void joined(Player p){
         for(Status s:shrouds.values())if(!s.target.equals(p)&&s.target instanceof Player shrouded){
@@ -97,7 +110,7 @@ public final class StatusService implements Listener {
         frozen.values().removeIf(s->s.caster.equals(p)||s.target.equals(p));
         armor.remove(p.getUniqueId());
     }
-    public void close(){for(Status s:List.copyOf(shrouds.values()))reveal((Player)s.target);roots.clear();frozen.clear();armor.clear();}
+    public void close(){for(Status s:List.copyOf(shrouds.values()))reveal((Player)s.target);roots.clear();frozen.clear();armor.clear();ambushProjectiles.clear();}
     @EventHandler(ignoreCancelled=true) public void move(PlayerMoveEvent e) {
         Status s=roots.get(e.getPlayer().getUniqueId());Location to=e.getTo();
         if(s==null||to==null||e instanceof PlayerTeleportEvent||to.getWorld()!=s.anchor.getWorld())return;
@@ -108,6 +121,19 @@ public final class StatusService implements Listener {
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true) public void teleport(PlayerTeleportEvent e){roots.remove(e.getPlayer().getUniqueId());}
     @EventHandler(priority=EventPriority.LOWEST) public void attack(EntityDamageByEntityEvent e) {
         Player attacker=e.getDamager() instanceof Player p?p:e.getDamager() instanceof Projectile pr&&pr.getShooter() instanceof Player p?p:null;
+        boolean fromAmbush=(attacker!=null&&isShrouded(attacker))||(e.getDamager() instanceof Projectile pr&&ambushProjectiles.remove(pr.getUniqueId()));
+        // Stage 2: Ambush Execution Strike from stealth
+        if(fromAmbush&&attacker!=null&&e.getEntity() instanceof LivingEntity victim&&plugin.context().enemy(attacker,victim)) {
+            double bonus=plugin.context().configuredDamage("damage.shroud-ambush",50.0);
+            e.setDamage(e.getDamage()+bonus);
+            plugin.context().potion(victim,PotionEffectType.BLINDNESS,80,0);
+            plugin.context().potion(victim,PotionEffectType.WEAKNESS,100,1);
+            Location loc=victim.getLocation().add(0,1,0);
+            loc.getWorld().playSound(loc,Sound.ENTITY_PLAYER_ATTACK_CRIT,1.4f,0.6f);
+            loc.getWorld().playSound(loc,Sound.ENTITY_PHANTOM_BITE,1.2f,1.5f);
+            plugin.context().particles(loc,Particle.CRIT,40,0.6);
+            plugin.context().particles(loc,Particle.SQUID_INK,25,0.5);
+        }
         if(attacker!=null)reveal(attacker);
     }
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true) public void reflect(EntityDamageByEntityEvent e) {
@@ -118,13 +144,21 @@ public final class StatusService implements Listener {
             if(p.isOnline()&&!p.isDead()&&attacker.isValid()&&!attacker.isDead()&&p.getWorld()==attacker.getWorld()
                 &&plugin.context().affect(p,attacker,com.example.advancemagic.spell.Spell.IRON_ARMOR)) {
                 plugin.context().damage(p,attacker,amount,DamageType.THORNS);
-                attacker.getWorld().playSound(attacker.getLocation(),Sound.BLOCK_ANVIL_LAND,0.6f,1.5f);
+                attacker.getWorld().playSound(attacker.getLocation(),Sound.BLOCK_ANVIL_LAND,0.8f,1.5f);
+                Vector push=attacker.getLocation().toVector().subtract(p.getLocation().toVector()).setY(0);
+                if(push.lengthSquared()>0.01)attacker.setVelocity(push.normalize().multiply(0.6).setY(0.2));
             }
         });
     }
-    @EventHandler(ignoreCancelled=true) public void launch(ProjectileLaunchEvent e){if(e.getEntity().getShooter() instanceof Player p)reveal(p);}
+    @EventHandler(ignoreCancelled=true) public void launch(ProjectileLaunchEvent e){
+        if(e.getEntity().getShooter() instanceof Player p&&isShrouded(p)) {
+            ambushProjectiles.add(e.getEntity().getUniqueId());
+            reveal(p);
+        }
+    }
     @EventHandler(ignoreCancelled=true) public void target(EntityTargetLivingEntityEvent e){if(e.getTarget()!=null&&shrouds.containsKey(e.getTarget().getUniqueId()))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.MONITOR) public void armorChange(PlayerArmorChangeEvent e){if(isShrouded(e.getPlayer()))Bukkit.getScheduler().runTask(plugin,()->hideEquipment(e.getPlayer()));}
     @EventHandler(priority=EventPriority.MONITOR) public void heldItem(PlayerItemHeldEvent e){if(isShrouded(e.getPlayer()))Bukkit.getScheduler().runTask(plugin,()->hideEquipment(e.getPlayer()));}
     @EventHandler(priority=EventPriority.MONITOR) public void swapHand(PlayerSwapHandItemsEvent e){if(isShrouded(e.getPlayer()))Bukkit.getScheduler().runTask(plugin,()->hideEquipment(e.getPlayer()));}
+    @EventHandler(priority=EventPriority.MONITOR) public void hit(ProjectileHitEvent e){ambushProjectiles.remove(e.getEntity().getUniqueId());}
 }

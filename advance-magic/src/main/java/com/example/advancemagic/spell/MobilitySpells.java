@@ -1,6 +1,7 @@
 package com.example.advancemagic.spell;
 
 import org.bukkit.*;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffectType;
@@ -28,9 +29,25 @@ public final class MobilitySpells {
         }
         if(last==null||last.distanceSquared(start)<1||!p.teleport(last,PlayerTeleportEvent.TeleportCause.PLUGIN))return false;
         p.setFallDistance(0);
-        c.particles(start.clone().add(0,1,0),Particle.PORTAL,28,0.4);
-        c.particles(last.clone().add(0,1,0),Particle.PORTAL,28,0.4);
-        p.getWorld().playSound(last,Sound.ENTITY_ENDERMAN_TELEPORT,0.7f,1.2f);return true;
+        // Stage 1: Departure Abyssal Smoke Screen
+        c.particles(start.clone().add(0,1,0),Particle.PORTAL,35,0.6);
+        c.particles(start.clone().add(0,1,0),Particle.SQUID_INK,25,0.8);
+        start.getWorld().playSound(start,Sound.ENTITY_ENDERMAN_TELEPORT,0.7f,0.8f);
+        for(var e:c.nearby(p,start,4.0,false))if(c.affect(p,e,Spell.SHADOW_STEP)) {
+            c.potion(e,PotionEffectType.BLINDNESS,60,0);
+            c.potion(e,PotionEffectType.SLOWNESS,60,1);
+        }
+        // Stage 2: Arrival Shadow Rupture & Tactical Reposition
+        c.particles(last.clone().add(0,1,0),Particle.PORTAL,35,0.6);
+        c.particles(last.clone().add(0,1,0),Particle.SWEEP_ATTACK,12,0.6);
+        p.getWorld().playSound(last,Sound.ENTITY_PLAYER_ATTACK_SWEEP,1.0f,1.4f);
+        for(var e:c.nearby(p,last,3.5,false))if(c.affect(p,e,Spell.SHADOW_STEP)) {
+            c.damage(p,e,c.configuredDamage("damage.shadow-step-rupture",25),DamageType.MAGIC);
+            c.potion(e,PotionEffectType.DARKNESS,40,0);
+        }
+        c.potion(p,PotionEffectType.SPEED,50,1);
+        c.potion(p,PotionEffectType.INVISIBILITY,40,0);
+        return true;
     }
     public boolean shroud(Player p){c.plugin.statuses().shroud(p);return true;}
     public boolean armor(Player p) {
@@ -43,6 +60,11 @@ public final class MobilitySpells {
         c.ring(p.getLocation(),1.5,Spell.IRON_ARMOR);
         p.getWorld().playSound(p.getLocation(),Sound.ITEM_ARMOR_EQUIP_NETHERITE,1.2f,0.8f);
         p.getWorld().playSound(p.getLocation(),Sound.BLOCK_ANVIL_USE,0.8f,1.2f);
+        // Stage 1: Bastion Shockwave Repel
+        for(var e:c.nearby(p,p.getLocation(),4.0,false))if(c.affect(p,e,Spell.IRON_ARMOR)) {
+            Vector push=e.getLocation().toVector().subtract(p.getLocation().toVector()).setY(0);
+            if(push.lengthSquared()>0.01)e.setVelocity(push.normalize().multiply(0.7).setY(0.3));
+        }
         return true;
     }
     public boolean bloom(Player p) {
@@ -63,7 +85,25 @@ public final class MobilitySpells {
                 ally.setHealth(Math.min(ally.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue(),ally.getHealth()+12.0));
             c.particles(ally.getLocation().add(0,1,0),Particle.HAPPY_VILLAGER,25,0.6);
         }
-        c.plugin.effects().start(p,30,(effect,age)->{if(age%3==0)c.ring(center,Math.min(8,age/3.0+0.5),Spell.NATURES_BLOOM);return true;});
+        c.plugin.effects().start(p,35,(effect,age)->{
+            if(age%3==0)c.ring(center,Math.min(8,age/3.0+0.5),Spell.NATURES_BLOOM);
+            // Stage 2: Second Bloom (Overgrowth & Entangling Roots) at tick 30
+            if(age==30) {
+                center.getWorld().playSound(center,Sound.BLOCK_CHERRY_SAPLING_PLACE,1.4f,0.8f);
+                center.getWorld().playSound(center,Sound.ENTITY_EXPERIENCE_ORB_PICKUP,1.2f,0.6f);
+                c.ring(center,8.5,Spell.NATURES_BLOOM);
+                c.particles(center.clone().add(0,1,0),Particle.HAPPY_VILLAGER,40,2.5);
+                for(var ally:c.nearby(p,center,8.5,true))if(c.affect(p,ally,Spell.NATURES_BLOOM)) {
+                    if(ally instanceof Player pl)c.heal(pl,10.0);
+                    c.potion(ally,PotionEffectType.SATURATION,40,1);
+                }
+                for(var enemy:c.nearby(p,center,8.5,false))if(c.affect(p,enemy,Spell.NATURES_BLOOM)) {
+                    c.damage(p,enemy,c.configuredDamage("damage.natures-bloom-thorns",20),DamageType.MAGIC);
+                    c.plugin.statuses().root(p,enemy);
+                }
+            }
+            return true;
+        });
         p.getWorld().playSound(center,Sound.BLOCK_BEACON_ACTIVATE,1.0f,1.4f);
         return true;
     }
