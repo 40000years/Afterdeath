@@ -75,7 +75,7 @@ public final class RelicService implements Listener {
         meta.setLore(List.of(
             ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
             ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+core.wandTitle()+" Wand",
-            ChatColor.YELLOW+"Recipe: 8 Netherite Ingots surrounding this Core",
+            ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
             ChatColor.DARK_PURPLE+"Obtained from Void Vault in Voidscape"
         ));
         var modelData=meta.getCustomModelDataComponent();
@@ -151,11 +151,11 @@ public final class RelicService implements Listener {
         meta.setTitle("บันทึกมิติ Voidscape");
         meta.setAuthor("ผู้พิทักษ์มิติ");
         meta.pages(List.of(
-            Component.text("§1§lมิติความว่างเปล่า\n§0(Voidscape Realm)\n§8ส่วนขยาย Advance Magic\n\n§0ยินดีต้อนรับสู่ The Void!\nดินแดนหมู่เกาะหินทมิฬลอยฟ้าสุดขอบจักรวาล\nพร้อมวิหารโบราณ 3 ธาตุ กระจายตัวไม่จำกัดทั่วโลก"),
-            Component.text("§1§lการสำรวจ (การบิน)\n§0สวมใส่ §5Elytra§0 และใช้พลุบินข้ามหมู่เกาะลอยฟ้า\n\n§0วิหารโบราณทั้ง 3 ธาตุมีอยู่ §c§lไม่จำกัดทั่วทั้งมิติ§r§0 (เกิดซ้ำเรื่อยๆ ทุกๆ ~280 บล็อก)\n\n§0วิหารใกล้จุดเกิดที่สุด:\n§51. วิหารความมืด§0 (มุ่งหน้าทิศเหนือ Z = -250)\n§92. วิหารดวงดาว§0 (ทิศ ต.อ.เฉียงใต้ X = 220, Z = 130)\n§63. วิหารกาลเวลา§0 (ทิศ ต.ต.เฉียงใต้ X = -220, Z = 130)\n\n§8พิมพ์ /void locate เพื่อดูพิกัดวิหารใกล้ตัวคุณ"),
+            Component.text("§1§lมิติความว่างเปล่า\n§0(Voidscape Realm)\n§8ส่วนขยาย Advance Magic\n\n§0ยินดีต้อนรับสู่ The Void!\nสวนลอยฟ้าในความว่างเปล่า ป่าดอกไม้และคริสตัลซ่อนร่องรอยวิหารโบราณ\nพร้อมวิหารโบราณ 3 ธาตุ กระจายตัวไม่จำกัดทั่วโลก"),
+            Component.text("§1§lสำรวจสวนลอยฟ้า\n§0เดินตามทางแสงไปวิหาร หรือใช้ §5Elytra§0 สำรวจต่อ สร้างบ้านบนทุ่งนอกเขตวิหารได้\n\n§0วิหารโบราณทั้ง 3 ธาตุมีอยู่ §c§lไม่จำกัดทั่วทั้งมิติ§r§0 (เกิดซ้ำเรื่อยๆ ทุกๆ ~280 บล็อก)\n\n§0วิหารใกล้จุดเกิดที่สุด:\n§51. วิหารความมืด§0 (มุ่งหน้าทิศเหนือ Z = -250)\n§92. วิหารดวงดาว§0 (ทิศ ต.อ.เฉียงใต้ X = 220, Z = 130)\n§63. วิหารกาลเวลา§0 (ทิศ ต.ต.เฉียงใต้ X = -220, Z = 130)\n\n§8พิมพ์ /void locate เพื่อดูพิกัดวิหารใกล้ตัวคุณ"),
             Component.text("§1§lกฎการท้าทาย\n§0- คลิกที่แท่น §5Lodestone§0 กลางวิหารเพื่อเรียกผู้พิทักษ์\n\n§0⚠ §c§lคำเตือน:§r§0 ห้ามนำเรือหรือรถรางมาขังมอนสเตอร์เด็ดขาด! พลังวิหารจะขับไล่ยานพาหนะทันที"),
             Component.text("§1§lรางวัล & Void Vault\n§0- เมื่อชนะการต่อสู้ §dVoid Key§0 จะเด้งเข้าตัวผู้เล่นทันที\n- นำไปเปิด §5Void Vault§0\n- §cเปิดได้คนละ 1 ครั้งต่อกล่อง!§0\n\n§0§lโอกาสดรอป (30/30/20/10/10):§r\n§b• 30%§0 Diamond Block\n§8• 30%§0 Netherite Ingot\n§e• 20%§0 Armor Trim สุ่ม\n§d• 10%§0 อุปกรณ์พิเศษ\n§5• 10%§0 สุ่มแกน Core of ... (1 ใน 15 แบบ)"),
-            Component.text("§1§lแกนเวทย์ & อุปกรณ์\n§0• §6แกน Core of ... (10%)§0: สุ่ม 1 ใน 15 แบบ นำไปล้อมด้วย 8 Netherite Ingot ที่โต๊ะคราฟต์เพื่อสร้างคทาเวทมนตร์ Advance Magic!\n\n§0• §bที่ขุด 3x3§0: ขุดพื้นที่ 3x3 บล็อกพร้อมกัน\n• §6ที่ขุดหลอมอัตโนมัติ§0: ขุดทรายได้กระจก ขุดแร่ได้แท่งโลหะ\n• §dธนูสายฟ้า§0: ยิงธนูผ่าสายฟ้าต่อเนื่อง")
+            Component.text("§1§lแกนเวทย์ & อุปกรณ์\n§0• §6แกน Core of ... (10%)§0: สุ่ม 1 ใน 15 แบบ นำไปล้อมด้วย Netherite Ingot หรือ Nether Star รวม 8 ชิ้น ที่โต๊ะคราฟต์เพื่อสร้างคทาเวทมนตร์ Advance Magic!\n\n§0• §bที่ขุด 3x3§0: ขุดพื้นที่ 3x3 บล็อกพร้อมกัน\n• §6ที่ขุดหลอมอัตโนมัติ§0: ขุดทรายได้กระจก ขุดแร่ได้แท่งโลหะ\n• §dธนูสายฟ้า§0: ยิงธนูผ่าสายฟ้าต่อเนื่อง")
         ));
         book.setItemMeta(meta);
         return book;

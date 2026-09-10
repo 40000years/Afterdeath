@@ -32,6 +32,26 @@ public final class GeometryChecks {
         for(var core : com.example.voidscape.item.RelicService.MAGIC_CORES) {
             check(!core.id().isBlank()&&!core.title().isBlank()&&!core.wandTitle().isBlank(),"core validity: "+core.id());
         }
+        VoidGenerator terrain=new VoidGenerator(72819345,planner);
+        VoidGenerator repeat=new VoidGenerator(72819345,planner);
+        int land=0,voids=0;Set<Integer> gardens=new HashSet<>();
+        for(int x=-1600;x<=1600;x+=31)for(int z=-1600;z<=1600;z+=31) {
+            var s=terrain.surface(x,z);
+            checkSilent(s.equals(repeat.surface(x,z)),"seed-stable terrain");
+            if(s.land()){land++;checkSilent(s.depth()>=5&&s.top()-s.depth()>-64,"supported floating islands");}else voids++;
+            gardens.add(s.garden());
+        }
+        check(land>1000&&voids>1000,"both explorable land and true void across the region");
+        check(gardens.size()==3,"all three garden palettes generate");
+        check(terrain.surface(43,33).pond(),"spawn spring pool");
+        for(int[] home:new int[][]{{55,-33},{-48,36}})for(int dx=-10;dx<=10;dx++)for(int dz=-10;dz<=10;dz++) {
+            var s=terrain.surface(home[0]+dx,home[1]+dz);
+            checkSilent(s.land()&&s.top()==95&&!s.pond(),"flat 21x21 home site");
+        }
+        check(true,"two flat 21x21 home sites");
+        for(var bp:List.of(Blueprint.sanctumDark(),Blueprint.sanctumAstral(),Blueprint.sanctumTime()))for(var b:bp.boxes())
+            checkSilent(b.x1()>=-28&&b.x2()<=28&&b.z1()>=-28&&b.z2()<=28&&b.y1()>=94&&b.y2()<=140,"temples fit their protected volume");
+        check(true,"all redesigned temples fit protection bounds");
     }
     static void checkSilent(boolean value,String message){if(!value)throw new AssertionError(message);}
 }

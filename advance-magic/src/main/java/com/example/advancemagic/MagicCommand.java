@@ -13,7 +13,7 @@ public final class MagicCommand implements TabExecutor {
         if(args.length==0||args[0].equalsIgnoreCase("list")) {
             sender.sendMessage(ChatColor.LIGHT_PURPLE+"Advance Magic: right-click a wand to cast.");
             for(Spell s:Spell.values())sender.sendMessage(ChatColor.AQUA+s.id()+ChatColor.GRAY+" | "+s.mana+" mana | "+s.cooldown+"s | Core: Core of "+com.example.advancemagic.item.WandService.coreTitle(s));
-            sender.sendMessage(ChatColor.GRAY+"Craft: 8 Netherite Ingots surrounding Core of <Spell> (from Void Vault).");return true;
+            sender.sendMessage(ChatColor.GRAY+"Craft: 8 Netherite Ingots / Nether Stars around a matching Void Vault Core (mix allowed).");return true;
         }
         if(args[0].equalsIgnoreCase("mana")&&sender instanceof Player p){
             plugin.casts().actionbar(p,"");

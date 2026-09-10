@@ -1,9 +1,11 @@
-# Voidscape 2.0 — Advance Magic Expansion
+# Voidscape — Twilight Gardens / Advance Magic
 config-version: 2
 dimension:
   world-name: the_void_v2
   seed: 72819345
   border-size: 24000
+  # Fixed twilight: light gardens, dark sky, visible stars.
+  time: 13000
 structures:
   spacing-chunks: 18
   chance: 0.85
@@ -21,7 +23,7 @@ combat:
   boss-skill-damage: 35
 rewards:
   # Vault Loot Table Percentages:
-  # 10% Advance Magic Core Item (Enchanted Golden Apple, Nether Star, Dragon's Breath, etc.)
+  # 10% tagged Magic Core (one of 15, equal chance); ordinary items are not cores.
   # 30% Diamond Block
   # 30% Netherite Ingot
   # 20% Random Armor Trim Smithing Template

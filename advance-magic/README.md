@@ -11,13 +11,17 @@ Targets Bukkit APIs available in **Spigot/Paper 1.21.11+**. Compiled to Java 21 
 3. Give a test wand with `/magic give <online-player> lightning_strike` (operator permission).
 4. Right-click/use the wand in either hand. A main-hand wand takes priority if both hands contain wands. On Bedrock use the normal use/interact control; wands use `CARROT_ON_A_STICK` so use input works without a client mod. Wands are unbreakable and recognized by PDC, never by their visible name.
 
-Every recipe is a full 3x3 grid, with **eight plain Nether Stars surrounding the core**. Wither Ray uses a Nether Star as its core, so it costs **nine Nether Stars**. Named/custom items cannot accidentally be consumed by these exact recipes. Reinforced Deepslate is not normally obtainable in survival: Earth Wall requires an administrator or another plugin to supply that core.
+Every wand uses a **tagged Magic Core from a Voidscape Void Vault** in the center of a 3×3 grid. Fill the eight outer slots with **Netherite Ingots or Nether Stars** (mixing is supported). The core determines the spell. Ordinary Heart of the Sea items and the old vanilla ingredient cores cannot craft wands. Renamed cores and older Voidscape-tagged cores remain compatible.
 
 ```text
-Nether Star | Nether Star | Nether Star
-Nether Star |    Core     | Nether Star
-Nether Star | Nether Star | Nether Star
+Ingot / Star | Ingot / Star | Ingot / Star
+Ingot / Star | Magic Core   | Ingot / Star
+Ingot / Star | Ingot / Star | Ingot / Star
 ```
+
+Defeat two shrine waves and the boss, collect a Void Key, and open a Void Vault once per player per shrine. Rewards: 30% Diamond Block, 30% Netherite Ingot, 20% armor trim, 10% special equipment, 10% random Magic Core. The 15 cores are equally likely within the core category (about 0.67% per specific core per vault). A vanilla Trial Key does not open this vault.
+
+[Thai infographic](dist/advance-magic-guide-th.png) · `/magic list` · `/void guide`
 
 Permissions: `advance-magic.cast` and `advance-magic.craft` default to everyone; `advance-magic.admin` defaults to operators. Failed targeting, blocked casts and unsafe blink destinations refund mana and do not start a cooldown. Mana and cooldown expiry times persist in player PDC across reconnects and normal restarts; death does not refill mana. Regeneration occurs while online, once every 20 server ticks. Spell durations are server ticks, while cooldowns use elapsed wall-clock time.
 
@@ -27,21 +31,21 @@ Damage numbers below are health points (two health points = one heart). Costs an
 
 | ID | Core | Mana / cooldown | Behavior |
 |---|---|---|---|
-| `lightning_strike` | Lightning Rod | 60 / 8s | Target block/entity within 30 blocks. Native lightning visual and 12 lightning damage in a 5-block sphere. No incidental vanilla lightning fire. |
-| `frost_nova` | Blue Ice | 50 / 12s | 7-block wave, Slowness IV for 6s, sustained visual freeze ticks below the freeze-damage threshold. |
-| `shadow_step` | Ender Pearl | 45 / 6s | Blink up to 12 blocks facing forward; may cross one thin wall. Stops before thick/second walls, checks body space, loaded chunks and world border. No pearl or teleport fall damage. Cannot cast while riding. |
-| `natures_bloom` | Enchanted Golden Apple | 70 / 25s | Caster and allies within 5 blocks receive Regeneration II and Absorption II for 8s. |
-| `earth_wall` | Reinforced Deepslate | 40 / 10s | 5-wide, 3-high barrier 3 blocks ahead for 5s. Non-dropping FallingBlocks provide the image; server-side segment collision intercepts incoming/outgoing projectiles. Does not obstruct walking or replace terrain. Requires free space. |
-| `dragons_breath` | Dragon Breath | 75 / 18s | Launch a native purple AreaEffectCloud, radius 4. Travels up to 14 blocks then lingers; 6s total lifetime, 6 magic damage each second. |
-| `void_pull` | Lodestone | 65 / 14s | Straight gravity orb; impact creates an 8-block pull field for 2s. Targets reaching the center or the final pull phase are rooted for 1.5s from the last application. |
-| `invisibility_shroud` | Phantom Membrane | 50 / 30s | Full player hide for other players, including armor/held items, plus invisibility and Speed II for 10s. Attacks, projectile launches or another successful spell reveal the caster. Existing mob targets are cleared and new targeting is blocked. |
-| `poison_spores` | Spore Blossom | 45 / 10s | Straight projectile bursts in a 4-block sphere; Poison II and Nausea for 6s. |
-| `wither_ray` | Nether Star | 85 / 12s | Three native Wither Skulls, 6 ticks apart; each impact has a 3-block splash, 8 explosion damage and Wither II for 5s. Vanilla damage immunity frames still apply. No block destruction. |
-| `shulker_levitation` | Shulker Shell | 55 / 15s | Target within 30 blocks; homing ShulkerBullet applies 4 magic impact damage and Levitation II for 4s to the actual enemy it hits. Normal falling damage remains. |
-| `meteor_strike` | Magma Block | 90 / 20s | Ground target within 30 blocks, 1.5s warning, native LargeFireball descends from 18 blocks above. Flame particles give it a large silhouette; explosion radius 6, damage 18, 4s entity ignition and terrain fire. Does not destroy blocks. |
-| `iron_armor` | Iron Block | 60 / 35s | Resistance III and Slowness I for 8s. Reflects 30% of final, uncancelled incoming melee damage as thorns damage; cannot recursively reflect. |
-| `time_dilation` | Clock | 80 / 25s | Fixed 6-block dome for 4s. Projectiles inside move at 20% speed; overlapping domes do not multiply the reduction. Restores motion on exit/cleanup. Enemies inside receive Slowness VI and Mining Fatigue V, refreshed while inside. |
-| `soul_drain` | Sculk Catalyst | 70 / 16s | Visible enemy within 20 blocks; 3s tether, one 8-health magic pulse each second. Heals only actual health removed, capped at maximum health. Breaks on blocked sight, range, death, disconnect or world change. |
+| `lightning_strike` | Core of Lightning | 60 / 8s | Target block/entity within 30 blocks. Native lightning visual and 12 lightning damage in a 5-block sphere. No incidental vanilla lightning fire. |
+| `frost_nova` | Core of Frost | 50 / 12s | 7-block wave, Slowness IV for 6s, sustained visual freeze ticks below the freeze-damage threshold. |
+| `shadow_step` | Core of Shadows | 45 / 6s | Blink up to 12 blocks facing forward; may cross one thin wall. Stops before thick/second walls, checks body space, loaded chunks and world border. No pearl or teleport fall damage. Cannot cast while riding. |
+| `natures_bloom` | Core of Nature | 70 / 25s | Caster and allies within 5 blocks receive Regeneration II and Absorption II for 8s. |
+| `earth_wall` | Core of Earth | 40 / 10s | 5-wide, 3-high barrier 3 blocks ahead for 5s. Non-dropping FallingBlocks provide the image; server-side segment collision intercepts incoming/outgoing projectiles. Does not obstruct walking or replace terrain. Requires free space. |
+| `dragons_breath` | Core of Dragon | 75 / 18s | Launch a native purple AreaEffectCloud, radius 4. Travels up to 14 blocks then lingers; 6s total lifetime, 6 magic damage each second. |
+| `void_pull` | Core of the Void | 65 / 14s | Straight gravity orb; impact creates an 8-block pull field for 2s. Targets reaching the center or the final pull phase are rooted for 1.5s from the last application. |
+| `invisibility_shroud` | Core of Invisibility | 50 / 30s | Full player hide for other players, including armor/held items, plus invisibility and Speed II for 10s. Attacks, projectile launches or another successful spell reveal the caster. Existing mob targets are cleared and new targeting is blocked. |
+| `poison_spores` | Core of Poison | 45 / 10s | Straight projectile bursts in a 4-block sphere; Poison II and Nausea for 6s. |
+| `wither_ray` | Core of Wither | 85 / 12s | Three native Wither Skulls, 6 ticks apart; each impact has a 3-block splash, 8 explosion damage and Wither II for 5s. Vanilla damage immunity frames still apply. No block destruction. |
+| `shulker_levitation` | Core of Levitation | 55 / 15s | Target within 30 blocks; homing ShulkerBullet applies 4 magic impact damage and Levitation II for 4s to the actual enemy it hits. Normal falling damage remains. |
+| `meteor_strike` | Core of Meteor | 90 / 20s | Ground target within 30 blocks, 1.5s warning, native LargeFireball descends from 18 blocks above. Flame particles give it a large silhouette; explosion radius 6, damage 18, 4s entity ignition and terrain fire. Does not destroy blocks. |
+| `iron_armor` | Core of Iron | 60 / 35s | Resistance III and Slowness I for 8s. Reflects 30% of final, uncancelled incoming melee damage as thorns damage; cannot recursively reflect. |
+| `time_dilation` | Core of Time | 80 / 25s | Fixed 6-block dome for 4s. Projectiles inside move at 20% speed; overlapping domes do not multiply the reduction. Restores motion on exit/cleanup. Enemies inside receive Slowness VI and Mining Fatigue V, refreshed while inside. |
+| `soul_drain` | Core of Souls | 70 / 16s | Visible enemy within 20 blocks; 3s tether, one 8-health magic pulse each second. Heals only actual health removed, capped at maximum health. Breaks on blocked sight, range, death, disconnect or world change. |
 
 Allies are the caster, their own tamed animals, and members of their **main scoreboard team**. Enemy effects exclude allies, armor stands and creative/spectator players. Player combat additionally respects `pvp` in this plugin's config and the world's PvP setting. Otherwise living mobs are valid enemies. AOE status spells can reach through walls; Soul Drain and initial targeted spells require sight.
 

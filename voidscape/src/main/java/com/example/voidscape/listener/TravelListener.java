@@ -256,7 +256,7 @@ public final class TravelListener implements Listener {
                 if(!leftover.isEmpty()) p.getWorld().dropItemNaturally(p.getLocation(),book);
                 plugin.message(p,"ยินดีต้อนรับสู่มิติความว่างเปล่า! มอบคู่มือสำรวจให้แล้ว");
             }
-            plugin.message(p,"✦ สวมใส่ Elytra และใช้พลุบินค้นหาวิหารทั้ง 3 ธาตุ!");
+            plugin.message(p,"✦ เดินตามทางแสงไปวิหารทั้ง 3 · ทุ่งนอกวิหารสร้างบ้านได้ · ใช้ Elytra สำรวจต่อ!");
             plugin.message(p,"✦ วิหารใกล้สุด: ทิศเหนือ Z=-250, ต.อ. X=220 Z=130, ต.ต. X=-220 Z=130 (พิมพ์ /void locate)");
             p.playSound(p.getLocation(),Sound.BLOCK_PORTAL_TRAVEL,0.7f,1.0f);
         });

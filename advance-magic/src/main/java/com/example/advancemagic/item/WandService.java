@@ -52,7 +52,7 @@ public final class WandService implements Listener {
         meta.setLore(List.of(
             ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
             ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+spell.title+" Wand",
-            ChatColor.YELLOW+"Recipe: 8 Netherite Ingots surrounding this Core",
+            ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
             ChatColor.DARK_PURPLE+"Obtained from Void Vault in Voidscape"
         ));
         var modelData=meta.getCustomModelDataComponent();
@@ -67,7 +67,9 @@ public final class WandService implements Listener {
         if(item==null||item.getType()!=CORE_BASE||!item.hasItemMeta())return null;
         var pdc=item.getItemMeta().getPersistentDataContainer();
         String id=pdc.get(coreKey,PersistentDataType.STRING);
-        if(id==null) id=pdc.get(new NamespacedKey("voidscape","magic_core"),PersistentDataType.STRING);
+        String legacy=pdc.get(new NamespacedKey("voidscape","magic_core"),PersistentDataType.STRING);
+        if(id!=null&&legacy!=null&&!id.equals(legacy))return null;
+        if(id==null) id=legacy;
         return id==null?null:Spell.parse(id);
     }
     public ItemStack create(Spell spell) {
@@ -122,7 +124,8 @@ public final class WandService implements Listener {
             ShapedRecipe recipe=new ShapedRecipe(key,create(s));
             recipe.shape("NNN","NCN","NNN");
             recipe.setIngredient('N',new RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT,Material.NETHER_STAR));
-            recipe.setIngredient('C',new RecipeChoice.ExactChoice(createCore(s)));
+            // Match material first; authoritative PDC validation below supports renamed/old vault cores.
+            recipe.setIngredient('C',new RecipeChoice.MaterialChoice(CORE_BASE));
             if(!Bukkit.addRecipe(recipe))throw new IllegalStateException("Duplicate recipe: "+key);
             recipes.put(key,s);
         }
@@ -162,40 +165,32 @@ public final class WandService implements Listener {
     @EventHandler(priority=EventPriority.LOWEST) public void spawn(ItemSpawnEvent event){migrateEntity(event.getEntity());}
     @EventHandler public void load(EntitiesLoadEvent event){event.getEntities().forEach(this::migrateEntity);}
     private boolean ours(Recipe recipe) { return recipe instanceof Keyed k&&recipes.containsKey(k.getKey()); }
-    @EventHandler public void prepare(PrepareItemCraftEvent e) {
-        if(ours(e.getRecipe())&&e.getView().getPlayer() instanceof Player p&&!p.hasPermission("advance-magic.craft")) {
-            e.getInventory().setResult(null);
-            return;
+    public Spell craftingSpell(ItemStack[] matrix) {
+        if(matrix==null||matrix.length!=9)return null;
+        Spell s=coreSpell(matrix[4]);
+        if(s==null)return null;
+        for(int i=0;i<9;i++)if(i!=4) {
+            ItemStack ing=matrix[i];
+            if(ing==null||ing.getAmount()<1||(ing.getType()!=Material.NETHERITE_INGOT&&ing.getType()!=Material.NETHER_STAR))return null;
         }
-        CraftingInventory inv=e.getInventory();
-        ItemStack[] matrix=inv.getMatrix();
-        if(matrix!=null&&matrix.length==9) {
-            ItemStack center=matrix[4];
-            Spell s=coreSpell(center);
-            if(s!=null) {
-                boolean allNetherite=true;
-                for(int i=0;i<9;i++) {
-                    if(i==4)continue;
-                    ItemStack ing=matrix[i];
-                    if(ing==null||(ing.getType()!=Material.NETHERITE_INGOT&&ing.getType()!=Material.NETHER_STAR)) {
-                        allNetherite=false;
-                        break;
-                    }
-                }
-                if(allNetherite) {
-                    if(e.getView().getPlayer() instanceof Player p&&!p.hasPermission("advance-magic.craft")) {
-                        inv.setResult(null);
-                    } else {
-                        inv.setResult(create(s));
-                    }
-                }
-            }
-        }
+        return s;
+    }
+    @EventHandler(priority=EventPriority.HIGHEST) public void prepare(PrepareItemCraftEvent e) {
+        if(!ours(e.getRecipe()))return;
+        Spell s=craftingSpell(e.getInventory().getMatrix());
+        e.getInventory().setResult(s!=null&&e.getView().getPlayer().hasPermission("advance-magic.craft")?create(s):null);
     }
     @EventHandler(ignoreCancelled=true) public void craft(CraftItemEvent e) {
-        if((ours(e.getRecipe())||spell(e.getCurrentItem())!=null)&&!e.getWhoClicked().hasPermission("advance-magic.craft")) {
-            e.setCancelled(true);
-        }
+        if(!ours(e.getRecipe())&&spell(e.getCurrentItem())==null)return;
+        Spell expected=craftingSpell(e.getInventory().getMatrix());
+        if(!e.getWhoClicked().hasPermission("advance-magic.craft")||expected==null||spell(e.getCurrentItem())!=expected)e.setCancelled(true);
+    }
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void automatic(org.bukkit.event.block.CrafterCraftEvent e) {
+        if(!ours(e.getRecipe()))return;
+        if(!(e.getBlock().getState() instanceof org.bukkit.block.Crafter crafter)){e.setCancelled(true);return;}
+        Spell s=craftingSpell(crafter.getInventory().getContents());
+        if(s==null)e.setCancelled(true);else e.setResult(create(s));
     }
     public void close() { recipes.keySet().forEach(Bukkit::removeRecipe);recipes.clear(); }
 }

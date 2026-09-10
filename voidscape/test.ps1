@@ -11,7 +11,4 @@ $sources=(Join-Path $moduleRoot 'tests/GeometryChecks.java')
 if($LASTEXITCODE -ne 0){throw 'Test compilation failed'}
 & java -cp ($testClasses+[System.IO.Path]::PathSeparator+$classPath) GeometryChecks
 if($LASTEXITCODE -ne 0){throw 'Geometry or placement tests failed'}
-Copy-Item -LiteralPath (Join-Path $moduleRoot 'tests/plugin.yml') -Destination $testClasses -Force
-& jar --create --file (Join-Path $moduleRoot 'target/integration-checks.jar') -C $testClasses .
-if($LASTEXITCODE -ne 0){throw 'Test packaging failed'}
-Write-Output 'Integration test plugin ready. Install ONLY in an isolated test server.'
+Write-Output 'Geometry checks passed. Use tests/build_gardens.ps1 for the isolated Paper integration suite.'
