@@ -13,6 +13,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.*;
 import java.nio.file.*;
+import java.util.*;
 
 public final class VoidscapePlugin extends JavaPlugin {
     private World voidWorld;
@@ -20,8 +21,57 @@ public final class VoidscapePlugin extends JavaPlugin {
     private RelicService relics;
     private DungeonManager dungeons;
     private TravelListener travel;
+
+    @Override public void onLoad() {
+        extractResourcePacks();
+    }
+
+    public void extractResourcePacks() {
+        try {
+            Path output = getDataFolder().toPath().resolve("resource-packs");
+            Files.createDirectories(output);
+            String[] files = {"voidscape-java.zip", "voidscape-bedrock.mcpack", "geyser-mappings.json", "pack-hashes.json"};
+            for (String file : files) {
+                try (InputStream in = getResource("resource-packs/" + file)) {
+                    if (in != null) {
+                        Path target = output.resolve(file);
+                        byte[] bytes = in.readAllBytes();
+                        if (!Files.exists(target) || !Arrays.equals(Files.readAllBytes(target), bytes)) {
+                            Files.write(target, bytes);
+                        }
+                    }
+                }
+            }
+            Path pluginsDir = getDataFolder().toPath().toAbsolutePath().getParent();
+            if (pluginsDir != null) {
+                Path geyser = pluginsDir.resolve("Geyser-Spigot");
+                if (!Files.isDirectory(geyser)) {
+                    geyser = pluginsDir.resolve("Geyser");
+                }
+                if (Files.isDirectory(geyser)) {
+                    Path bedrockPack = output.resolve("voidscape-bedrock.mcpack");
+                    Path mappings = output.resolve("geyser-mappings.json");
+                    if (Files.exists(bedrockPack)) {
+                        Path destPack = geyser.resolve("packs/voidscape-bedrock.mcpack");
+                        Files.createDirectories(destPack.getParent());
+                        Files.copy(bedrockPack, destPack, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                    if (Files.exists(mappings)) {
+                        Path destMapping = geyser.resolve("custom_mappings/voidscape.json");
+                        Files.createDirectories(destMapping.getParent());
+                        Files.copy(mappings, destMapping, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                    getLogger().info("Voidscape Bedrock pack & mappings auto-installed to Geyser.");
+                }
+            }
+        } catch (Exception e) {
+            getLogger().warning("Resource pack extraction: " + e.getMessage());
+        }
+    }
+
     @Override public void onEnable() {
         try {
+            extractResourcePacks();
             saveDefaultConfig();
             if(getConfig().getInt("config-version",0)<2) {
                 Path old=getDataFolder().toPath().resolve("config.yml");
