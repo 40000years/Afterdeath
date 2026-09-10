@@ -58,13 +58,26 @@ public final class TravelListener implements Listener {
             }
         }
 
-        // Crying Obsidian Portal ignition with Fire Charge or Eye of Ender
-        if(hand.getType()==Material.FIRE_CHARGE||hand.getType()==Material.ENDER_EYE) {
+        // Crying Obsidian Portal ignition with Fire Charge, Eye of Ender, or Flint and Steel
+        if(hand.getType()==Material.FIRE_CHARGE||hand.getType()==Material.ENDER_EYE||hand.getType()==Material.FLINT_AND_STEEL) {
             if(!allowedEntryWorld(p)||p.getWorld()==plugin.world())return;
             Block target=clicked.getType()==Material.CRYING_OBSIDIAN?clicked.getRelative(e.getBlockFace()):clicked;
             if(tryIgnitePortal(target,p)) {
                 e.setCancelled(true);
-                if(p.getGameMode()!=GameMode.CREATIVE) hand.subtract(1);
+                if(p.getGameMode()!=GameMode.CREATIVE) {
+                    if(hand.getType()==Material.FLINT_AND_STEEL) {
+                        if(hand.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg) {
+                            dmg.setDamage(dmg.getDamage()+1);
+                            hand.setItemMeta(dmg);
+                            if(dmg.getDamage()>=hand.getType().getMaxDurability()) {
+                                hand.setAmount(0);
+                                p.playSound(p.getLocation(),Sound.ENTITY_ITEM_BREAK,1.0f,1.0f);
+                            }
+                        }
+                    } else {
+                        hand.subtract(1);
+                    }
+                }
             }
         }
     }
@@ -176,13 +189,55 @@ public final class TravelListener implements Listener {
         return m==Material.AIR||m==Material.CAVE_AIR||m==Material.FIRE||m==Material.SOUL_FIRE||m==Material.NETHER_PORTAL;
     }
 
-    private boolean isCryingObsidianPortal(Block portalBlock) {
-        if(portalBlock.getType()!=Material.NETHER_PORTAL)return false;
-        for(BlockFace face:new BlockFace[]{BlockFace.NORTH,BlockFace.SOUTH,BlockFace.EAST,BlockFace.WEST,BlockFace.UP,BlockFace.DOWN}) {
-            Block adj=portalBlock.getRelative(face);
-            if(adj.getType()==Material.CRYING_OBSIDIAN)return true;
+    public boolean isCryingObsidianPortal(Block portalBlock) {
+        if(portalBlock==null||portalBlock.getType()!=Material.NETHER_PORTAL)return false;
+        Queue<Block> queue=new ArrayDeque<>();
+        Set<Block> visited=new HashSet<>();
+        queue.add(portalBlock);
+        visited.add(portalBlock);
+        while(!queue.isEmpty()&&visited.size()<=128) {
+            Block curr=queue.poll();
+            for(BlockFace face:new BlockFace[]{BlockFace.NORTH,BlockFace.SOUTH,BlockFace.EAST,BlockFace.WEST,BlockFace.UP,BlockFace.DOWN}) {
+                Block adj=curr.getRelative(face);
+                if(adj.getType()==Material.CRYING_OBSIDIAN)return true;
+                if(adj.getType()==Material.NETHER_PORTAL&&visited.add(adj)) {
+                    queue.add(adj);
+                }
+            }
         }
         return false;
+    }
+
+    private Block findCryingPortalBlock(Player p, Location from) {
+        if(from!=null&&from.getWorld()==p.getWorld()&&from.getBlock().getType()==Material.NETHER_PORTAL) {
+            if(isCryingObsidianPortal(from.getBlock())) return from.getBlock();
+        }
+        Block feet=p.getLocation().getBlock();
+        if(feet.getType()==Material.NETHER_PORTAL&&isCryingObsidianPortal(feet)) return feet;
+        Block eye=p.getEyeLocation().getBlock();
+        if(eye.getType()==Material.NETHER_PORTAL&&isCryingObsidianPortal(eye)) return eye;
+        Location loc=p.getLocation();
+        int px=loc.getBlockX(),py=loc.getBlockY(),pz=loc.getBlockZ();
+        for(int dx=-1;dx<=1;dx++) {
+            for(int dy=-1;dy<=2;dy++) {
+                for(int dz=-1;dz<=1;dz++) {
+                    Block b=loc.getWorld().getBlockAt(px+dx,py+dy,pz+dz);
+                    if(b.getType()==Material.NETHER_PORTAL&&isCryingObsidianPortal(b)) {
+                        return b;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    @EventHandler(priority=EventPriority.NORMAL,ignoreCancelled=true)
+    public void blockPhysics(BlockPhysicsEvent e) {
+        if(e.getBlock().getType()==Material.NETHER_PORTAL) {
+            if(isCryingObsidianPortal(e.getBlock())) {
+                e.setCancelled(true);
+            }
+        }
     }
 
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
@@ -193,8 +248,8 @@ public final class TravelListener implements Listener {
             leave(p,false);
             return;
         }
-        Block block=p.getLocation().getBlock();
-        if(isCryingObsidianPortal(block)||isCryingObsidianPortal(block.getRelative(BlockFace.UP))) {
+        Block block=findCryingPortalBlock(p,e.getFrom());
+        if(block!=null) {
             e.setCancelled(true);
             enter(p);
         }
@@ -210,6 +265,10 @@ public final class TravelListener implements Listener {
             // Return portal at spawn island
             if(Math.abs(b.getX())<=3&&b.getZ()<=-4&&b.getZ()>=-6) {
                 leave(p,false);
+            }
+        } else if(p.getGameMode()==GameMode.CREATIVE) {
+            if(findCryingPortalBlock(p,b.getLocation())!=null) {
+                enter(p);
             }
         }
     }
@@ -235,7 +294,7 @@ public final class TravelListener implements Listener {
     }
 
     private void clearPortal(Block b,Set<Block> seen) {
-        if(b.getType()!=Material.NETHER_PORTAL||!seen.add(b)||seen.size()>100)return;
+        if(b.getType()!=Material.NETHER_PORTAL||!seen.add(b)||seen.size()>500)return;
         b.setType(Material.AIR);
         for(BlockFace face:new BlockFace[]{BlockFace.NORTH,BlockFace.SOUTH,BlockFace.EAST,BlockFace.WEST,BlockFace.UP,BlockFace.DOWN}) {
             clearPortal(b.getRelative(face),seen);
