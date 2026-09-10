@@ -135,22 +135,38 @@ def main():
     stage=f'{name}_pulling_{n}';png(java/f'assets/voidscape/textures/item/{stage}.png',icon(name,n+1))
     write_json(java/f'assets/voidscape/models/item/{stage}.json',{'parent':'minecraft:item/bow','textures':{'layer0':'voidscape:item/'+stage}})
     stages.append({'threshold':[0,0.65,0.9][n],'model':{'type':'minecraft:model','model':'voidscape:item/'+stage}})
-  if name.endswith('mask'):
-   face={direction:{'uv':[0,0,16,16],'texture':'#mask'} for direction in ['north','south','east','west','up','down']}
-   model={'textures':{'mask':'voidscape:item/'+name},'elements':[{'from':[3,3,3],'to':[13,13,13],'faces':face}],
-          'display':{'head':{'rotation':[0,0,0],'translation':[0,0,0],'scale':[1.4,1.4,1.4]},'gui':{'rotation':[20,35,0],'scale':[0.8,0.8,0.8]}}}
-  write_json(java/f'assets/voidscape/models/item/{name}.json',model)
-  definition={'model':{'type':'minecraft:model','model':'voidscape:item/'+name}}
-  if base=='bow':
-   stages=[]
-   for n in range(3):
-    stage=f'{name}_pulling_{n}';png(java/f'assets/voidscape/textures/item/{stage}.png',icon(name,n+1))
-    write_json(java/f'assets/voidscape/models/item/{stage}.json',{'parent':'minecraft:item/bow','textures':{'layer0':'voidscape:item/'+stage}})
-    stages.append({'threshold':[0,0.65,0.9][n],'model':{'type':'minecraft:model','model':'voidscape:item/'+stage}})
    definition={'model':{'type':'minecraft:condition','property':'minecraft:using_item','on_false':definition['model'],'on_true':{'type':'minecraft:range_dispatch','property':'minecraft:use_duration','scale':0.05,'fallback':stages[0]['model'],'entries':stages}}}
   write_json(java/f'assets/voidscape/items/{name}.json',definition)
   mappings['items'].setdefault('minecraft:'+base,[]).append({'type':'definition','model':'voidscape:'+name,'bedrock_identifier':'voidscape:'+name,'display_name':title,
     'bedrock_options':{'icon':'voidscape.'+name,'allow_offhand':True,'display_handheld':base in ('netherite_pickaxe','netherite_sword','bow')}})
+ core_cases=[]
+ core_definitions=[]
+ core_items={
+  'lightning_strike':'Core of Lightning','frost_nova':'Core of Frost',
+  'shadow_step':'Core of Shadows','natures_bloom':'Core of Nature',
+  'earth_wall':'Core of Earth','dragons_breath':'Core of Dragon',
+  'void_pull':'Core of the Void','invisibility_shroud':'Core of Invisibility',
+  'poison_spores':'Core of Poison','wither_ray':'Core of Wither',
+  'shulker_levitation':'Core of Levitation','meteor_strike':'Core of Meteor',
+  'iron_armor':'Core of Iron','time_dilation':'Core of Time','soul_drain':'Core of Souls'
+ }
+ for c_id,c_title in core_items.items():
+  source=ROOT/f'art/cores/core_{c_id}.png'
+  if source.is_file():
+   data=source.read_bytes()
+   for dest in (java/f'assets/advance_magic/textures/item/core_{c_id}.png',bedrock/f'textures/items/core_{c_id}.png'):
+    dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(data)
+   write_json(java/f'assets/advance_magic/models/item/core_{c_id}.json',{'parent':'minecraft:item/generated','textures':{'layer0':f'advance_magic:item/core_{c_id}'}})
+   write_json(java/f'assets/advance_magic/items/core_{c_id}.json',{'model':{'type':'minecraft:model','model':f'advance_magic:item/core_{c_id}'}})
+   textures[f'advance_magic.core_{c_id}']={'textures':f'textures/items/core_{c_id}'}
+   core_cases.append({'when':f'advance_magic:core_{c_id}','model':{'type':'minecraft:model','model':f'advance_magic:item/core_{c_id}'}})
+   core_definitions.append({'type':'definition','model':'minecraft:heart_of_the_sea',
+                            'predicate':{'type':'match','property':'custom_model_data','index':0,'value':f'advance_magic:core_{c_id}'},
+                            'bedrock_identifier':f'advance_magic:core_{c_id}','display_name':c_title,
+                            'bedrock_options':{'icon':f'advance_magic.core_{c_id}','allow_offhand':True,'display_handheld':False,'creative_category':'items'}})
+ if core_cases:
+  write_json(java/'assets/minecraft/items/heart_of_the_sea.json',{'model':{'type':'minecraft:select','property':'minecraft:custom_model_data','index':0,'cases':core_cases,'fallback':{'type':'minecraft:model','model':'minecraft:item/heart_of_the_sea'}}})
+  mappings['items']['minecraft:heart_of_the_sea']=core_definitions
  write_json(bedrock/'textures/item_texture.json',{'resource_pack_name':'voidscape','texture_name':'atlas.items','texture_data':textures})
  write_json(DIST/'geyser-mappings.json',mappings)
  png(java/'pack.png',icon('void_key'));png(bedrock/'pack_icon.png',icon('void_key'))

@@ -35,11 +35,24 @@ public final class RelicService implements Listener {
     private final NamespacedKey type,shot,shotOwner,shieldUntil,voidKeyTag;
     private final Set<UUID> mining=new HashSet<>();
     private final Map<UUID,Long> arrows=new HashMap<>();
-    private static final Material[] WAND_CORES = {
-        Material.ENCHANTED_GOLDEN_APPLE, Material.NETHER_STAR, Material.DRAGON_BREATH,
-        Material.REINFORCED_DEEPSLATE, Material.LODESTONE, Material.SCULK_CATALYST,
-        Material.SPORE_BLOSSOM, Material.SHULKER_SHELL, Material.BLUE_ICE
-    };
+    public record MagicCore(String id, String title, String wandTitle) {}
+    public static final List<MagicCore> MAGIC_CORES = List.of(
+        new MagicCore("lightning_strike", "Core of Lightning", "Lightning Strike"),
+        new MagicCore("frost_nova", "Core of Frost", "Frost Nova"),
+        new MagicCore("shadow_step", "Core of Shadows", "Shadow Step"),
+        new MagicCore("natures_bloom", "Core of Nature", "Nature's Bloom"),
+        new MagicCore("earth_wall", "Core of Earth", "Earth Wall"),
+        new MagicCore("dragons_breath", "Core of Dragon", "Dragon's Breath"),
+        new MagicCore("void_pull", "Core of the Void", "Void Pull"),
+        new MagicCore("invisibility_shroud", "Core of Invisibility", "Invisibility Shroud"),
+        new MagicCore("poison_spores", "Core of Poison", "Poison Spores"),
+        new MagicCore("wither_ray", "Core of Wither", "Wither Ray"),
+        new MagicCore("shulker_levitation", "Core of Levitation", "Shulker Levitation"),
+        new MagicCore("meteor_strike", "Core of Meteor", "Meteor Strike"),
+        new MagicCore("iron_armor", "Core of Iron", "Iron Armor"),
+        new MagicCore("time_dilation", "Core of Time", "Time Dilation"),
+        new MagicCore("soul_drain", "Core of Souls", "Soul Drain")
+    );
     private static final Material[] ARMOR_TRIMS = {
         Material.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE, Material.SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE,
         Material.WARD_ARMOR_TRIM_SMITHING_TEMPLATE, Material.VEX_ARMOR_TRIM_SMITHING_TEMPLATE,
@@ -54,6 +67,30 @@ public final class RelicService implements Listener {
     public RelicService(VoidscapePlugin plugin) {
         this.plugin=plugin; type=plugin.key("relic_v2");shot=plugin.key("shot");shotOwner=plugin.key("shot_owner");shieldUntil=plugin.key("shield_until");
         voidKeyTag=plugin.key("void_key");
+    }
+    public ItemStack createMagicCore(MagicCore core) {
+        ItemStack item=new ItemStack(Material.HEART_OF_THE_SEA);
+        ItemMeta meta=item.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD+"✦ "+core.title());
+        meta.setLore(List.of(
+            ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
+            ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+core.wandTitle()+" Wand",
+            ChatColor.YELLOW+"Recipe: 8 Netherite Ingots surrounding this Core",
+            ChatColor.DARK_PURPLE+"Obtained from Void Vault in Voidscape"
+        ));
+        var modelData=meta.getCustomModelDataComponent();
+        modelData.setStrings(List.of("advance_magic:core_"+core.id()));
+        meta.setCustomModelDataComponent(modelData);
+        meta.getPersistentDataContainer().set(new NamespacedKey("advance_magic","core"),PersistentDataType.STRING,core.id());
+        meta.getPersistentDataContainer().set(new NamespacedKey("voidscape","magic_core"),PersistentDataType.STRING,core.id());
+        item.setItemMeta(meta);
+        return item;
+    }
+    public ItemStack createMagicCore(String id) {
+        for(MagicCore c : MAGIC_CORES) {
+            if(c.id().equalsIgnoreCase(id)||c.id().replace("_","").equalsIgnoreCase(id.replace("_",""))) return createMagicCore(c);
+        }
+        return createMagicCore(MAGIC_CORES.get(0));
     }
     public ItemStack create(Relic relic,int count) {
         ItemStack item=new ItemStack(relic.material,Math.min(relic.material.getMaxStackSize(),Math.max(1,count)));
@@ -86,35 +123,27 @@ public final class RelicService implements Listener {
     public ItemStack rollVaultReward() {
         Random r=new Random();
         double roll=r.nextDouble();
-        // 10% Advance Magic Core Item
-        if(roll<0.10) {
-            Material coreMat=WAND_CORES[r.nextInt(WAND_CORES.length)];
-            ItemStack core=new ItemStack(coreMat,1);
-            ItemMeta meta=core.getItemMeta();
-            meta.displayName(Component.text("✦ แกนคทาเวทมนตร์",NamedTextColor.LIGHT_PURPLE));
-            meta.lore(List.of(
-                Component.text("แกนพลังงานบริสุทธิ์สำหรับคราฟต์คทา Advance Magic",NamedTextColor.GRAY),
-                Component.text("ส่วนขยาย ADVANCE MAGIC · VOIDSCAPE",NamedTextColor.DARK_PURPLE)
-            ));
-            core.setItemMeta(meta);
-            return core;
-        }
         // 30% Diamond Block
-        if(roll<0.40) {
+        if(roll<0.30) {
             return new ItemStack(Material.DIAMOND_BLOCK,1);
         }
         // 30% Netherite Ingot
-        if(roll<0.70) {
+        if(roll<0.60) {
             return new ItemStack(Material.NETHERITE_INGOT,1);
         }
         // 20% Random Armor Trim
-        if(roll<0.90) {
+        if(roll<0.80) {
             Material trimMat=ARMOR_TRIMS[r.nextInt(ARMOR_TRIMS.length)];
             return new ItemStack(trimMat,1);
         }
         // 10% Special Tool
-        Relic[] tools={Relic.RIFT_PICKAXE,Relic.SMELTER_PICKAXE,Relic.STORM_BOW};
-        return create(tools[r.nextInt(tools.length)],1);
+        if(roll<0.90) {
+            Relic[] tools={Relic.RIFT_PICKAXE,Relic.SMELTER_PICKAXE,Relic.STORM_BOW};
+            return create(tools[r.nextInt(tools.length)],1);
+        }
+        // 10% สุ่มแกนเวทมนตร์ Core of ... (สุ่ม 1 ใน 15 แบบ)
+        MagicCore core = MAGIC_CORES.get(r.nextInt(MAGIC_CORES.size()));
+        return createMagicCore(core);
     }
     public ItemStack createGuideBook() {
         ItemStack book=new ItemStack(Material.WRITTEN_BOOK);
@@ -125,8 +154,8 @@ public final class RelicService implements Listener {
             Component.text("§1§lมิติความว่างเปล่า\n§0(Voidscape Realm)\n§8ส่วนขยาย Advance Magic\n\n§0ยินดีต้อนรับสู่ The Void!\nดินแดนหมู่เกาะหินทมิฬลอยฟ้าสุดขอบจักรวาล\nพร้อมวิหารโบราณ 3 ธาตุ กระจายตัวไม่จำกัดทั่วโลก"),
             Component.text("§1§lการสำรวจ (การบิน)\n§0สวมใส่ §5Elytra§0 และใช้พลุบินข้ามหมู่เกาะลอยฟ้า\n\n§0วิหารโบราณทั้ง 3 ธาตุมีอยู่ §c§lไม่จำกัดทั่วทั้งมิติ§r§0 (เกิดซ้ำเรื่อยๆ ทุกๆ ~280 บล็อก)\n\n§0วิหารใกล้จุดเกิดที่สุด:\n§51. วิหารความมืด§0 (มุ่งหน้าทิศเหนือ Z = -250)\n§92. วิหารดวงดาว§0 (ทิศ ต.อ.เฉียงใต้ X = 220, Z = 130)\n§63. วิหารกาลเวลา§0 (ทิศ ต.ต.เฉียงใต้ X = -220, Z = 130)\n\n§8พิมพ์ /void locate เพื่อดูพิกัดวิหารใกล้ตัวคุณ"),
             Component.text("§1§lกฎการท้าทาย\n§0- คลิกที่แท่น §5Lodestone§0 กลางวิหารเพื่อเรียกผู้พิทักษ์\n\n§0⚠ §c§lคำเตือน:§r§0 ห้ามนำเรือหรือรถรางมาขังมอนสเตอร์เด็ดขาด! พลังวิหารจะขับไล่ยานพาหนะทันที"),
-            Component.text("§1§lรางวัล & Void Vault\n§0- เมื่อชนะการต่อสู้ §dVoid Key§0 จะเด้งเข้าตัวผู้เล่นทันที\n- นำไปเปิด §5Void Vault§0\n- §cเปิดได้คนละ 1 ครั้งต่อกล่อง!§0\n\n§0§lโอกาสดรอป:§r\n§5• 10%§0 แกนคทา Magic\n§b• 30%§0 Diamond Block\n§8• 30%§0 Netherite Ingot\n§e• 20%§0 Armor Trim สุ่ม\n§d• 10%§0 อุปกรณ์พิเศษ"),
-            Component.text("§1§lอุปกรณ์พิเศษ (10%)\n§0• §bที่ขุด 3x3§0: ขุดพื้นที่ 3x3 บล็อกพร้อมกัน\n• §6ที่ขุดหลอมอัตโนมัติ§0: ขุดทรายได้กระจก ขุดแร่ได้แท่งโลหะ\n• §dธนูสายฟ้า§0: ยิงธนูผ่าสายฟ้าต่อเนื่องใส่ศัตรู")
+            Component.text("§1§lรางวัล & Void Vault\n§0- เมื่อชนะการต่อสู้ §dVoid Key§0 จะเด้งเข้าตัวผู้เล่นทันที\n- นำไปเปิด §5Void Vault§0\n- §cเปิดได้คนละ 1 ครั้งต่อกล่อง!§0\n\n§0§lโอกาสดรอป (30/30/20/10/10):§r\n§b• 30%§0 Diamond Block\n§8• 30%§0 Netherite Ingot\n§e• 20%§0 Armor Trim สุ่ม\n§d• 10%§0 อุปกรณ์พิเศษ\n§5• 10%§0 สุ่มแกน Core of ... (1 ใน 15 แบบ)"),
+            Component.text("§1§lแกนเวทย์ & อุปกรณ์\n§0• §6แกน Core of ... (10%)§0: สุ่ม 1 ใน 15 แบบ นำไปล้อมด้วย 8 Netherite Ingot ที่โต๊ะคราฟต์เพื่อสร้างคทาเวทมนตร์ Advance Magic!\n\n§0• §bที่ขุด 3x3§0: ขุดพื้นที่ 3x3 บล็อกพร้อมกัน\n• §6ที่ขุดหลอมอัตโนมัติ§0: ขุดทรายได้กระจก ขุดแร่ได้แท่งโลหะ\n• §dธนูสายฟ้า§0: ยิงธนูผ่าสายฟ้าต่อเนื่อง")
         ));
         book.setItemMeta(meta);
         return book;

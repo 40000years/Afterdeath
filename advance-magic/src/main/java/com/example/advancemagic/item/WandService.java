@@ -14,14 +14,61 @@ import java.util.*;
 
 public final class WandService implements Listener {
     public static final Material BASE=Material.CARROT_ON_A_STICK;
+    public static final Material CORE_BASE=Material.HEART_OF_THE_SEA;
     private final NamespacedKey wandKey;
     private final NamespacedKey castsKey;
+    private final NamespacedKey coreKey;
     private final Map<NamespacedKey,Spell> recipes=new HashMap<>();
     private final Plugin plugin;
     public WandService(Plugin plugin) {
         this.plugin=plugin;
         wandKey=new NamespacedKey(plugin,"wand");
         castsKey=new NamespacedKey(plugin,"casts");
+        coreKey=new NamespacedKey(plugin,"core");
+    }
+    public static String coreTitle(Spell spell) {
+        return switch(spell) {
+            case LIGHTNING_STRIKE -> "Lightning";
+            case FROST_NOVA -> "Frost";
+            case SHADOW_STEP -> "Shadows";
+            case NATURES_BLOOM -> "Nature";
+            case EARTH_WALL -> "Earth";
+            case DRAGONS_BREATH -> "Dragon";
+            case VOID_PULL -> "the Void";
+            case INVISIBILITY_SHROUD -> "Invisibility";
+            case POISON_SPORES -> "Poison";
+            case WITHER_RAY -> "Wither";
+            case SHULKER_LEVITATION -> "Levitation";
+            case METEOR_STRIKE -> "Meteor";
+            case IRON_ARMOR -> "Iron";
+            case TIME_DILATION -> "Time";
+            case SOUL_DRAIN -> "Souls";
+        };
+    }
+    public ItemStack createCore(Spell spell) {
+        ItemStack item=new ItemStack(CORE_BASE);
+        var meta=item.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD+"✦ Core of "+coreTitle(spell));
+        meta.setLore(List.of(
+            ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
+            ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+spell.title+" Wand",
+            ChatColor.YELLOW+"Recipe: 8 Netherite Ingots surrounding this Core",
+            ChatColor.DARK_PURPLE+"Obtained from Void Vault in Voidscape"
+        ));
+        var modelData=meta.getCustomModelDataComponent();
+        modelData.setStrings(List.of("advance_magic:core_"+spell.id()));
+        meta.setCustomModelDataComponent(modelData);
+        meta.getPersistentDataContainer().set(coreKey,PersistentDataType.STRING,spell.id());
+        meta.getPersistentDataContainer().set(new NamespacedKey("voidscape","magic_core"),PersistentDataType.STRING,spell.id());
+        item.setItemMeta(meta);
+        return item;
+    }
+    public Spell coreSpell(ItemStack item) {
+        if(item==null||item.getType()!=CORE_BASE||!item.hasItemMeta())return null;
+        var pdc=item.getItemMeta().getPersistentDataContainer();
+        String id=pdc.get(coreKey,PersistentDataType.STRING);
+        if(id==null) id=pdc.get(new NamespacedKey("voidscape","magic_core"),PersistentDataType.STRING);
+        return id==null?null:Spell.parse(id);
     }
     public ItemStack create(Spell spell) {
         ItemStack item=new ItemStack(BASE);
@@ -73,22 +120,34 @@ public final class WandService implements Listener {
             NamespacedKey key=new NamespacedKey(plugin,s.id());
             Bukkit.removeRecipe(key);
             ShapedRecipe recipe=new ShapedRecipe(key,create(s));
-            recipe.shape("SSS","SCS","SSS");
-            recipe.setIngredient('S',new RecipeChoice.ExactChoice(new ItemStack(Material.NETHER_STAR)));
-            recipe.setIngredient('C',new RecipeChoice.ExactChoice(new ItemStack(s.core)));
+            recipe.shape("NNN","NCN","NNN");
+            recipe.setIngredient('N',new RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT,Material.NETHER_STAR));
+            recipe.setIngredient('C',new RecipeChoice.ExactChoice(createCore(s)));
             if(!Bukkit.addRecipe(recipe))throw new IllegalStateException("Duplicate recipe: "+key);
             recipes.put(key,s);
         }
     }
     public void discover(Player p) { if(p.hasPermission("advance-magic.craft"))p.discoverRecipes(recipes.keySet()); }
     public boolean migrate(ItemStack item) {
-        Spell spell=spell(item);if(spell==null)return false;
-        var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();
-        String key="advance_magic:"+spell.id();
-        if(!meta.hasItemModel()&&data.getStrings().equals(List.of(key)))return false;
-        meta.setItemModel(null);data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
-        item.setItemMeta(meta);return true;
+        Spell spell=spell(item);
+        if(spell!=null) {
+            var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();
+            String key="advance_magic:"+spell.id();
+            if(!meta.hasItemModel()&&data.getStrings().equals(List.of(key)))return false;
+            meta.setItemModel(null);data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
+            item.setItemMeta(meta);return true;
+        }
+        Spell core=coreSpell(item);
+        if(core!=null) {
+            var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();
+            String key="advance_magic:core_"+core.id();
+            if(!meta.hasItemModel()&&data.getStrings().equals(List.of(key)))return false;
+            meta.setItemModel(null);data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
+            item.setItemMeta(meta);return true;
+        }
+        return false;
     }
+
     public void migrate(Inventory inventory) {
         for(int slot=0;slot<inventory.getSize();slot++) {
             ItemStack item=inventory.getItem(slot);if(migrate(item))inventory.setItem(slot,item);
@@ -104,10 +163,39 @@ public final class WandService implements Listener {
     @EventHandler public void load(EntitiesLoadEvent event){event.getEntities().forEach(this::migrateEntity);}
     private boolean ours(Recipe recipe) { return recipe instanceof Keyed k&&recipes.containsKey(k.getKey()); }
     @EventHandler public void prepare(PrepareItemCraftEvent e) {
-        if(ours(e.getRecipe())&&e.getView().getPlayer() instanceof Player p&&!p.hasPermission("advance-magic.craft"))e.getInventory().setResult(null);
+        if(ours(e.getRecipe())&&e.getView().getPlayer() instanceof Player p&&!p.hasPermission("advance-magic.craft")) {
+            e.getInventory().setResult(null);
+            return;
+        }
+        CraftingInventory inv=e.getInventory();
+        ItemStack[] matrix=inv.getMatrix();
+        if(matrix!=null&&matrix.length==9) {
+            ItemStack center=matrix[4];
+            Spell s=coreSpell(center);
+            if(s!=null) {
+                boolean allNetherite=true;
+                for(int i=0;i<9;i++) {
+                    if(i==4)continue;
+                    ItemStack ing=matrix[i];
+                    if(ing==null||(ing.getType()!=Material.NETHERITE_INGOT&&ing.getType()!=Material.NETHER_STAR)) {
+                        allNetherite=false;
+                        break;
+                    }
+                }
+                if(allNetherite) {
+                    if(e.getView().getPlayer() instanceof Player p&&!p.hasPermission("advance-magic.craft")) {
+                        inv.setResult(null);
+                    } else {
+                        inv.setResult(create(s));
+                    }
+                }
+            }
+        }
     }
     @EventHandler(ignoreCancelled=true) public void craft(CraftItemEvent e) {
-        if(ours(e.getRecipe())&&!e.getWhoClicked().hasPermission("advance-magic.craft"))e.setCancelled(true);
+        if((ours(e.getRecipe())||spell(e.getCurrentItem())!=null)&&!e.getWhoClicked().hasPermission("advance-magic.craft")) {
+            e.setCancelled(true);
+        }
     }
     public void close() { recipes.keySet().forEach(Bukkit::removeRecipe);recipes.clear(); }
 }

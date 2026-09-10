@@ -69,7 +69,7 @@ public final class IntegrationChecks extends JavaPlugin {
             check(recipe instanceof ShapedRecipe&&((ShapedRecipe)recipe).getShape().length==3&&Arrays.stream(((ShapedRecipe)recipe).getShape()).allMatch(row->row.length()==3),"recipe shape "+s.id());
             var choices=((ShapedRecipe)recipe).getChoiceMap();
             String[] shape=((ShapedRecipe)recipe).getShape();boolean ingredients=true;
-            for(int y=0;y<3;y++)for(int x=0;x<3;x++)ingredients &= choices.get(shape[y].charAt(x)).test(new ItemStack(x==1&&y==1?s.core:Material.NETHER_STAR));
+            for(int y=0;y<3;y++)for(int x=0;x<3;x++)ingredients &= choices.get(shape[y].charAt(x)).test(x==1&&y==1?plugin.wands().createCore(s):new ItemStack(Material.NETHERITE_INGOT));
             check(ingredients,"recipe ingredients "+s.id());
         }
         check(plugin.wands().spell(new ItemStack(Material.CARROT_ON_A_STICK))==null,"vanilla item cannot cast");

@@ -6,6 +6,7 @@ import com.example.voidscape.world.DungeonLayout;
 import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import java.util.*;
 
 public final class VoidCommand implements CommandExecutor,TabCompleter {
@@ -48,12 +49,23 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             }
             case "leave" -> {if(p!=null&&p.getWorld()==plugin.world())plugin.travel().leave(p,false);}
             case "give" -> {
+                if(args.length<2){plugin.message(sender,"/void give <ชื่อไอเทม|core_<ชื่อแกน>> [ผู้เล่น]");return true;}
+                Player target=args.length>2?Bukkit.getPlayerExact(args[2]):p;
+                if(target==null){plugin.message(sender,"ระบุผู้เล่นออนไลน์ด้วย");return true;}
+                if(target.getInventory().firstEmpty()<0){plugin.message(sender,"กระเป๋าผู้รับเต็ม");return true;}
+                String itemArg=args[1].toLowerCase(Locale.ROOT);
+                if(itemArg.startsWith("core_")||itemArg.startsWith("core")) {
+                    String coreId=itemArg.startsWith("core_")?itemArg.substring(5):itemArg.substring(4);
+                    if(coreId.startsWith("_")) coreId=coreId.substring(1);
+                    ItemStack coreItem=plugin.relics().createMagicCore(coreId);
+                    target.getInventory().addItem(coreItem);
+                    plugin.message(sender,"มอบ "+itemArg+" แล้ว");
+                    return true;
+                }
                 try {
-                    Relic r=Relic.valueOf(args[1].toUpperCase(Locale.ROOT));Player target=args.length>2?Bukkit.getPlayerExact(args[2]):p;
-                    if(target==null){plugin.message(sender,"ระบุผู้เล่นออนไลน์ด้วย");return true;}
-                    if(target.getInventory().firstEmpty()<0){plugin.message(sender,"กระเป๋าผู้รับเต็ม");return true;}
+                    Relic r=Relic.valueOf(args[1].toUpperCase(Locale.ROOT));
                     target.getInventory().addItem(plugin.relics().create(r,1));plugin.message(sender,"มอบ "+r.id()+" แล้ว");
-                }catch(RuntimeException e){plugin.message(sender,"/void give <ชื่อไอเทม> [ผู้เล่น]");}
+                }catch(RuntimeException e){plugin.message(sender,"/void give <ชื่อไอเทม|core_<ชื่อแกน>> [ผู้เล่น]");}
             }
             case "locate" -> {
                 int x=p!=null&&p.getWorld()==plugin.world()?p.getLocation().getBlockX():0;
@@ -110,7 +122,10 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
         List<String> c=new ArrayList<>();
         if(args.length==1){c.addAll(List.of("help","guide","enter","leave","locate"));if(sender.hasPermission("voidscape.admin"))c.addAll(List.of("tp","give","status","reload","pregen"));}
         if(args.length==2&&args[0].equalsIgnoreCase("tp")&&sender.hasPermission("voidscape.admin"))c.addAll(List.of("dark","astral","time","spawn"));
-        if(args.length==2&&args[0].equalsIgnoreCase("give")&&sender.hasPermission("voidscape.admin"))for(Relic r:Relic.values())c.add(r.id());
+        if(args.length==2&&args[0].equalsIgnoreCase("give")&&sender.hasPermission("voidscape.admin")) {
+            for(Relic r:Relic.values())c.add(r.id());
+            for(var core : com.example.voidscape.item.RelicService.MAGIC_CORES) c.add("core_"+core.id());
+        }
         if(args.length==2&&args[0].equalsIgnoreCase("locate"))c.addAll(List.of("dark","astral","time"));
         return c.stream().filter(s->s.startsWith(args[args.length-1].toLowerCase(Locale.ROOT))).toList();
     }

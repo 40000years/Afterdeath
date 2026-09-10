@@ -102,6 +102,18 @@ def main():
                        'uuid': '2a3e0ee7-a0df-4102-a03f-a81275edb570', 'version': [1, 0, 1], 'min_engine_version': [1, 21, 80]},
             'modules': [{'type': 'resources', 'uuid': '071b416b-df41-4c86-9ea4-7d6c3dfc02ac', 'version': [1, 0, 1]}]})
         atlas, definitions, cases = {}, [], []
+        core_atlas, core_definitions, core_cases = {}, [], []
+        core_titles = {
+            'lightning_strike': 'Core of Lightning', 'frost_nova': 'Core of Frost',
+            'shadow_step': 'Core of Shadows', 'natures_bloom': 'Core of Nature',
+            'earth_wall': 'Core of Earth', 'dragons_breath': 'Core of Dragon',
+            'void_pull': 'Core of the Void', 'invisibility_shroud': 'Core of Invisibility',
+            'poison_spores': 'Core of Poison', 'wither_ray': 'Core of Wither',
+            'shulker_levitation': 'Core of Levitation', 'meteor_strike': 'Core of Meteor',
+            'iron_armor': 'Core of Iron', 'time_dilation': 'Core of Time', 'soul_drain': 'Core of Souls'
+        }
+
+        # 1. Arcane Wands
         for index, (name, title, color) in enumerate(spells()):
             source = ROOT / f'art/wands/{name}.png'
             if not source.is_file():
@@ -119,12 +131,42 @@ def main():
                                 'predicate': {'type': 'match', 'property': 'custom_model_data', 'index': 0, 'value': f'advance_magic:{name}'},
                                 'bedrock_identifier': f'advance_magic:{name}', 'display_name': title + ' Wand',
                                 'bedrock_options': {'icon': f'advance_magic.{name}', 'allow_offhand': True, 'display_handheld': True, 'creative_category': 'equipment'}})
-        # A missing pack falls back to Minecraft's normal item; a loaded pack selects only our exact IDs.
+
+        # 2. Magic Cores (15 Elemental Cores)
+        for index, (name, title, color) in enumerate(spells()):
+            core_source = ROOT / f'art/cores/core_{name}.png'
+            if not core_source.is_file():
+                raise FileNotFoundError(f'Missing core texture: {core_source}')
+            for destination in (java / f'assets/advance_magic/textures/item/core_{name}.png', bedrock / f'textures/items/core_{name}.png'):
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(core_source, destination)
+            write_json(java / f'assets/advance_magic/models/item/core_{name}.json', {
+                'parent': 'minecraft:item/generated', 'textures': {'layer0': f'advance_magic:item/core_{name}'}})
+            write_json(java / f'assets/advance_magic/items/core_{name}.json', {
+                'model': {'type': 'minecraft:model', 'model': f'advance_magic:item/core_{name}'}})
+            atlas[f'advance_magic.core_{name}'] = {'textures': f'textures/items/core_{name}'}
+            core_cases.append({'when': f'advance_magic:core_{name}', 'model': {'type': 'minecraft:model', 'model': f'advance_magic:item/core_{name}'}})
+            core_definitions.append({'type': 'definition', 'model': 'minecraft:heart_of_the_sea',
+                                     'predicate': {'type': 'match', 'property': 'custom_model_data', 'index': 0, 'value': f'advance_magic:core_{name}'},
+                                     'bedrock_identifier': f'advance_magic:core_{name}', 'display_name': core_titles[name],
+                                     'bedrock_options': {'icon': f'advance_magic.core_{name}', 'allow_offhand': True, 'display_handheld': False, 'creative_category': 'items'}})
+
+        # Select overrides for carrot_on_a_stick (wands) and heart_of_the_sea (cores)
         write_json(java / 'assets/minecraft/items/carrot_on_a_stick.json', {'model': {
             'type': 'minecraft:select', 'property': 'minecraft:custom_model_data', 'index': 0, 'cases': cases,
             'fallback': {'type': 'minecraft:model', 'model': 'minecraft:item/carrot_on_a_stick'}}})
+        write_json(java / 'assets/minecraft/items/heart_of_the_sea.json', {'model': {
+            'type': 'minecraft:select', 'property': 'minecraft:custom_model_data', 'index': 0, 'cases': core_cases,
+            'fallback': {'type': 'minecraft:model', 'model': 'minecraft:item/heart_of_the_sea'}}})
+
         write_json(bedrock / 'textures/item_texture.json', {'resource_pack_name': 'advance_magic', 'texture_name': 'atlas.items', 'texture_data': atlas})
-        write_json(DIST / 'geyser-mappings.json', {'format_version': 2, 'items': {'minecraft:carrot_on_a_stick': definitions}})
+        write_json(DIST / 'geyser-mappings.json', {
+            'format_version': 2,
+            'items': {
+                'minecraft:carrot_on_a_stick': definitions,
+                'minecraft:heart_of_the_sea': core_definitions
+            }
+        })
         shutil.copyfile(ROOT / 'art/wands/frost_nova.png', java / 'pack.png')
         shutil.copyfile(ROOT / 'art/wands/frost_nova.png', bedrock / 'pack_icon.png')
         archive(java, DIST / 'advance-magic-java.zip')
@@ -133,19 +175,26 @@ def main():
         for name, title, color in spells():
             data = base64.b64encode((java / f'assets/advance_magic/textures/item/{name}.png').read_bytes()).decode('ascii')
             cards.append(f'<article><img alt="{html.escape(title)} wand" src="data:image/png;base64,{data}"><h2>{html.escape(title)}</h2><code>{name}</code></article>')
+        core_cards = []
+        for name, title, color in spells():
+            c_name = core_titles[name]
+            data = base64.b64encode((java / f'assets/advance_magic/textures/item/core_{name}.png').read_bytes()).decode('ascii')
+            core_cards.append(f'<article><img alt="{html.escape(c_name)}" src="data:image/png;base64,{data}"><h2>{html.escape(c_name)}</h2><code>advance_magic:core_{name}</code></article>')
+
         (DIST / 'wand-preview.html').write_text(
             '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-            '<title>Advance Magic — Wand Preview</title><style>'
+            '<title>Advance Magic — Wands & Cores</title><style>'
             'body{background:#14101d;color:#eee5ff;font:16px system-ui;max-width:1100px;margin:40px auto;padding:24px}'
-            'main{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}'
+            'main{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:40px}'
             'article{background:#221a30;border:1px solid #493758;border-radius:14px;padding:20px;text-align:center}'
             'img{width:128px;height:128px;image-rendering:pixelated}h2{font-size:17px}code{font-size:11px;color:#b9a8cd}'
-            '</style><h1>Advance Magic</h1><p>15 arcane wands · Java &amp; Bedrock textures</p><main>'
-            + ''.join(cards) + '</main></html>', encoding='utf8')
-    hashes = {name: hashlib.sha1((DIST / name).read_bytes()).hexdigest()
-              for name in ('advance-magic-java.zip', 'advance-magic-bedrock.mcpack')}
-    write_json(DIST / 'pack-hashes.json', hashes)
-    print(json.dumps(hashes, indent=2))
+            '</style><h1>Advance Magic</h1><p>15 Arcane Wands &amp; 15 Elemental Cores · Java &amp; Bedrock Textures</p>'
+            '<h2>15 Arcane Wands</h2><main>' + ''.join(cards) + '</main>'
+            '<h2>15 Magic Cores (Void Vault Drops)</h2><main>' + ''.join(core_cards) + '</main></html>', encoding='utf8')
+        hashes = {name: hashlib.sha1((DIST / name).read_bytes()).hexdigest()
+                  for name in ('advance-magic-java.zip', 'advance-magic-bedrock.mcpack')}
+        write_json(DIST / 'pack-hashes.json', hashes)
+        print(json.dumps(hashes, indent=2))
 
 
 if __name__ == '__main__':

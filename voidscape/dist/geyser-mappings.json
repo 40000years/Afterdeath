@@ -87,6 +87,278 @@
           "display_handheld": false
         }
       }
+    ],
+    "minecraft:heart_of_the_sea": [
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_lightning_strike"
+        },
+        "bedrock_identifier": "advance_magic:core_lightning_strike",
+        "display_name": "Core of Lightning",
+        "bedrock_options": {
+          "icon": "advance_magic.core_lightning_strike",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_frost_nova"
+        },
+        "bedrock_identifier": "advance_magic:core_frost_nova",
+        "display_name": "Core of Frost",
+        "bedrock_options": {
+          "icon": "advance_magic.core_frost_nova",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_shadow_step"
+        },
+        "bedrock_identifier": "advance_magic:core_shadow_step",
+        "display_name": "Core of Shadows",
+        "bedrock_options": {
+          "icon": "advance_magic.core_shadow_step",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_natures_bloom"
+        },
+        "bedrock_identifier": "advance_magic:core_natures_bloom",
+        "display_name": "Core of Nature",
+        "bedrock_options": {
+          "icon": "advance_magic.core_natures_bloom",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_earth_wall"
+        },
+        "bedrock_identifier": "advance_magic:core_earth_wall",
+        "display_name": "Core of Earth",
+        "bedrock_options": {
+          "icon": "advance_magic.core_earth_wall",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_dragons_breath"
+        },
+        "bedrock_identifier": "advance_magic:core_dragons_breath",
+        "display_name": "Core of Dragon",
+        "bedrock_options": {
+          "icon": "advance_magic.core_dragons_breath",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_void_pull"
+        },
+        "bedrock_identifier": "advance_magic:core_void_pull",
+        "display_name": "Core of the Void",
+        "bedrock_options": {
+          "icon": "advance_magic.core_void_pull",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_invisibility_shroud"
+        },
+        "bedrock_identifier": "advance_magic:core_invisibility_shroud",
+        "display_name": "Core of Invisibility",
+        "bedrock_options": {
+          "icon": "advance_magic.core_invisibility_shroud",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_poison_spores"
+        },
+        "bedrock_identifier": "advance_magic:core_poison_spores",
+        "display_name": "Core of Poison",
+        "bedrock_options": {
+          "icon": "advance_magic.core_poison_spores",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_wither_ray"
+        },
+        "bedrock_identifier": "advance_magic:core_wither_ray",
+        "display_name": "Core of Wither",
+        "bedrock_options": {
+          "icon": "advance_magic.core_wither_ray",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_shulker_levitation"
+        },
+        "bedrock_identifier": "advance_magic:core_shulker_levitation",
+        "display_name": "Core of Levitation",
+        "bedrock_options": {
+          "icon": "advance_magic.core_shulker_levitation",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_meteor_strike"
+        },
+        "bedrock_identifier": "advance_magic:core_meteor_strike",
+        "display_name": "Core of Meteor",
+        "bedrock_options": {
+          "icon": "advance_magic.core_meteor_strike",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_iron_armor"
+        },
+        "bedrock_identifier": "advance_magic:core_iron_armor",
+        "display_name": "Core of Iron",
+        "bedrock_options": {
+          "icon": "advance_magic.core_iron_armor",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_time_dilation"
+        },
+        "bedrock_identifier": "advance_magic:core_time_dilation",
+        "display_name": "Core of Time",
+        "bedrock_options": {
+          "icon": "advance_magic.core_time_dilation",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:heart_of_the_sea",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "advance_magic:core_soul_drain"
+        },
+        "bedrock_identifier": "advance_magic:core_soul_drain",
+        "display_name": "Core of Souls",
+        "bedrock_options": {
+          "icon": "advance_magic.core_soul_drain",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      }
     ]
   }
 }
