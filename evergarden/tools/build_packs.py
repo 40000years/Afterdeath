@@ -146,11 +146,21 @@ def main():
  textures={};mappings={'format_version':2,'items':{}};selectors={}
  write_json(bedrock/'render_controllers/evergarden_mask.json',{'format_version':'1.8.0','render_controllers':{'controller.render.evergarden_mask':{'geometry':'Geometry.default','materials':[{'*':'Material.default'}],'textures':['Texture.default']}}})
  for name,(base,title) in ITEMS.items():
-  pixels=icon(name)
-  if name in MASKS:
-   accent={'thorn':(95,201,151,255),'astral':(164,157,245,255),'chrono':(226,186,86,255)}[name.split('_')[0]]
-   pixels=[[accent if px in (PALETTE['v'],PALETTE['c']) else px for px in row] for row in pixels]
-  png(java/f'assets/voidscape/textures/item/{name}.png',pixels);png(bedrock/f'textures/items/{name}.png',pixels)
+  equipment_art = ROOT / 'art' / 'equipment' / f'{name}.png'
+  if equipment_art.is_file():
+   data = equipment_art.read_bytes()
+   dest_java = java / f'assets/voidscape/textures/item/{name}.png'
+   dest_bedrock = bedrock / f'textures/items/{name}.png'
+   dest_java.parent.mkdir(parents=True, exist_ok=True)
+   dest_java.write_bytes(data)
+   dest_bedrock.parent.mkdir(parents=True, exist_ok=True)
+   dest_bedrock.write_bytes(data)
+  else:
+   pixels=icon(name)
+   if name in MASKS:
+    accent={'thorn':(95,201,151,255),'astral':(164,157,245,255),'chrono':(226,186,86,255)}[name.split('_')[0]]
+    pixels=[[accent if px in (PALETTE['v'],PALETTE['c']) else px for px in row] for row in pixels]
+   png(java/f'assets/voidscape/textures/item/{name}.png',pixels);png(bedrock/f'textures/items/{name}.png',pixels)
   textures['voidscape.'+name]={'textures':'textures/items/'+name}
   parent='handheld' if base in ('netherite_pickaxe','netherite_sword') else 'generated'
   model={'parent':'minecraft:item/'+parent,'textures':{'layer0':'voidscape:item/'+name}}
@@ -217,7 +227,12 @@ def main():
   # Advance Magic registers these core identifiers; do not register them twice.
  write_json(bedrock/'textures/item_texture.json',{'resource_pack_name':'voidscape','texture_name':'atlas.items','texture_data':textures})
  write_json(DIST/'geyser-mappings.json',mappings)
- png(java/'pack.png',icon('void_key'));png(bedrock/'pack_icon.png',icon('void_key'))
+ key_art=ROOT/'art'/'equipment'/'void_key.png'
+ if key_art.is_file():
+  (java/'pack.png').write_bytes(key_art.read_bytes())
+  (bedrock/'pack_icon.png').write_bytes(key_art.read_bytes())
+ else:
+  png(java/'pack.png',icon('void_key'));png(bedrock/'pack_icon.png',icon('void_key'))
  archive(java,DIST/'evergarden-java.zip');archive(bedrock,DIST/'evergarden-bedrock.mcpack')
  hashes={f.name:hashlib.sha1(f.read_bytes()).hexdigest() for f in [DIST/'evergarden-java.zip',DIST/'evergarden-bedrock.mcpack']}
  write_json(DIST/'pack-hashes.json',hashes)

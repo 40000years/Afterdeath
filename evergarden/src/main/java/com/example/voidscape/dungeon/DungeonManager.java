@@ -18,6 +18,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.*;
 import org.bukkit.util.Vector;
 import java.io.*;
 import java.nio.file.*;
@@ -28,6 +29,7 @@ public final class DungeonManager implements Listener {
     private static final class Encounter {
         final Site site; final Map<UUID,Species> mobs=new HashMap<>();
         final Map<UUID,Integer> presence=new HashMap<>();
+        final Map<UUID,Long> casterCooldowns=new HashMap<>();
         int wave=0; boolean bossStarted=false,finished=false;
         long lastPresent=System.currentTimeMillis(),lastSkill=0,warningAt=0;
         Location warning; BossBar bar;
@@ -39,6 +41,7 @@ public final class DungeonManager implements Listener {
     private final Map<UUID,Encounter> owners=new HashMap<>();
     private final Map<UUID,Long> combatUntil=new HashMap<>();
     private final Map<UUID,String> seen=new HashMap<>();
+    private final Map<Block,Long> tempWebs=new HashMap<>();
     private final NamespacedKey mobKey,runKey;
     private final String runId=UUID.randomUUID().toString();
     private final YamlConfiguration ledger;
@@ -76,6 +79,36 @@ public final class DungeonManager implements Listener {
     }
 
     private Location position(Site s,int x,int y,int z){return new Location(plugin.world(),s.x()+x+0.5,y,s.z()+z+0.5);}
+
+    private void placeTemporaryWeb(Block block, long durationMs) {
+        if(block==null||block.getWorld()!=plugin.world())return;
+        if(block.getType()!=Material.AIR&&block.getType()!=Material.CAVE_AIR) {
+            Block above=block.getRelative(0,1,0);
+            if(above.getType()==Material.AIR||above.getType()==Material.CAVE_AIR) {
+                block=above;
+            } else {
+                return;
+            }
+        }
+        block.setType(Material.COBWEB,false);
+        tempWebs.put(block,System.currentTimeMillis()+durationMs);
+        block.getWorld().playSound(block.getLocation().add(0.5,0.5,0.5),Sound.ENTITY_SPIDER_AMBIENT,0.8f,1.2f);
+        block.getWorld().spawnParticle(Particle.CLOUD,block.getLocation().add(0.5,0.5,0.5),8,0.2,0.2,0.2,0.02);
+    }
+
+    private void clearWebs(Site site) {
+        Iterator<Map.Entry<Block,Long>> it=tempWebs.entrySet().iterator();
+        while(it.hasNext()) {
+            Map.Entry<Block,Long> entry=it.next();
+            Block b=entry.getKey();
+            if(site==null||site.contains(b.getX(),b.getZ(),16)) {
+                if(b.getType()==Material.COBWEB) {
+                    b.setType(Material.AIR,false);
+                }
+                it.remove();
+            }
+        }
+    }
 
     @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true)
     public void interact(PlayerInteractEvent e) {
@@ -273,6 +306,20 @@ public final class DungeonManager implements Listener {
             }
             combatUntil.put(attacker.getUniqueId(),System.currentTimeMillis()+10000);
         }
+        Mob mobDamager=source instanceof Mob m?m:source instanceof Projectile pr&&pr.getShooter() instanceof Mob m?m:null;
+        if(mobDamager!=null&&e.getEntity() instanceof Player victim&&playable(victim)) {
+            Encounter mobEnc=owners.get(mobDamager.getUniqueId());
+            if(mobEnc!=null) {
+                Species species=mobEnc.mobs.get(mobDamager.getUniqueId());
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,120,1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,80,1));
+                if(species==Species.BOSS||species==Species.STALKER||(species==Species.MINION&&Math.random()<0.35)) {
+                    placeTemporaryWeb(victim.getLocation().getBlock(),6000L);
+                }
+                victim.playSound(victim.getLocation(),Sound.ENTITY_SPLASH_POTION_BREAK,0.7f,0.9f);
+                victim.getWorld().spawnParticle(Particle.SQUID_INK,victim.getLocation().add(0,1,0),12,0.3,0.4,0.3,0.05);
+            }
+        }
     }
 
     @EventHandler(priority=EventPriority.HIGHEST)
@@ -318,6 +365,17 @@ public final class DungeonManager implements Listener {
 
     public void tick() {
         long now=System.currentTimeMillis();combatUntil.values().removeIf(t->t<now);
+        if(!tempWebs.isEmpty()) {
+            Iterator<Map.Entry<Block,Long>> it=tempWebs.entrySet().iterator();
+            while(it.hasNext()) {
+                Map.Entry<Block,Long> entry=it.next();
+                if(now>=entry.getValue()) {
+                    Block b=entry.getKey();
+                    if(b.getType()==Material.COBWEB)b.setType(Material.AIR,false);
+                    it.remove();
+                }
+            }
+        }
         for(Player p:plugin.world().getPlayers()) {
             Site s=plugin.layout().at(p.getLocation().getBlockX(),p.getLocation().getBlockZ(),12);
             if(s!=null&&!s.id().equals(seen.put(p.getUniqueId(),s.id()))) {
@@ -364,6 +422,23 @@ public final class DungeonManager implements Listener {
                     owners.remove(mob.getUniqueId());mob.teleport(back);owners.put(mob.getUniqueId(),enc);
                 }
 
+                // Caster ranged debuff & cobweb curse
+                if(entry.getValue()==Species.CASTER&&target!=null) {
+                    long lastCast=enc.casterCooldowns.getOrDefault(entry.getKey(),0L);
+                    if(now-lastCast>7500&&mob.getLocation().distanceSquared(target.getLocation())<=256) {
+                        enc.casterCooldowns.put(entry.getKey(),now);
+                        Location targetLoc=target.getLocation();
+                        target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,160,1));
+                        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,120,1));
+                        placeTemporaryWeb(targetLoc.getBlock(),6000L);
+                        target.getWorld().spawnParticle(Particle.WITCH,targetLoc.clone().add(0,1,0),25,0.4,0.6,0.4,0.05);
+                        target.getWorld().spawnParticle(Particle.INSTANT_EFFECT,targetLoc.clone().add(0,1,0),20,0.3,0.4,0.3,0.1);
+                        target.playSound(targetLoc,Sound.ENTITY_SPLASH_POTION_BREAK,1.0f,0.8f);
+                        target.playSound(targetLoc,Sound.ENTITY_EVOKER_CAST_SPELL,0.8f,1.2f);
+                        plugin.message(target,"⚠ ภูตพลังเวทร่ายคำสาปใยแมงมุมและสาดน้ำยาบั่นทอนกำลังใส่คุณ!");
+                    }
+                }
+
                 // Boss skills
                 if(entry.getValue()==Species.BOSS&&target!=null) {
                     if(enc.bar!=null) {
@@ -382,6 +457,9 @@ public final class DungeonManager implements Listener {
                             enc.warningAt=0;
                             for(Player p:team)if(p.getWorld()==enc.warning.getWorld()&&p.getLocation().distanceSquared(enc.warning)<=16) {
                                 p.damage(plugin.integer("combat.boss-skill-damage",35,10,160),mob);
+                                p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,200,1));
+                                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,120,1));
+                                placeTemporaryWeb(p.getLocation().getBlock(),8000L);
                             }
                             for(Player p:team)p.playSound(enc.warning,Sound.ENTITY_WARDEN_SONIC_BOOM,0.7f,0.8f);
                         }
@@ -393,7 +471,15 @@ public final class DungeonManager implements Listener {
 
     private boolean protectedBlock(Block b){return b.getWorld()==plugin.world()&&plugin.layout().at(b.getX(),b.getZ(),0)!=null&&b.getY()>=94&&b.getY()<=140;}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void breakBlock(BlockBreakEvent e){if(protectedBlock(e.getBlock())&&!(e.getPlayer().getGameMode()==GameMode.CREATIVE&&e.getPlayer().hasPermission("voidscape.admin")))e.setCancelled(true);}
+    public void breakBlock(BlockBreakEvent e){
+        Block b=e.getBlock();
+        if(tempWebs.containsKey(b)||(b.getType()==Material.COBWEB&&plugin.layout().at(b.getX(),b.getZ(),0)!=null)){
+            tempWebs.remove(b);
+            e.setDropItems(false);
+            return;
+        }
+        if(protectedBlock(b)&&!(e.getPlayer().getGameMode()==GameMode.CREATIVE&&e.getPlayer().hasPermission("voidscape.admin")))e.setCancelled(true);
+    }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void placeBlock(BlockPlaceEvent e){if(protectedBlock(e.getBlock())&&!(e.getPlayer().getGameMode()==GameMode.CREATIVE&&e.getPlayer().hasPermission("voidscape.admin")))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
@@ -408,8 +494,10 @@ public final class DungeonManager implements Listener {
     }
     private void remove(Encounter enc) {
         for(UUID id:enc.mobs.keySet()){owners.remove(id);Entity e=Bukkit.getEntity(id);if(e!=null)e.remove();}
-        enc.mobs.clear();if(enc.bar!=null)enc.bar.removeAll();
+        enc.mobs.clear();enc.casterCooldowns.clear();
+        clearWebs(enc.site);
+        if(enc.bar!=null)enc.bar.removeAll();
     }
-    public void close(){for(Encounter enc:active.values())remove(enc);active.clear();if(storageHealthy)save();}
+    public void close(){for(Encounter enc:active.values())remove(enc);active.clear();clearWebs(null);if(storageHealthy)save();}
     public int waveCount(){return plugin.integer("combat.waves",5,2,12);}
 }
