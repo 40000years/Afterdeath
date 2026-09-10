@@ -86,12 +86,12 @@ public final class VoidscapePlugin extends JavaPlugin {
             if(!file.exists()) {
                 saved.set("world",getConfig().getString("dimension.world-name","the_void_v2"));
                 saved.set("seed",getConfig().getLong("dimension.seed",72819345L));
-                saved.set("spacing",integer("structures.spacing-chunks",48,24,256));
-                saved.set("chance",getConfig().getDouble("structures.chance",0.70));
+                saved.set("spacing",integer("structures.spacing-chunks",18,14,64));
+                saved.set("chance",getConfig().getDouble("structures.chance",1.0));
                 saved.save(file);
             }
             long seed=saved.getLong("seed");
-            layout=new DungeonLayout(seed,saved.getInt("spacing",48),saved.getDouble("chance",0.70));
+            layout=new DungeonLayout(seed,saved.getInt("spacing",18),saved.getDouble("chance",1.0));
             String worldName=saved.getString("world","the_void_v2");
             if(worldName.equals("the_void"))throw new IllegalStateException("Use a new world name for v2; never replace the legacy world generator.");
             voidWorld=new WorldCreator(worldName).seed(seed).environment(World.Environment.NORMAL).generator(new VoidGenerator(seed,layout)).createWorld();
@@ -110,7 +110,7 @@ public final class VoidscapePlugin extends JavaPlugin {
             VoidCommand command=new VoidCommand(this);
             getCommand("voidscape").setExecutor(command);getCommand("voidscape").setTabCompleter(command);
             getServer().getScheduler().runTaskTimer(this,()->{dungeons.tick();travel.tick();relics.tick();},20,10);
-            getLogger().info("Voidscape 2.0 (Advance Magic Expansion) enabled in "+worldName);
+            getLogger().info("Voidscape 3.0 (Advance Magic Expansion) enabled in "+worldName);
         } catch(Exception e) {
             getLogger().log(java.util.logging.Level.SEVERE,"Voidscape failed to start safely",e);
             getServer().getPluginManager().disablePlugin(this);

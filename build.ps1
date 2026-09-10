@@ -66,7 +66,12 @@ function Invoke-BuildPlugin {
 }
 
 if ($Module -eq "all" -or $Module -eq "voidscape") {
-    Invoke-BuildPlugin -Name "voidscape"
+    & (Join-Path $root "voidscape/build.ps1")
+    if (!$?) { throw 'voidscape build failed.' }
+    if (Test-Path $testServerPlugins) {
+        Copy-Item (Join-Path $root "voidscape.jar") (Join-Path $testServerPlugins "voidscape.jar") -Force
+        Write-Host "  [DEPLOYED] Copied voidscape.jar to TestServer" -ForegroundColor Magenta
+    }
 }
 
 if ($Module -eq "all" -or $Module -eq "afterdeath") {

@@ -5,8 +5,8 @@ dimension:
   seed: 72819345
   border-size: 24000
 structures:
-  spacing-chunks: 48
-  chance: 0.70
+  spacing-chunks: 18
+  chance: 0.85
   minor:
     reset-hours: 2
 performance:

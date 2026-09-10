@@ -245,7 +245,7 @@ public final class TravelListener implements Listener {
     public void enter(Player p) {
         if(p.getWorld()==plugin.world()||pending.containsKey(p.getUniqueId()))return;
         Location from=p.getLocation();
-        teleport(p,new Location(plugin.world(),0.5,97,0.5),()->{
+        teleport(p,new Location(plugin.world(),0.5,97.0,0.5),()->{
             p.getPersistentDataContainer().set(plugin.key("return_location"),PersistentDataType.STRING,
                 from.getWorld().getUID()+","+from.getX()+","+from.getY()+","+from.getZ()+","+from.getYaw()+","+from.getPitch());
             // Deliver guide book if first time
@@ -256,7 +256,8 @@ public final class TravelListener implements Listener {
                 if(!leftover.isEmpty()) p.getWorld().dropItemNaturally(p.getLocation(),book);
                 plugin.message(p,"ยินดีต้อนรับสู่มิติความว่างเปล่า! มอบคู่มือสำรวจให้แล้ว");
             }
-            plugin.message(p,"✦ สวมใส่ Elytra และใช้พลุบินค้นหาวิหารทั้ง 3 แห่ง!");
+            plugin.message(p,"✦ สวมใส่ Elytra และใช้พลุบินค้นหาวิหารทั้ง 3 ธาตุ!");
+            plugin.message(p,"✦ วิหารใกล้สุด: ทิศเหนือ Z=-250, ต.อ. X=220 Z=130, ต.ต. X=-220 Z=130 (พิมพ์ /void locate)");
             p.playSound(p.getLocation(),Sound.BLOCK_PORTAL_TRAVEL,0.7f,1.0f);
         });
     }
@@ -302,19 +303,10 @@ public final class TravelListener implements Listener {
         if(p.getGameMode()==GameMode.CREATIVE||p.getGameMode()==GameMode.SPECTATOR)return;
         long now=System.currentTimeMillis();
         if(plugin.relics().immune(p)||pending.getOrDefault(p.getUniqueId(),0L)>now){e.setCancelled(true);return;}
-        // Safe fall damage inside void dimension
+        // Safe fall damage inside void dimension (helps with Elytra gliding)
         if(e.getCause()==EntityDamageEvent.DamageCause.FALL) {
             if(fallGrace.getOrDefault(p.getUniqueId(),0L)>now) { e.setCancelled(true); return; }
             e.setDamage(Math.min(e.getDamage()*0.2,4.0));
-            return;
-        }
-        // Abyss void fall rescue
-        if(e.getCause()==EntityDamageEvent.DamageCause.VOID||(p.getLocation().getY()<-30&&e.getFinalDamage()>=p.getHealth())) {
-            e.setCancelled(true);leave(p,true);return;
-        }
-        // Lethal combat rescue
-        if(e.getFinalDamage()>=p.getHealth()) {
-            e.setCancelled(true);leave(p,true);
         }
     }
 

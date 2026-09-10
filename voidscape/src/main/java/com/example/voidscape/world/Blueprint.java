@@ -40,6 +40,9 @@ public final class Blueprint {
         // Stepped roof with crying obsidian pinnacle
         for(int n=0;n<10;n++) b.box(-20+n,113+n,-20+n,20-n,113+n,20-n,Material.POLISHED_BLACKSTONE);
         b.box(-3,123,-3,3,125,3,Material.CRYING_OBSIDIAN);
+        // Sky beacon spire visible from far away
+        b.box(-1,126,-1,1,210,1,Material.CRYING_OBSIDIAN);
+        for(int y=126;y<=210;y+=6) b.box(0,y,0,0,y+1,0,Material.SEA_LANTERN);
         // Decorative chains
         for(int x:new int[]{-2,2}) for(int z:new int[]{6,10}) b.box(x,105,z,x,114,z,Material.IRON_CHAIN);
         // Central altar dais for the Lodestone seal (where fight is summoned)
@@ -85,6 +88,9 @@ public final class Blueprint {
         for(int n=0;n<10;n++) b.box(-20+n,113+n,-20+n,20-n,113+n,20-n,Material.END_STONE_BRICKS);
         b.box(-3,123,-3,3,125,3,Material.AMETHYST_BLOCK);
         b.box(0,126,0,0,128,0,Material.CRYING_OBSIDIAN);
+        // Sky beacon spire visible from far away
+        b.box(-1,129,-1,1,210,1,Material.PURPUR_PILLAR);
+        for(int y=129;y<=210;y+=6) b.box(0,y,0,0,y+1,0,Material.SEA_LANTERN);
         // Central altar dais
         b.box(-3,96,5,3,96,11,Material.PURPUR_PILLAR);
         b.box(-1,96,7,1,96,9,Material.SEA_LANTERN);
@@ -128,6 +134,9 @@ public final class Blueprint {
         for(int n=0;n<10;n++) b.box(-20+n,113+n,-20+n,20-n,113+n,20-n,Material.POLISHED_BLACKSTONE_BRICKS);
         b.box(-3,123,-3,3,125,3,Material.GILDED_BLACKSTONE);
         b.box(0,126,0,0,128,0,Material.CRYING_OBSIDIAN);
+        // Sky beacon spire visible from far away
+        b.box(-1,129,-1,1,210,1,Material.COPPER_BLOCK);
+        for(int y=129;y<=210;y+=6) b.box(0,y,0,0,y+1,0,Material.OCHRE_FROGLIGHT);
         // Central altar dais for the Lodestone
         b.box(-3,96,5,3,96,11,Material.GILDED_BLACKSTONE);
         b.box(-1,96,7,1,96,9,Material.CHISELED_COPPER);
