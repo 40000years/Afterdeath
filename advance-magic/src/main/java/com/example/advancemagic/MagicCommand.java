@@ -18,16 +18,18 @@ public final class MagicCommand implements TabExecutor {
         if(args[0].equalsIgnoreCase("mana")&&sender instanceof Player p){
             plugin.casts().actionbar(p,"");
             var a=plugin.mana().account(p);
-            long lastDrink=p.getPersistentDataContainer().getOrDefault(plugin.mana().key("last_dragon_drink"),org.bukkit.persistence.PersistentDataType.LONG,0L);
-            long cooldownMs=86_400_000L;
-            long diff=System.currentTimeMillis()-lastDrink;
+            long currentFullTime=p.getWorld().getFullTime();
+            long currentDay=currentFullTime/24000L;
+            long lastDay=p.getPersistentDataContainer().getOrDefault(plugin.mana().key("last_dragon_day"),org.bukkit.persistence.PersistentDataType.LONG,-1L);
             String dbStatus;
             if(a.maxMana()>=300.0) dbStatus=ChatColor.LIGHT_PURPLE+"สูงสุดแล้ว (300/300)";
-            else if(diff>=cooldownMs) dbStatus=ChatColor.GREEN+"พร้อมดื่มวันนี้ (+Max Mana & Regen)";
+            else if(currentDay!=lastDay) dbStatus=ChatColor.GREEN+"พร้อมดื่มวันนี้ในเกม (+Max Mana & Regen)";
             else {
-                long rem=cooldownMs-diff;
-                long h=rem/3_600_000L, m=(rem%3_600_000L)/60_000L;
-                dbStatus=ChatColor.YELLOW+"รออีก "+(h>0?h+" ชม. ":"")+m+" นาที";
+                long dayTime=currentFullTime%24000L;
+                long ticksRemaining=24000L-dayTime;
+                long totalSec=Math.max(1L,ticksRemaining/20L);
+                long m=totalSec/60L, s=totalSec%60L;
+                dbStatus=ChatColor.YELLOW+"รอวันใหม่ในเกมอีก "+(m>0?m+" นาที ":"")+s+" วินาที (หรือนอนข้ามคืน)";
             }
             p.sendMessage(ChatColor.LIGHT_PURPLE+"[Advance Magic] "+ChatColor.AQUA+"Mana: "+String.format(Locale.ROOT,"%.1f/%.1f",a.manaExact(),a.maxMana())+
                 ChatColor.WHITE+" | Regen: "+ChatColor.GREEN+String.format(Locale.ROOT,"%.1f/s",a.regenRate())+

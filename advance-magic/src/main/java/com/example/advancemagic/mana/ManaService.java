@@ -52,20 +52,21 @@ public final class ManaService {
     public void regenerate(Player p) { if(account(p).regenerate()) save(p); }
 
     public boolean drinkDragonBreath(Player p, ItemStack item, EquipmentSlot hand) {
-        long now=System.currentTimeMillis();
+        long currentFullTime=p.getWorld().getFullTime();
+        long currentDay=currentFullTime/24000L;
         var data=p.getPersistentDataContainer();
-        long lastDrink=data.getOrDefault(key("last_dragon_drink"),PersistentDataType.LONG,0L);
-        long cooldownMs=86_400_000L; // 24 hours
+        long lastDay=data.getOrDefault(key("last_dragon_day"),PersistentDataType.LONG,-1L);
 
-        if(now-lastDrink<cooldownMs) {
-            long remaining=cooldownMs-(now-lastDrink);
-            long hours=remaining/3_600_000L;
-            long minutes=(remaining%3_600_000L)/60_000L;
-            long seconds=(remaining%60_000L)/1000L;
-            String timeStr=hours>0?String.format(Locale.ROOT,"%d ชม. %d นาที",hours,minutes)
-                                 :String.format(Locale.ROOT,"%d นาที %d วินาที",minutes,seconds);
+        if(currentDay==lastDay) {
+            long dayTime=currentFullTime%24000L;
+            long ticksRemaining=24000L-dayTime;
+            long totalSec=Math.max(1L,ticksRemaining/20L);
+            long minutes=totalSec/60L;
+            long seconds=totalSec%60L;
+            String timeStr=minutes>0?String.format(Locale.ROOT,"%d นาที %d วินาที",minutes,seconds)
+                                     :String.format(Locale.ROOT,"%d วินาที",seconds);
             p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                TextComponent.fromLegacyText(ChatColor.RED+"ดื่ม Dragon's Breath ได้วันละ 1 ครั้งเท่านั้น (รออีก "+timeStr+")"));
+                TextComponent.fromLegacyText(ChatColor.RED+"ดื่ม Dragon's Breath ได้วันละ 1 ครั้งในเกมเท่านั้น (รออีก "+timeStr+" หรือนอนข้ามคืน)"));
             p.playSound(p.getLocation(),Sound.ENTITY_VILLAGER_NO,1.0f,1.0f);
             return false;
         }
@@ -113,7 +114,8 @@ public final class ManaService {
         account.setRegenRate(newRegen);
         account.setMana(newMax); // Full replenish
 
-        data.set(key("last_dragon_drink"),PersistentDataType.LONG,now);
+        data.set(key("last_dragon_day"),PersistentDataType.LONG,currentDay);
+        data.set(key("last_dragon_drink"),PersistentDataType.LONG,System.currentTimeMillis());
         data.set(key("max_mana"),PersistentDataType.DOUBLE,newMax);
         data.set(key("mana_regen"),PersistentDataType.DOUBLE,newRegen);
         data.set(key("mana"),PersistentDataType.DOUBLE,newMax);
