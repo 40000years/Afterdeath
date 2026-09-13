@@ -88,6 +88,7 @@ public final class MagicContext {
     public void particles(Location at,Particle type,int count,double spread) {
         if(!loaded(at))return;
         if(type.getDataType()==Float.class)at.getWorld().spawnParticle(type,at,count,spread,spread,spread,0.02,1.0f);
+        else if(type.getDataType()==Color.class)at.getWorld().spawnParticle(type,at,count,spread,spread,spread,0.02,Color.WHITE);
         else at.getWorld().spawnParticle(type,at,count,spread,spread,spread,0.02);
     }
     public void ring(Location at,double radius,Spell spell) {

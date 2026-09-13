@@ -125,7 +125,7 @@ public final class ManaService {
         p.playSound(p.getLocation(),Sound.ENTITY_GENERIC_DRINK,1.0f,1.0f);
         p.playSound(p.getLocation(),Sound.ENTITY_ENDER_DRAGON_GROWL,0.7f,1.3f);
         p.playSound(p.getLocation(),Sound.ENTITY_PLAYER_LEVELUP,1.0f,1.2f);
-        p.getWorld().spawnParticle(Particle.DRAGON_BREATH,p.getLocation().add(0,1,0),45,0.4,0.6,0.4,0.05);
+        p.getWorld().spawnParticle(Particle.DRAGON_BREATH,p.getLocation().add(0,1,0),45,0.4,0.6,0.4,0.05,1.0f);
         p.getWorld().spawnParticle(Particle.PORTAL,p.getLocation().add(0,1,0),30,0.5,0.5,0.5,0.1);
 
         String gainStr=(gain==(long)gain)?String.format(Locale.ROOT,"%d",(long)gain):String.format(Locale.ROOT,"%.1f",gain);

@@ -158,13 +158,13 @@ public final class ProjectileSpells implements Listener {
             // Ascending Ender Dragon death rays straight up into the sky
             for(int h=0;h<36;h+=3) {
                 world.spawnParticle(Particle.END_ROD,center.clone().add(0,h,0),2,0.4,0.6,0.4,0.03);
-                world.spawnParticle(Particle.DRAGON_BREATH,center.clone().add(0,h*0.6,0),3,0.5,0.5,0.5,0.02);
+                world.spawnParticle(Particle.DRAGON_BREATH,center.clone().add(0,h*0.6,0),3,0.5,0.5,0.5,0.02,1.0f);
             }
             // Radial light beam flashes (like dragon dying)
             for(int i=0;i<8;i++) {
                 double angle=i*(Math.PI/4)+age*0.15;
                 double rayDist=Math.min(10.0,age*0.25);
-                world.spawnParticle(Particle.FLASH,center.clone().add(Math.cos(angle)*rayDist,Math.sin(angle*2)*0.5,Math.sin(angle)*rayDist),1,0,0,0,0);
+                world.spawnParticle(Particle.FLASH,center.clone().add(Math.cos(angle)*rayDist,Math.sin(angle*2)*0.5,Math.sin(angle)*rayDist),1,0,0,0,0,Color.WHITE);
             }
 
             // Swirling black hole singularity ring
@@ -189,12 +189,14 @@ public final class ProjectileSpells implements Listener {
                     if(dist>0.8) {
                         e.setVelocity(pull.normalize().multiply(Math.min(1.1,0.35+dist*0.04)).setY(Math.min(0.7,(center.getY()-e.getLocation().getY())*0.2+0.15)));
                     }
-                    if(e instanceof LivingEntity target) {
-                        if(!target.hasPotionEffect(PotionEffectType.LEVITATION)) {
-                            target.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION,40,1));
-                        }
-                        if(age%10==0&&c.affect(p,target,Spell.SHULKER_LEVITATION)) {
-                            c.damage(p,target,15,DamageType.MAGIC);
+                    if(e instanceof LivingEntity target && !(target instanceof ArmorStand) && c.enemy(p, target)) {
+                        if(c.affect(p,target,Spell.SHULKER_LEVITATION)) {
+                            if(!target.hasPotionEffect(PotionEffectType.LEVITATION)) {
+                                target.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION,40,1));
+                            }
+                            if(age%10==0) {
+                                c.damage(p,target,15,DamageType.MAGIC);
+                            }
                         }
                     }
                 }
@@ -207,15 +209,15 @@ public final class ProjectileSpells implements Listener {
             if(!c.loaded(center))return;
             // Massive explosion and sonic boom
             world.spawnParticle(Particle.EXPLOSION_EMITTER,center,10,2.0,2.0,2.0,0.1);
-            world.spawnParticle(Particle.FLASH,center,8,1.0,1.0,1.0,0);
-            world.spawnParticle(Particle.DRAGON_BREATH,center,150,4.0,3.0,4.0,0.2);
+            world.spawnParticle(Particle.FLASH,center,8,1.0,1.0,1.0,0,Color.WHITE);
+            world.spawnParticle(Particle.DRAGON_BREATH,center,150,4.0,3.0,4.0,0.2,1.0f);
             world.playSound(center,Sound.ENTITY_GENERIC_EXPLODE,3.0f,0.5f);
             world.playSound(center,Sound.ENTITY_WARDEN_SONIC_BOOM,2.0f,0.7f);
             world.strikeLightningEffect(center);
 
             // Huge burst damage to all caught enemies in 12 blocks
             for(Entity e:world.getNearbyEntities(center,12,12,12)) {
-                if(e instanceof LivingEntity living&&!e.equals(p)) {
+                if(e instanceof LivingEntity living&&!e.equals(p)&&!(living instanceof ArmorStand)&&c.enemy(p,living)) {
                     if(c.affect(p,living,Spell.SHULKER_LEVITATION)) {
                         c.damage(p,living,c.configuredDamage("damage.shulker-singularity-burst",120),DamageType.EXPLOSION);
                         Vector knock=living.getLocation().toVector().subtract(center.toVector()).normalize().multiply(1.8).setY(0.7);
@@ -277,7 +279,7 @@ public final class ProjectileSpells implements Listener {
             if(age%10==0) {
                 for(Entity e:world.getNearbyEntities(center,7.5,4.0,7.5)) {
                     if(e.equals(p))continue;
-                    if(e instanceof LivingEntity living) {
+                    if(e instanceof LivingEntity living && !(living instanceof ArmorStand) && c.enemy(p, living)) {
                         if(c.affect(p,living,Spell.SHULKER_LEVITATION)) {
                             living.addPotionEffect(new PotionEffect(PotionEffectType.WITHER,100,2));
                             living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,60,1));
