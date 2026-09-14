@@ -107,21 +107,21 @@ public final class RelicService implements Listener {
         ItemStack item=new ItemStack(Material.HEART_OF_THE_SEA);
         ItemMeta meta=item.getItemMeta();
         if(core.id().equals("shulker_levitation")) {
-            meta.setDisplayName(ChatColor.BLACK+""+ChatColor.BOLD+"✦ Core of Levitation "+ChatColor.DARK_RED+"[MYTHIC]");
+            meta.setDisplayName(ChatColor.LIGHT_PURPLE+"✦ "+ChatColor.GOLD+"Core of Levitation "+ChatColor.RED+"[MYTHIC]");
             meta.setLore(List.of(
-                ChatColor.DARK_GRAY+"[ระดับตำนาน - MYTHIC] แกนเวทมนตร์โบราณต้องห้าม",
-                ChatColor.DARK_PURPLE+""+ChatColor.MAGIC+"Forbidden Dragon Heart",
-                ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.BLACK+""+ChatColor.BOLD+"Shulker Levitation Wand",
-                ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
-                ChatColor.RED+"✦ อัตราดรอป 0.5% ใน Evergarden Vault"
+                ChatColor.GOLD+"[ระดับตำนานสูงสุด · MYTHIC 0.5%]",
+                ChatColor.DARK_PURPLE+"§k||§r "+ChatColor.LIGHT_PURPLE+"Forbidden Dragon Heart "+ChatColor.DARK_PURPLE+"§k||",
+                ChatColor.GRAY+"ใช้คราฟต์: "+ChatColor.LIGHT_PURPLE+"Shulker Levitation Wand",
+                ChatColor.YELLOW+"สูตร: 8 Netherite Ingots หรือ Nether Stars + แกนนี้",
+                ChatColor.RED+"✦ อัตราดรอป 0.5% ใน Evergarden Vault [สุดยอดของแรร์]"
             ));
         } else {
             meta.setDisplayName(ChatColor.GOLD+"✦ "+core.title());
             meta.setLore(List.of(
-                ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
-                ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+core.wandTitle()+" Wand",
-                ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
-                ChatColor.DARK_PURPLE+"Obtained from Evergarden Vault"
+                ChatColor.AQUA+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
+                ChatColor.GRAY+"ใช้คราฟต์: "+ChatColor.LIGHT_PURPLE+core.wandTitle()+" Wand",
+                ChatColor.YELLOW+"สูตร: 8 Netherite Ingots หรือ Nether Stars + แกนนี้",
+                ChatColor.DARK_AQUA+"หาได้จาก: Evergarden Vault"
             ));
         }
         var modelData=meta.getCustomModelDataComponent();
@@ -167,13 +167,13 @@ public final class RelicService implements Listener {
     public ItemStack createScrollEternity() {
         ItemStack item=create(Relic.SCROLL_ETERNITY,1);
         ItemMeta meta=item.getItemMeta();
-        meta.displayName(Component.text("✦ คัมภีร์ศิลานิรันดร์ (Scroll of Eternity) [MYTHIC]",NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false));
+        meta.displayName(Component.text("✦ คัมภีร์ศิลานิรันดร์ (Scroll of Eternity)",NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false));
         meta.lore(List.of(
-            Component.text("[ระดับตำนานสูงสุด · MYTHIC 0.5%]",NamedTextColor.RED).decoration(TextDecoration.ITALIC,false),
+            Component.text("§4§k||§r §c[ระดับตำนานสูงสุด · MYTHIC 0.5%] §4§k||§r"),
             Component.text("ลากคัมภีร์นี้ไปแตะที่อาวุธ ชุดเกราะ หรือเครื่องมือ",NamedTextColor.WHITE).decoration(TextDecoration.ITALIC,false),
             Component.text("ไอเทมนั้นจะได้รับสถานะ 'ไม่มีวันพังเสียหาย (Unbreakable 100%)'",NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false),
-            Component.text("หลอดเลือดความทนทานจะหายไปถาวร",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
-            Component.text("วิธีใช้: ลากคัมภีร์ไปแตะทับไอเทมในกระเป๋า (รองรับมือถือ)",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false)
+            Component.text("หลอดความทนทานจะหายไปตลอดกาล",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
+            Component.text("วิธีใช้: ลากคัมภีร์ไปแตะทับไอเทมในกระเป๋า",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false)
         ));
         meta.getPersistentDataContainer().set(plugin.key("scroll_eternity"),PersistentDataType.BYTE,(byte)1);
         item.setItemMeta(meta);return item;
@@ -369,17 +369,30 @@ public final class RelicService implements Listener {
         meta.setTitle("คู่มือมิติ Evergarden");
         meta.setAuthor("ผู้พิทักษ์มิติ");
         meta.pages(List.of(
-            Component.text("§1§lมิติ Evergarden§r\n§8สวนลอยฟ้าแห่งความว่างเปล่า\n\n§0§lวิธีสร้างประตูมิติ:§r\n§0สร้างกรอบ §5Crying Obsidian§0 ขนาดเริ่มต้น 4×5 (ช่องใน 2×3)\n\n§0จุดไฟด้วย §6Flint & Steel§0, §cFire Charge§0 หรือ §bEye of Ender§0 ในกรอบ ประตูสีม่วงจะเปิดออกทันที\n\n§8คำสั่ง: /evergarden leave (กลับ)\n§8คำสั่ง: /evergarden locate (หาวิหาร)"),
-            Component.text("§1§l3 มหาวิหารธาตุ§r\n\n§0ใน Evergarden มี 3 มหาวิหาร:\n§5• วิหารแห่งความมืด (Darkness)\n§9• วิหารแห่งดวงดาว (Astral)\n§6• วิหารแห่งกาลเวลา (Time)\n\n§0§lการท้าทาย:§r\n§0คลิกขวาที่แท่น §5Lodestone§0 กลางวิหารเพื่อเริ่มสู้ (เปิดให้ผู้เล่นทุกคน)\n§0ปราบบอส 3 เวฟเพื่อรับ §dEvergarden Key§0 นำไปเปิดกล่องสมบัติ Vault"),
-            Component.text("§1§lกุญแจ & วัตถุดิบ§r\n\n§d§lEvergarden Key:§r\n§0ใช้เปิด Evergarden Vault ประจำวิหาร\n\n§5§lEvergarden Key Shard:§r\n§0เศษผลึกกุญแจ รวบรวมครบ §64 ชิ้น§0 วาง 2×2 ที่โต๊ะคราฟต์เพื่อประกอบเป็น §d1 Evergarden Key§0\n\n§b§lAstral Dust (ผงละอองดาว):§r\n§0สสารเวทมนตร์จากมอนสเตอร์ ใช้คราฟต์:\n§0• 4 Dust + 1 Amethyst = ศิลาฟื้นฟู\n§0• 1 Dust + 1 ขวดแก้ว = น้ำยาเดินเวหา"),
-            Component.text("§1§lไอเทมฟื้นฟู & น้ำยา§r\n\n§a§lVault Repair Stone:§r\n§0ศิลาฟื้นฟูมิติ (คลิกขวาใช้งาน)\n§0• ซ่อมแซมความทนทาน §a500 หน่วย§0 ให้อาวุธ/เกราะที่ชำรุดมากที่สุดในตัว\n§8สูตร: 4 Astral Dust + 1 Amethyst\n\n§d§lVoid Walker Elixir:§r\n§0น้ำยาเดินเวหา ดื่มเพื่อรับผล 3 นาที:\n§b• Speed II (วิ่งไว)\n§a• Jump Boost II (กระโดดสูง)\n§f• Slow Falling (ตกช้า ไม่ตก Void)\n§8สูตร: 1 Astral Dust + 1 ขวดแก้ว"),
-            Component.text("§1§lคัมภีร์เวทมนตร์§r\n\n§0§lวิธีใช้งานคัมภีร์ทุกชนิด:§r\n§0เปิดกระเป๋า หยิบคัมภีร์บนเมาส์ แล้ว§6คลิกทับอุปกรณ์เป้าหมายโดยตรง§0\n\n§4§lScroll of Eternity (0.5%):§r\n§0คัมภีร์ตำนาน ทำให้อุปกรณ์กลายเป็น §6Unbreakable (ไม่มีวันพังถาวร 100%)§0\n\n§3§lLimit Break Scrolls:§r\n§0เพิ่มเลเวลเอนแชนต์เดิม +1 ทลายขีดจำกัด (สูงสุดระดับ X) มี 6 ชนิด: Sharpness, Protection, Power, Efficiency, Fortune, Looting"),
-            Component.text("§1§lมนตรา: ธนู & อุปกรณ์ขุด§r\n\n§9§lธนู (Bows):§r\n§0• Colossus Slayer: ยิงแรงตาม %HP บอส\n§0• Ricochet: ศรชิ่ง 3 เป้าหมาย + สายฟ้า\n§0• Kinetic Grapple: ยิงปักแล้วดึงตัวพุ่งไป\n§0• Absolute Zero: แช่แข็งหยุดนิ่ง 3.5 วิ\n§0• Singularity: หลุมดำดูดมอน 3 วินาที\n§0• Meteor Arrow: ศรเรียกอุกกาบาตยักษ์\n\n§6§lเครื่องมือขุด (Tools):§r\n§0• Seismic Slam: ขุดระเบิดโพรง 3×3×1\n§0• Vein Smelter: ขุดทั้งสายแร่ + เผาแท่ง\n§0• Bedrock Resonance: เรดาร์ส่องแร่ 12 บล็อก\n§0• Demeter's Scythe: เก็บ+ปลูกคืน 9×9\n§0• Timber Titan: โค่นต้นไม้ทั้งต้น\n§0• Telepathy: ของที่ขุดวาร์ปเข้าตัว 100%"),
-            Component.text("§1§lมนตรา: ดาบ & ชุดเกราะ§r\n\n§c§lดาบ & อาวุธประชิด:§r\n§0• Guillotine: สังหารศัตรูเลือด <15% ทันที\n§0• Echo Strike: โอกาส 35% เงาฟันซ้ำ 100%\n§0• Blade Vortex: ปล่อยคลื่นดาบ 7 บล็อก\n§0• Soul Harvest: วิญญาณเพิ่มวิ่งไว+ดูดเลือด\n§0• Thunderlord: ตี 3 ครั้งผ่าสายฟ้าสวรรค์\n§0• Vampiric: แปลง 15% ดาเมจเป็นเลือด\n\n§2§lชุดเกราะ & อรรถประโยชน์:§r\n§0• Phoenix Rebirth: ฟื้นคืนชีพ 50% HP\n§0• Shadow Step: ย่อ 2 ครั้งวาร์ป 6 บล็อก\n§0• Titan Stance: กันกระเด็น 100% + กันบึ้ม\n§0• Soulbound: ของไม่ตกเมื่อตาย"),
-            Component.text("§1§lยุทธภัณฑ์โบราณ (Relics)§r\n\n§0§lRift Pickaxe (อีเต้อแยกพิภพ):§r\n§0ขุด 3×3 บล็อกพร้อมกัน (กดย่อขุด 1 บล็อก)\n\n§0§lSmelter Pickaxe (อีเต้อหลอมเพลิง):§r\n§0หลอมบล็อก/แร่ที่ขุดเป็นแท่งโลหะอัตโนมัติ\n\n§0§lStorm Bow (ธนูพิพากษาสายฟ้า):§r\n§0ยิงผ่าสายฟ้าต่อเนื่องใส่ศัตรู 3 เป้าหมาย\n\n§0§lNova Bow (ธนูสะเก็ดดาว):§r\n§0ชาร์จเต็มยิงระเบิดพลังงานหมู่รุนแรง\n\n§0§lRift Blade (ดาบกรีดมิติ):§r\n§0คลิกขวากะพริบตาวาร์ปไปข้างหน้า 8 บล็อก\n\n§0§lEternal Aegis (โล่แห่งความอมตะ):§r\n§0คลิกขวาอมตะ 3 วิ ป้องกันดาเมจ 100%"),
-            Component.text("§1§lคทาเวทมนตร์ (1/3)§r\n\n§0§lสูตรคราฟต์คทา:§r\n§0นำ §6Magic Core§0 วางตรงกลางโต๊ะคราฟต์ ล้อมด้วย §8Netherite Ingot§0 หรือ §eNether Star§0 8 ช่อง\n\n§4§lShulker Levitation [MYTHIC]:§r\n§0คทาต้องห้าม เรียกพายุฟ้าร้อง+มังกรคำราม ดึงศัตรูขึ้นฟ้าดูดเลือด ระเบิด Singularity ดาเมจ 120 + ปล่อยพื้นที่ Sculk Wither III\n\n§e§lLightning Strike:§r\n§0ผ่าสายฟ้า 60 ดาเมจ + สโลว์ พร้อมระเบิดคลื่นไฟฟ้าสถิตซ้ำระลอกสอง\n\n§b§lFrost Nova:§r\n§0แช่แข็งศัตรูรอบตัว 7 บล็อก แล้วแตกกระจายผลักกระเด็น (35 ดาเมจ)"),
-            Component.text("§1§lคทาเวทมนตร์ (2/3)§r\n\n§c§lMeteor Strike:§r\n§0เรียกห่าฝนอุกกาบาตยักษ์ 3 ลูกถล่มจากฟ้า ระเบิด 90 ดาเมจ + ไฟลุกไหม้\n\n§5§lDragon's Breath:§r\n§0พ่นเพลิงมังกรโบราณ 30 ดาเมจ/วิ + ทิ้งหมอกพิษ Wither & Weakness\n\n§1§lVoid Pull:§r\n§0ยิงบอลมิติดูดรวบศัตรูเข้าจุดศูนย์กลาง ตรึงขา แล้วระเบิดขอบฟ้าผลักลอยฟ้า\n\n§8§lWither Ray:§r\n§0ยิงหัวกะโหลกวิเธอร์ต่อเนื่อง 6 ลูกรัวๆ ปิดท้ายด้วยหัวชาร์จพลังระเบิดแรง\n\n§a§lPoison Spores:§r\n§0ยิงสปอร์พิษแตกกระจาย ติด Poison II + แตกหน่อสปอร์ย่อย 3 ทิศทาง"),
-            Component.text("§1§lคทาเวทมนตร์ (3/3)§r\n\n§6§lEarth Wall:§r\n§0ยกกำแพงหินลึก 2 ชั้น กันลูกธนู/เวท 100% พร้อมคลื่นแผ่นดินไหวผลักศัตรู\n\n§5§lShadow Step:§r\n§0วาร์ปทะลุกำแพง 12 บล็อก ทิ้งควันตาบอด ระเบิดเงา 25 ดาเมจ + ได้ Speed II\n\n§2§lNature's Bloom:§r\n§0ลบล้างดีบัฟ ฮีลทั้งปาร์ตี้ + มอบ Regen IV, Absorption V + หนามแทงศัตรู\n\n§7§lIron Armor:§r\n§0สวมเกราะเหล็ก ผลักศัตรูรอบตัว + Resistance IV, Fire Resis, Strength II\n\n§3§lTime Dilation:§r\n§0โดมเวลา ลูกธนูช้าลง ศัตรูติด Slowness VII ขณะที่เพื่อนได้ Speed & Haste\n\n§3§lSoul Drain:§r\n§0ลำแสงดูดเลือดศัตรูมาฮีลตัวเอง แล้วระเบิด Soul Nova ฮีลเพื่อนรอบข้าง")
+            Component.text("§9--- มิติ Evergarden ---\n§7สวนลอยฟ้าแห่งความว่างเปล่า§r\n\nวิธีสร้างประตูมิติ:\nสร้างกรอบ Crying Obsidian ขนาด 4x5 บล็อก (ช่องใน 2x3 เหมือนประตูเนเธอร์)\n\nจุดไฟในกรอบด้วย Flint & Steel, Fire Charge หรือ Eye of Ender เพื่อเปิดประตู\n\nคำสั่งช่วยเล่น:\n• /evergarden leave (กลับโลกเดิม)\n• /evergarden locate (ค้นหาวิหาร)"),
+            Component.text("§9--- 3 มหาวิหารธาตุ ---\n\nในมิติมีมหาวิหารโบราณ 3 แห่ง:\n• วิหารแห่งความมืด (Darkness)\n• วิหารแห่งดวงดาว (Astral)\n• วิหารแห่งกาลเวลา (Time)\n\nการท้าทาย:\nคลิกขวาที่แท่น Lodestone กลางวิหารเพื่อเริ่มสู้ (ผู้เล่นทุกคนเริ่มได้)\n\nเอาชนะมอนสเตอร์ 3 เวฟ และปราบบอสประจำวิหารเพื่อรับ Evergarden Key นำไปเปิดกล่องสมบัติ Vault"),
+            Component.text("§9--- กุญแจและวัตถุดิบ ---\n\n• Evergarden Key\nกุญแจสำหรับเปิดหีบ Vault ในวิหาร\n\n• Key Shard (เศษกุญแจ)\nรวบรวมครบ 4 ชิ้น วาง 2x2 ในโต๊ะคราฟต์เพื่อประกอบเป็น Evergarden Key\n\n• Astral Dust (ผงละอองดาว)\nวัตถุดิบเวทมนตร์จากมอนสเตอร์ ใช้คราฟต์:\n1. 4 Dust + 1 Amethyst = ศิลาฟื้นฟู\n2. 1 Dust + 1 ขวดแก้ว = น้ำยาเดินเวหา"),
+            Component.text("§9--- ไอเทมฟื้นฟูและน้ำยา ---\n\n• Vault Repair Stone\nศิลาฟื้นฟูมิติ (คลิกขวาเพื่อใช้)\nซ่อมแซมความทนทาน 500 หน่วย ให้กับอุปกรณ์ที่ชำรุดมากที่สุดในตัวคุณ\n(สูตร: 4 Astral Dust + 1 Amethyst)\n\n• Void Walker Elixir\nน้ำยาเดินเวหา ดื่มเพื่อรับผล 3 นาที:\n- วิ่งเร็ว Speed II\n- กระโดดสูง Jump Boost II\n- ตกช้า Slow Falling (ป้องกันตก Void)\n(สูตร: 1 Astral Dust + 1 ขวดแก้ว)"),
+            Component.text("§9--- คัมภีร์เวทมนตร์ ---\n\nวิธีใช้งานคัมภีร์:\nหยิบคัมภีร์ในกระเป๋า แล้วคลิกทับลงบนอุปกรณ์เป้าหมายได้โดยตรง\n\n§6✦ Scroll of Eternity §4[MYTHIC 0.5%]§r\nสุดยอดคัมภีร์ตำนาน ทำให้อุปกรณ์ชิ้นนั้นกลายเป็น Unbreakable ไม่มีวันพังเสียหายถาวร 100% หลอดความทนทานจะหายไปตลอดกาล\n\n• Limit Break Scrolls (25%)\nทลายขีดจำกัด เพิ่มเลเวลเอนแชนต์เดิมขึ้น +1 (สูงสุดระดับ 10)"),
+            Component.text("§9--- คัมภีร์ทลายขีดจำกัด ---\n\nมี 6 ชนิด ทลายขีดจำกัดได้ถึงเลเวล 10:\n\n• Sharpness +1: อาวุธประชิด (ดาบ/ขวาน)\n• Protection +1: ชุดเกราะทุกชิ้น\n• Power +1: ธนู\n• Efficiency +1: อุปกรณ์ขุดเจาะ\n• Fortune +1: ที่ขุด\n• Looting +1: ดาบ\n\nอัตราสำเร็จ 100% ลากแตะเพื่อติดตั้ง"),
+            Component.text("§9--- มนตราโบราณ: ธนู (1/2) ---\n\n• Colossus Slayer (ล่าไททัน):\nยิงแรงขึ้นตาม % เลือดของเป้าหมาย เหมาะสำหรับใช้ล่าบอส\n\n• Ricochet (กระสุนชิ่งสายฟ้า):\nลูกธนูชิ่งหามอนสเตอร์รอบข้าง 3 ตัวพร้อมปล่อยสายฟ้าผ่าใส่\n\n• Kinetic Grapple (ฮุกช็อตเวหา):\nยิงปักบล็อกแล้วดึงตัวผู้เล่นพุ่งไปหาจุดปักทันที เหมาะใช้เคลื่อนที่"),
+            Component.text("§9--- มนตราโบราณ: ธนู (2/2) ---\n\n• Absolute Zero (เยือกแข็งสัมบูรณ์):\nแช่แข็งศัตรูในระยะหยุดนิ่ง ขยับไม่ได้ 3.5 วินาที\n\n• Singularity (หลุมดำกลืนมิติ):\nลูกธนูปักแล้วสร้างหลุมดำดูดรวบมอนสเตอร์เข้ามาเป็นเวลา 3 วินาที\n\n• Meteor Arrow (ศรดาวตกวินาศ):\nเมื่อลูกธนูปักพื้น 1 วิ อุกกาบาตยักษ์จะตกลงมาเผาพื้นที่ 5x5"),
+            Component.text("§9--- มนตรา: อุปกรณ์ขุด (1/2) ---\n\n• Seismic Slam (ขุดทลาย 3x3):\nขุด 1 ครั้งระเบิดเปิดโพรง 3x3x1 บล็อกทันที ขุดหาแร่และเปิดถ้ำได้รวดเร็ว\n\n• Vein Smelter (หลอมสายแร่คู่):\nขุดทั้งสายแร่พร้อมกัน และหลอมเป็นแท่งโลหะทันที ได้รับโบนัสแร่และ EXP เต็มระบบ\n\n• Bedrock Resonance (เรดาร์ส่องแร่):\nโซนาร์เรืองแสงส่องหาแร่หายากในกำแพงหินระยะ 12 บล็อก"),
+            Component.text("§9--- มนตรา: เครื่องมือ (2/2) ---\n\n• Demeter's Scythe (เคียวเทพกสิกรรม):\nเก็บเกี่ยวและปลูกคืนพืช 9x9 บล็อกอัตโนมัติ (สำหรับจอบ)\n\n• Timber Titan (โค่นทั้งป่า):\nฟันโคนไม้แล้วต้นไม้ทั้งต้นและใบไม้ล้มลงมาเป็นไอเทมทันที (สำหรับขวาน)\n\n• Telepathy (จิตสื่อสาร):\nแร่และไอเทมที่ขุดได้ทุกชิ้นจะวาร์ปเข้าตัวผู้เล่น 100% ไม่ตกหล่น"),
+            Component.text("§9--- มนตรา: ดาบประชิด (1/2) ---\n\n• Guillotine (กิโยตินปลิดชีพ):\nฟันสังหารมอนสเตอร์ที่มีเลือดต่ำกว่า 15% ทันที (Execute)\n\n• Echo Strike (เงาดาบซ้ำสอง):\nโอกาส 35% เกิดเงาฟันซ้ำดาเมจเดิม 100% ภายใน 0.2 วินาที\n\n• Blade Vortex (คลื่นดาบสุญญากาศ):\nการฟันกวาดจะปล่อยคลื่นพลังพุ่งไปข้างหน้า 7 บล็อก"),
+            Component.text("§9--- มนตรา: ดาบประชิด (2/2) ---\n\n• Soul Harvest (เกี่ยววิญญาณ):\nสะสมวิญญาณรอบตัวเพิ่มเดินไว +10% และดูดเลือด 5%\n\n• Thunderlord (สายฟ้าทัณฑ์สวรรค์):\nฟันเป้าหมายเดิมครบ 3 ครั้ง ผ่าสายฟ้า True Damage ทะลวงเกราะ\n\n• Vampiric (สูบโลหิต):\nแปลง 15% ของดาเมจที่ทำได้กลับมาฟื้นฟูเลือดให้ผู้เล่น"),
+            Component.text("§9--- มนตรา: ชุดเกราะและสถิต ---\n\n• Phoenix Rebirth (ฟีนิกซ์คืนชีพ):\nเมื่อตาย คืนชีพทันทีพร้อมเลือด 50% และคลื่นไฟผลักศัตรู (คูลดาวน์ 10 นาที)\n\n• Shadow Step (ก้าวพริบตา):\nกดย่อ 2 ครั้ง พริบตาวาร์ปไปข้างหน้า 6 บล็อก (คูลดาวน์ 4 วิ / สำหรับรองเท้า)\n\n• Titan Stance (ร่างศิลาไร้พ่าย):\nกันกระเด็น Knockback 100% และลดแรงระเบิด 40%\n\n• Soulbound (วิญญาณสถิต):\nไอเทมจะไม่ตกและไม่สูญหายเมื่อเสียชีวิต"),
+            Component.text("§9--- ยุทธภัณฑ์โบราณ (Relics) ---\n\n• Rift Pickaxe: ขุด 3x3 บล็อกพร้อมกัน (ย่อตัวเพื่อขุด 1 บล็อก)\n• Smelter Pickaxe: หลอมแร่เป็นแท่งโลหะอัตโนมัติขณะขุด\n• Storm Bow: ชาร์จยิงผ่าสายฟ้าต่อเนื่องใส่ศัตรู 3 ตัว\n• Nova Bow: ชาร์จเต็มยิงระเบิดพลังงานหมู่รุนแรง\n• Rift Blade: คลิกขวาวาร์ปพุ่งไปข้างหน้า 8 บล็อก\n• Eternal Aegis: คลิกขวาเปิดบาเรียอมตะ 3 วิ"),
+            Component.text("§9--- คทาเวทมนตร์โบราณ ---\n\nคทามีทั้งหมด 15 ธาตุ ได้รับแกน Magic Core จาก Evergarden Vault\n\nสูตรคราฟต์:\nวาง Magic Core ตรงกลางโต๊ะคราฟต์ ล้อมด้วย Netherite Ingot หรือ Nether Star 8 ชิ้น\n\nถือคทาแล้วคลิกขวาเพื่อร่ายเวทมนตร์\nมีเอฟเฟกต์ต่อเนื่องอัตโนมัติ ไม่เสียมานาเพิ่ม ตรวจสอบมานาด้วย /magic mana"),
+            Component.text("§9--- คทา: มหาเวทต้องห้าม ---\n\n§5✦ Shulker Levitation §4[MYTHIC 0.5%]§r\n(มานา 95 / คูลดาวน์ 35 วิ)\nคทาต้องห้ามระดับตำนาน เรียกพายุสายฟ้าและมังกรคำราม ดึงศัตรูในระยะ 22 บล็อกลอยขึ้นฟ้าพร้อมดูดเลือด\n\nเมื่อสิ้นสุดจะระเบิด Singularity 120 ดาเมจผลักกระเด็น และเปลี่ยนพื้นเป็น Sculk Corruption ศัตรูที่เหยียบจะติด Wither III นาน 15 วิ"),
+            Component.text("§9--- คทา: สายฟ้าและน้ำแข็ง ---\n\n• Lightning Strike (มานา 60 / คูลดาวน์ 8 วิ):\nผ่าสายฟ้า 60 ดาเมจ + สโลว์ จากนั้นอีก 0.5 วิ จะระเบิดคลื่นไฟฟ้าสถิตซ้ำระลอกสอง 30 ดาเมจ + ตาบอดและมึนงง\n\n• Frost Nova (มานา 50 / คูลดาวน์ 12 วิ):\nระเบิดไอเย็นแช่แข็งศัตรูรอบตัว 7 บล็อก ขยับไม่ได้ แล้วระเบิดสะเก็ดน้ำแข็ง 35 ดาเมจผลักศัตรูกระเด็น"),
+            Component.text("§9--- คทา: อุกกาบาตและมังกร ---\n\n• Meteor Strike (มานา 90 / คูลดาวน์ 20 วิ):\nเรียกห่าฝนอุกกาบาตยักษ์ 3 ลูกถล่มจากฟ้า ระเบิด 90 ดาเมจและจุดไฟเผาศัตรู\n\n• Dragon's Breath (มานา 75 / คูลดาวน์ 18 วิ):\nพ่นเพลิงมังกรโบราณ 30 ดาเมจต่อวินาที พร้อมหมอกพิษกัดกร่อน Wither และ Weakness"),
+            Component.text("§9--- คทา: หลุมดำและวิเธอร์ ---\n\n• Void Pull (มานา 65 / คูลดาวน์ 14 วิ):\nยิงบอลมิติดูดรวบศัตรูเข้าจุดศูนย์กลาง ตรึงขา แล้วระเบิดขอบฟ้า 45 ดาเมจผลักลอยขึ้นฟ้า\n\n• Wither Ray (มานา 85 / คูลดาวน์ 12 วิ):\nยิงกะโหลกวิเธอร์ต่อเนื่อง 6 ลูกรัวๆ ปิดท้ายด้วยกะโหลกชาร์จพลังระเบิดแรง 60 ดาเมจ + ติด Wither II"),
+            Component.text("§9--- คทา: พฤกษาและกำแพงศิลา ---\n\n• Nature's Bloom (มานา 70 / คูลดาวน์ 25 วิ):\nลบล้างดีบัฟ ฮีลทั้งปาร์ตี้ พร้อมมอบ Regen IV, Absorption V, Speed II และหนามแทงศัตรู\n\n• Earth Wall (มานา 40 / คูลดาวน์ 10 วิ):\nยกกำแพงหินลึกหนา 2 ชั้น กว้าง 7 สูง 4 บล็อก กันลูกธนูและเวทมนตร์ 100% พร้อมคลื่นผลักศัตรู"),
+            Component.text("§9--- คทา: พริบตาและสปอร์พิษ ---\n\n• Shadow Step (มานา 45 / คูลดาวน์ 6 วิ):\nวาร์ปทะลุกำแพง 12 บล็อก ทิ้งควันตาบอด ระเบิดเงา 25 ดาเมจ และได้รับ Speed II + ล่องหน\n\n• Poison Spores (มานา 45 / คูลดาวน์ 10 วิ):\nยิงสปอร์พิษแตกตัว Poison II และแตกหน่อสปอร์ย่อยระเบิดซ้ำอีก 3 ทิศทาง"),
+            Component.text("§9--- คทา: เกราะเหล็กและกาลเวลา ---\n\n• Iron Armor (มานา 60 / คูลดาวน์ 35 วิ):\nสวมเกราะเหล็ก ผลักศัตรูรอบตัว และรับ Resistance IV, Fire Resis, Strength II นาน 1 นาที\n\n• Time Dilation (มานา 80 / คูลดาวน์ 25 วิ):\nโดมเวลา ลูกธนูช้าลง ศัตรูติด Slowness VII ส่วนเพื่อนร่วมทีมได้รับ Speed และ Haste"),
+            Component.text("§9--- คทา: กลืนวิญญาณและพรางกาย ---\n\n• Soul Drain (มานา 70 / คูลดาวน์ 16 วิ):\nลำแสงดูดเลือดศัตรูมาฮีลตัวเอง แล้วระเบิด Soul Nova 35 ดาเมจ ฮีลเพื่อนร่วมทีม 15 หน่วย\n\n• Invisibility Shroud (มานา 50 / คูลดาวน์ 30 วิ):\nม่านหมอกล่องหนสมบูรณ์แบบ มอนสเตอร์มองไม่เห็น และการโจมตีเปิดตัวเพิ่มดาเมจ +50"),
+            Component.text("§9--- อัตราสุ่ม Evergarden Vault ---\n\n• 0.5% : Scroll of Eternity (ไม่มีวันพัง)\n• 0.5% : Core of Levitation (คทาระดับตำนาน)\n• 25% : Limit Break Scrolls (+1 ทลายขีดจำกัด)\n• 20% : Unique Enchants (มนตรา 22 สกิล)\n• 14% : Magic Cores 14 ธาตุ (แบบละ 1%)\n• 10% : ยุทธภัณฑ์โบราณ 6 ชนิด\n• 30% : วัตถุดิบ Dust, Shards, หินซ่อม, น้ำยา")
         ));
         book.setItemMeta(meta);
         return book;

@@ -49,21 +49,21 @@ public final class WandService implements Listener {
         ItemStack item=new ItemStack(CORE_BASE);
         var meta=item.getItemMeta();
         if(spell==Spell.SHULKER_LEVITATION) {
-            meta.setDisplayName(ChatColor.BLACK+""+ChatColor.BOLD+"✦ Core of Levitation "+ChatColor.DARK_RED+"[MYTHIC]");
+            meta.setDisplayName(ChatColor.LIGHT_PURPLE+"✦ "+ChatColor.GOLD+"Core of Levitation "+ChatColor.RED+"[MYTHIC]");
             meta.setLore(List.of(
-                ChatColor.DARK_GRAY+"[ระดับตำนาน - MYTHIC] แกนเวทมนตร์โบราณต้องห้าม",
-                ChatColor.DARK_PURPLE+""+ChatColor.MAGIC+"Forbidden Dragon Heart",
-                ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.BLACK+""+ChatColor.BOLD+"Shulker Levitation Wand",
-                ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
-                ChatColor.RED+"✦ อัตราดรอปต่ำสุดใน Evergarden Vault (เรทตำนาน 0.1%)"
+                ChatColor.GOLD+"[ระดับตำนานสูงสุด · MYTHIC 0.5%]",
+                ChatColor.DARK_PURPLE+"§k||§r "+ChatColor.LIGHT_PURPLE+"Forbidden Dragon Heart "+ChatColor.DARK_PURPLE+"§k||",
+                ChatColor.GRAY+"ใช้คราฟต์: "+ChatColor.LIGHT_PURPLE+"Shulker Levitation Wand",
+                ChatColor.YELLOW+"สูตร: 8 Netherite Ingots หรือ Nether Stars + แกนนี้",
+                ChatColor.RED+"✦ อัตราดรอป 0.5% ใน Evergarden Vault [สุดยอดของแรร์]"
             ));
         } else {
             meta.setDisplayName(ChatColor.GOLD+"✦ Core of "+coreTitle(spell));
             meta.setLore(List.of(
-                ChatColor.GRAY+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
-                ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.LIGHT_PURPLE+spell.title+" Wand",
-                ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
-                ChatColor.DARK_PURPLE+"Obtained from Evergarden Vault"
+                ChatColor.AQUA+"Ancient Magic Core (แกนเวทมนตร์โบราณ)",
+                ChatColor.GRAY+"ใช้คราฟต์: "+ChatColor.LIGHT_PURPLE+spell.title+" Wand",
+                ChatColor.YELLOW+"สูตร: 8 Netherite Ingots หรือ Nether Stars + แกนนี้",
+                ChatColor.DARK_AQUA+"หาได้จาก: Evergarden Vault"
             ));
         }
         var modelData=meta.getCustomModelDataComponent();
@@ -90,17 +90,17 @@ public final class WandService implements Listener {
         ItemStack item=new ItemStack(BASE);
         var meta=item.getItemMeta();
         if(spell==Spell.SHULKER_LEVITATION) {
-            meta.setDisplayName(ChatColor.BLACK+""+ChatColor.BOLD+"✦ Shulker Levitation Wand "+ChatColor.DARK_GRAY+"[ตำนาน]");
+            meta.setDisplayName(ChatColor.LIGHT_PURPLE+"✦ "+ChatColor.GOLD+"Shulker Levitation Wand "+ChatColor.RED+"[MYTHIC]");
             meta.setLore(List.of(
-                ChatColor.DARK_GRAY+"[ระดับตำนาน - MYTHIC]",
-                ChatColor.DARK_PURPLE+""+ChatColor.MAGIC+"Ancient Dragon Singularity",
+                ChatColor.GOLD+"[ระดับตำนานสูงสุด · MYTHIC 0.5%]",
+                ChatColor.DARK_PURPLE+"§k||§r "+ChatColor.LIGHT_PURPLE+"Ancient Dragon Singularity "+ChatColor.DARK_PURPLE+"§k||",
                 ChatColor.GRAY+"คลิกขวาเพื่อปลดปล่อยหายนะมิติบรรพกาล",
                 ChatColor.AQUA+"Mana: "+spell.mana+" / Cooldown: "+spell.cooldown+"s",
-                ChatColor.RED+"⚡ พายุฟ้าผ่า · มังกรจุติ · มหาหลุมดำกลืนมิติ · ดินแดน Sculk Wither III"
+                ChatColor.YELLOW+"⚡ พายุฟ้าผ่า · มังกรจุติ · มหาหลุมดำกลืนมิติ · ดินแดน Sculk Wither III"
             ));
         } else {
-            meta.setDisplayName(ChatColor.LIGHT_PURPLE+spell.title+" Wand");
-            meta.setLore(List.of(ChatColor.GRAY+"Right-click to cast",ChatColor.AQUA+"Mana: "+spell.mana+" / Cooldown: "+spell.cooldown+"s"));
+            meta.setDisplayName(ChatColor.LIGHT_PURPLE+"✦ "+spell.title+" Wand");
+            meta.setLore(List.of(ChatColor.GRAY+"คลิกขวาเพื่อร่ายเวทมนตร์",ChatColor.AQUA+"Mana: "+spell.mana+" / Cooldown: "+spell.cooldown+"s"));
         }
         var lore=new ArrayList<>(meta.getLore());
         lore.add(ChatColor.GREEN+"เอฟเฟกต์ต่อเนื่องอัตโนมัติ · ไม่เสียมานาเพิ่ม");
