@@ -1,0 +1,44 @@
+Use case: infographic-diagram. Create a polished Thai language quick-start infographic poster for the actual Minecraft server plugins EVERGARDEN 3.0 × ADVANCE MAGIC. Portrait 1536x2304 or similar high resolution. Beautiful illustrated voxel floating twilight gardens with cherry trees, three small temples, purple/cyan crystals, magical wands and parchment scrolls. Designed as a legible player guide, not a screenshot. Large crisp Thai typography, clear numbered reading flow, generous spacing, dark navy background with warm cream text and restrained cyan/purple accents. Avoid excessive microtext. All Thai text must be exact and readable.
+
+Header: "EVERGARDEN × ADVANCE MAGIC"
+Subtitle: "คู่มือเริ่มเล่น • สำรวจ → พิชิต → อัปเกรด"
+
+Six clearly separated numbered panels:
+1 "เข้าสู่สวนลอยฟ้า"
+"/evergarden enter"
+"เตรียมอาวุธ ชุดเกราะ และอาหาร"
+2 "พิชิตวิหาร 3 ธาตุ"
+"Dark • Astral • Time"
+"คลิก Lodestone → สู้ 5 เวฟ → ปราบบอส"
+"รับ Evergarden Key"
+3 "เปิด Vault ลุ้นรางวัล"
+"ถือกุญแจในมือหลัก แล้วคลิก Vault"
+"เปิดได้คนละ 1 ครั้งต่อวิหาร"
+4 "คราฟต์คทา 15 แบบ"
+Include a clearly accurate 3x3 crafting grid: a blue glowing core in the center, exactly eight metal ingots/star icons in surrounding eight slots.
+"Magic Core ตรงกลาง"
+"ล้อมด้วย Netherite Ingot / Nether Star รวม 8 ชิ้น"
+"ผสมวัตถุดิบได้ • Core กำหนดชนิดเวท"
+5 "ร่ายเวทและพัฒนามานา"
+"คลิกขวา / ปุ่มใช้ไอเทม เพื่อร่าย"
+"เอฟเฟกต์ต่อเนื่องอัตโนมัติ"
+"มานาเริ่ม 100 • ฟื้น 2 ต่อวินาที"
+"Dragon’s Breath เพิ่มเพดานมานาได้ถึง 300"
+6 "เสริมพลังอุปกรณ์"
+"หยิบคัมภีร์ แล้วคลิกทับอุปกรณ์"
+"Unique Enchant • สกิลพิเศษ 22 แบบ"
+"Limit Break • เพิ่มเอนแชนต์เดิม +1"
+"Eternity • ทำให้อุปกรณ์ไม่มีวันพัง"
+
+Bottom compact reward odds strip headed "โอกาสต่อการเปิด Vault 1 ครั้ง"
+Seven rows or chips, clear and readable:
+"วัตถุดิบ / น้ำยา 30%"
+"อุปกรณ์พิเศษ 10%"
+"Core ทั่วไป 14%"
+"Unique Scroll 20%"
+"Limit Break 25%"
+"Mythic Core 0.5%"
+"Eternity 0.5%"
+Footer command chips: "/evergarden guide" "/evergarden locate" "/magic list" "/magic mana"
+Small final footnote: "อิงค่าเริ่มต้นในโค้ด • เซิร์ฟเวอร์อาจปรับค่า • ภาพประกอบ"
+No old loot rates 0.1%, 4.9%, diamonds or armor trim rewards. Do not imply each chest gives a core, or guarantee all 22 enchants combine. No unsupported gameplay claims.

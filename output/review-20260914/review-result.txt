@@ -1,0 +1,9 @@
+both_plugins_enabled: true
+conflicting_legacy_and_evergarden_core_should_reject: FROST_NOVA
+three_drinks_same_tick_world_day_1_2_1: true,true,true; maxMana=115.0
+cancelled_inventory_click_still_enchants: true
+soulbound_only_in_volatile_map: drops=0; itemsToKeep=0; stash=1; freshListenerStash=0
+protected_vein_helper_bypasses_block_break: block=AIR; protectionEvents=0
+protected_harvest_helper_bypasses_block_break: age=0; protectionEvents=0
+titan_without_chestplate_expected_6: 10.0
+titan_plain_chestplate_expected_6: 10.0
