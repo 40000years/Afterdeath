@@ -149,7 +149,7 @@ def archive(folder,path):
 def main():
  java=BUILD/'java';bedrock=BUILD/'bedrock';DIST.mkdir(parents=True,exist_ok=True)
  write_json(java/'pack.mcmeta',{'pack':{'description':'Evergarden | Ancient Relics','min_format':[88,0],'max_format':[88,0]}})
- write_json(bedrock/'manifest.json',{'format_version':2,'header':{'name':'Evergarden','description':'Evergarden relics and sanctuary guardians','uuid':'df4aee6d-9e8e-4ec8-9df1-7974c6bea203','version':[3,1,0],'min_engine_version':[1,21,80]},'modules':[{'type':'resources','uuid':'ef4aee6d-9e8e-4ec8-9df1-7974c6bea204','version':[3,1,0]}]})
+ write_json(bedrock/'manifest.json',{'format_version':2,'header':{'name':'Evergarden','description':'Evergarden relics and sanctuary guardians','uuid':'df4aee6d-9e8e-4ec8-9df1-7974c6bea203','version':[3,1,0],'min_engine_version':[1,21,0]},'modules':[{'type':'resources','uuid':'ef4aee6d-9e8e-4ec8-9df1-7974c6bea204','version':[3,1,0]}]})
  textures={};mappings={'format_version':2,'items':{}};selectors={}
  write_json(bedrock/'render_controllers/evergarden_mask.json',{'format_version':'1.8.0','render_controllers':{'controller.render.evergarden_mask':{'geometry':'Geometry.default','materials':[{'*':'Material.default'}],'textures':['Texture.default']}}})
  for name,(base,title) in ITEMS.items():
@@ -199,14 +199,16 @@ def main():
     else:
      png(java/f'assets/voidscape/textures/item/{stage}.png',icon(name,n+1))
     write_json(java/f'assets/voidscape/models/item/{stage}.json',{'parent':'minecraft:item/bow','textures':{'layer0':'voidscape:item/'+stage}})
+    textures['voidscape.'+stage]={'textures':'textures/items/'+stage}
     stages.append({'threshold':[0,0.65,0.9][n],'model':{'type':'minecraft:model','model':'voidscape:item/'+stage}})
    definition={'model':{'type':'minecraft:condition','property':'minecraft:using_item','on_false':definition['model'],'on_true':{'type':'minecraft:range_dispatch','property':'minecraft:use_duration','scale':0.05,'fallback':stages[0]['model'],'entries':stages}}}
   write_json(java/f'assets/voidscape/items/{name}.json',definition)
   selectors.setdefault(base,[]).append({'when':'voidscape:'+name,'model':definition['model']})
+  cat='equipment' if base in ('netherite_pickaxe','netherite_sword','bow','shield','carved_pumpkin') else 'items'
   mappings['items'].setdefault('minecraft:'+base,[]).append({'type':'definition','model':'minecraft:'+base,
     'predicate':{'type':'match','property':'custom_model_data','index':0,'value':'voidscape:'+name},
     'bedrock_identifier':'voidscape:'+name,'display_name':title,
-    'bedrock_options':{'icon':'voidscape.'+name,'allow_offhand':True,'display_handheld':base in ('netherite_pickaxe','netherite_sword','bow')}})
+    'bedrock_options':{'icon':'voidscape.'+name,'allow_offhand':True,'display_handheld':base in ('netherite_pickaxe','netherite_sword','bow'),'creative_category':cat}})
  for base,cases in selectors.items():
   fallback={'type':'minecraft:model','model':'minecraft:item/'+base}
   if base=='bow':

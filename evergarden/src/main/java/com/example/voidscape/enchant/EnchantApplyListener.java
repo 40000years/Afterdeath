@@ -45,7 +45,7 @@ public final class EnchantApplyListener implements Listener {
         // 1. Scroll of Eternity (Unbreakable)
         if (relics.isScrollEternity(cursor)) {
             event.setCancelled(true);
-            applyScrollEternity(player, cursor, target);
+            applyScrollEternity(player, cursor, target, true);
             return;
         }
 
@@ -53,7 +53,7 @@ public final class EnchantApplyListener implements Listener {
         LimitBreakType lbType = relics.getLimitBreakType(cursor);
         if (lbType != null) {
             event.setCancelled(true);
-            applyLimitBreak(player, cursor, target, lbType);
+            applyLimitBreak(player, cursor, target, lbType, true);
             return;
         }
 
@@ -61,12 +61,42 @@ public final class EnchantApplyListener implements Listener {
         UniqueEnchant unique = relics.getUniqueEnchant(cursor);
         if (unique != null) {
             event.setCancelled(true);
-            applyUniqueEnchant(player, cursor, target, unique);
+            applyUniqueEnchant(player, cursor, target, unique, true);
             return;
         }
     }
 
-    private void applyScrollEternity(Player player, ItemStack cursor, ItemStack target) {
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerInteract(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (!event.getAction().isRightClick()) return;
+        Player player = event.getPlayer();
+        ItemStack main = player.getInventory().getItemInMainHand();
+        ItemStack off = player.getInventory().getItemInOffHand();
+
+        if (main == null || main.getType().isAir() || off == null || off.getType().isAir()) return;
+
+        if (relics.isScrollEternity(main)) {
+            event.setCancelled(true);
+            applyScrollEternity(player, main, off, false);
+            return;
+        }
+
+        LimitBreakType lbType = relics.getLimitBreakType(main);
+        if (lbType != null) {
+            event.setCancelled(true);
+            applyLimitBreak(player, main, off, lbType, false);
+            return;
+        }
+
+        UniqueEnchant unique = relics.getUniqueEnchant(main);
+        if (unique != null) {
+            event.setCancelled(true);
+            applyUniqueEnchant(player, main, off, unique, false);
+            return;
+        }
+    }
+
+    private void applyScrollEternity(Player player, ItemStack source, ItemStack target, boolean isCursor) {
         if (target.getType().getMaxDurability() <= 0) {
             fail(player, "ไอเทมนี้ไม่มีความทนทาน ไม่จำเป็นต้องใช้คัมภีร์ศิลานิรันดร์");
             return;
@@ -85,11 +115,11 @@ public final class EnchantApplyListener implements Listener {
         meta.lore(lore);
         target.setItemMeta(meta);
 
-        consumeCursor(player, cursor);
+        consumeSource(player, source, isCursor);
         success(player, "✦ ปลุกเสกศิลานิรันดร์สำเร็จ! อุปกรณ์นี้จะไม่มีวันพังถาวร");
     }
 
-    private void applyLimitBreak(Player player, ItemStack cursor, ItemStack target, LimitBreakType type) {
+    private void applyLimitBreak(Player player, ItemStack source, ItemStack target, LimitBreakType type, boolean isCursor) {
         if (!type.category().matches(target.getType())) {
             fail(player, "คัมภีร์นี้ใช้ได้กับ " + type.targetDescription() + " เท่านั้น");
             return;
@@ -112,17 +142,16 @@ public final class EnchantApplyListener implements Listener {
 
         // Add or update custom lore line for limit break
         List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
-        String tag = "✦ " + type.thaiTitle();
         lore.removeIf(line -> net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line).contains(type.thaiTitle()));
         lore.add(Component.text("✦ " + type.thaiTitle() + " ระดับ " + toRoman(next), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         target.setItemMeta(meta);
 
-        consumeCursor(player, cursor);
+        consumeSource(player, source, isCursor);
         success(player, "✦ ทลายขีดจำกัดสำเร็จ! " + type.title() + " ระดับ " + toRoman(next));
     }
 
-    private void applyUniqueEnchant(Player player, ItemStack cursor, ItemStack target, UniqueEnchant enchant) {
+    private void applyUniqueEnchant(Player player, ItemStack source, ItemStack target, UniqueEnchant enchant, boolean isCursor) {
         if (!enchant.category().matches(target.getType())) {
             fail(player, "คัมภีร์นี้ใช้ได้กับ " + enchant.category().name() + " เท่านั้น");
             return;
@@ -143,16 +172,24 @@ public final class EnchantApplyListener implements Listener {
         meta.lore(lore);
         target.setItemMeta(meta);
 
-        consumeCursor(player, cursor);
+        consumeSource(player, source, isCursor);
         success(player, "✦ สลักมนตราสำเร็จ! ได้รับ " + enchant.title());
     }
 
-    private void consumeCursor(Player player, ItemStack cursor) {
-        if (cursor.getAmount() <= 1) {
-            player.setItemOnCursor(null);
+    private void consumeSource(Player player, ItemStack source, boolean isCursor) {
+        if (isCursor) {
+            if (source.getAmount() <= 1) {
+                player.setItemOnCursor(null);
+            } else {
+                source.setAmount(source.getAmount() - 1);
+                player.setItemOnCursor(source);
+            }
         } else {
-            cursor.setAmount(cursor.getAmount() - 1);
-            player.setItemOnCursor(cursor);
+            if (source.getAmount() <= 1) {
+                player.getInventory().setItemInMainHand(null);
+            } else {
+                source.setAmount(source.getAmount() - 1);
+            }
         }
         player.updateInventory();
     }

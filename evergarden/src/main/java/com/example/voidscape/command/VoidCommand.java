@@ -62,39 +62,118 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             }
             case "leave" -> {if(p!=null&&p.getWorld()==plugin.world())plugin.travel().leave(p,false);}
             case "give" -> {
-                if(args.length<2){plugin.message(sender,"/evergarden give <ชื่อไอเทม/เอนแชนต์/แกน> [จำนวน/ผู้เล่น] [ผู้เล่น]");return true;}
+                if(args.length < 2) {
+                    plugin.message(sender, "วิธีใช้: /evergarden give <ชื่อไอเทม> [จำนวน] [ผู้เล่น/@a/@p/@s]");
+                    plugin.message(sender, "ตัวอย่าง: /evergarden give ricochet, /evergarden give shulker_levitation @a, /evergarden give key 4");
+                    return true;
+                }
+
+                List<String> tokens = new ArrayList<>(Arrays.asList(args).subList(1, args.length));
+                boolean allPlayers = false;
+                Player singleTarget = null;
                 int count = 1;
-                Player target = p;
-                if(args.length == 3) {
-                    try {
-                        count = Math.max(1, Integer.parseInt(args[2]));
-                    } catch(NumberFormatException ignored) {
-                        target = Bukkit.getPlayerExact(args[2]);
-                    }
-                } else if(args.length >= 4) {
-                    try {
-                        count = Math.max(1, Integer.parseInt(args[2]));
-                        target = Bukkit.getPlayerExact(args[3]);
-                    } catch(NumberFormatException ignored) {
-                        target = Bukkit.getPlayerExact(args[2]);
+
+                // 1. Check for @a
+                for(Iterator<String> it = tokens.iterator(); it.hasNext();) {
+                    String tok = it.next();
+                    if(tok.equalsIgnoreCase("@a")) {
+                        allPlayers = true;
+                        it.remove();
+                        break;
                     }
                 }
-                if(target == null) {
-                    plugin.message(sender, "ระบุผู้เล่นออนไลน์ด้วย หรือรันคำสั่งในฐานะผู้เล่น");
+
+                // 2. Check for @s, @p
+                if(!allPlayers) {
+                    for(Iterator<String> it = tokens.iterator(); it.hasNext();) {
+                        String tok = it.next();
+                        if(tok.equalsIgnoreCase("@s") || tok.equalsIgnoreCase("@p")) {
+                            singleTarget = p != null ? p : Bukkit.getOnlinePlayers().stream().findFirst().orElse(null);
+                            it.remove();
+                            break;
+                        }
+                    }
+                }
+
+                // 3. Check for online player name
+                if(!allPlayers && singleTarget == null) {
+                    for(Iterator<String> it = tokens.iterator(); it.hasNext();) {
+                        String tok = it.next();
+                        Player found = findOnlinePlayer(tok);
+                        if(found != null) {
+                            singleTarget = found;
+                            it.remove();
+                            break;
+                        }
+                    }
+                }
+
+                // 4. Check for count (positive integer)
+                for(Iterator<String> it = tokens.iterator(); it.hasNext();) {
+                    String tok = it.next();
+                    try {
+                        int val = Integer.parseInt(tok);
+                        if(val > 0) {
+                            count = val;
+                            it.remove();
+                            break;
+                        }
+                    } catch(NumberFormatException ignored) {}
+                }
+
+                // 5. Remaining tokens form the item query
+                String itemQuery = String.join("_", tokens).trim();
+                if(itemQuery.isEmpty()) {
+                    plugin.message(sender, "กรุณาระบุชื่อไอเทม");
                     return true;
                 }
-                if(target.getInventory().firstEmpty() < 0) {
-                    plugin.message(sender, "กระเป๋าผู้รับเต็ม");
-                    return true;
-                }
-                ItemStack item = resolveItem(args[1], count);
+
+                ItemStack item = resolveItem(itemQuery, count);
                 if(item == null) {
-                    plugin.message(sender, "ไม่พบไอเทม: "+args[1]+" (ลองพิมพ์ชื่อตรงๆ เช่น ricochet, sharpness, storm_bow, eternity, lightning_strike)");
+                    item = resolveItem(itemQuery.replace(" ", "_"), count);
+                }
+                if(item == null) {
+                    plugin.message(sender, "ไม่พบไอเทม: " + itemQuery + " (ลองพิมพ์ชื่อตรงๆ เช่น ricochet, sharpness, storm_bow, eternity, shulker_levitation)");
                     return true;
                 }
-                target.getInventory().addItem(item);
-                String itemName = item.hasItemMeta() && item.getItemMeta().hasDisplayName() ? item.getItemMeta().getDisplayName() : item.getType().name();
-                plugin.message(sender, "มอบ "+itemName+" x"+item.getAmount()+" ให้ "+target.getName()+" แล้ว");
+
+                List<Player> recipients = new ArrayList<>();
+                if(allPlayers) {
+                    recipients.addAll(Bukkit.getOnlinePlayers());
+                } else {
+                    if(singleTarget != null) {
+                        recipients.add(singleTarget);
+                    } else if(p != null) {
+                        recipients.add(p);
+                    } else {
+                        plugin.message(sender, "ระบุผู้เล่นออนไลน์ด้วย หรือรันคำสั่งในฐานะผู้เล่น");
+                        return true;
+                    }
+                }
+
+                if(recipients.isEmpty()) {
+                    plugin.message(sender, "ไม่พบผู้เล่นออนไลน์ที่จะมอบไอเทมให้");
+                    return true;
+                }
+
+                String itemName = item.hasItemMeta() && item.getItemMeta().hasDisplayName() ?
+                    net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()) : item.getType().name();
+
+                for(Player recipient : recipients) {
+                    ItemStack toGive = item.clone();
+                    var leftover = recipient.getInventory().addItem(toGive);
+                    if(!leftover.isEmpty()) {
+                        leftover.values().forEach(drop -> recipient.getWorld().dropItemNaturally(recipient.getLocation(), drop));
+                    }
+                    recipient.updateInventory();
+                    recipient.playSound(recipient.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.8f, 1.2f);
+                }
+
+                if(allPlayers) {
+                    plugin.message(sender, "มอบ " + itemName + " x" + count + " ให้ผู้เล่นทุกคน (" + recipients.size() + " คน) แล้ว");
+                } else {
+                    plugin.message(sender, "มอบ " + itemName + " x" + count + " ให้ " + recipients.get(0).getName() + " แล้ว");
+                }
                 return true;
             }
             case "pregen" -> pregen(sender,args);
@@ -124,9 +203,34 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             }));
         }}.runTaskTimer(plugin,1,2);
     }
+    private Player findOnlinePlayer(String name) {
+        if(name == null || name.isBlank()) return null;
+        Player pl = Bukkit.getPlayerExact(name);
+        if(pl != null) return pl;
+        pl = Bukkit.getPlayer(name);
+        if(pl != null) return pl;
+        String clean = name.toLowerCase(Locale.ROOT).replace(".", "").trim();
+        for(Player online : Bukkit.getOnlinePlayers()) {
+            String onClean = online.getName().toLowerCase(Locale.ROOT).replace(".", "").trim();
+            if(onClean.equals(clean) || online.getName().equalsIgnoreCase("." + name) || online.getName().equalsIgnoreCase(name)) {
+                return online;
+            }
+        }
+        return null;
+    }
+
     private ItemStack resolveItem(String raw, int count) {
         if(raw == null || raw.isBlank()) return null;
         String clean = raw.toLowerCase(Locale.ROOT).trim().replace("-", "_");
+
+        // 0. Shulker / Levitation / Mythic Core shortcuts
+        if(clean.equals("shulker") || clean.equals("levitation") || clean.equals("shulker_levitation") ||
+           clean.equals("shulker_core") || clean.equals("levitation_core") || clean.equals("mythic_core") ||
+           clean.equals("mythic") || clean.equals("core_shulker_levitation") || clean.equals("wand_shulker_levitation")) {
+            ItemStack is = plugin.relics().createMagicCore("shulker_levitation");
+            if(count > 1) is.setAmount(Math.min(count, 64));
+            return is;
+        }
 
         // 1. Scroll of Eternity (Unbreakable)
         if(clean.equals("scroll_eternity") || clean.equals("eternity") || clean.equals("unbreakable") || clean.equals("scroll_of_eternity")) {
@@ -260,14 +364,21 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
                 c.add("core_"+core.id());
             }
             // Shortcuts
-            c.addAll(List.of("eternity","key","shard","dust","repair","elixir","storm","nova","blade","aegis"));
+            c.addAll(List.of("eternity","key","shard","dust","repair","elixir","storm","nova","blade","aegis","shulker_levitation","shulker"));
         }
         if(args.length==3&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
-            for(Player pl : Bukkit.getOnlinePlayers()) c.add(pl.getName());
-            c.addAll(List.of("1","2","4","8","16","32","64"));
+            c.addAll(List.of("@a","@p","@s","1","2","4","8","16","32","64"));
+            for(Player pl : Bukkit.getOnlinePlayers()) {
+                c.add(pl.getName());
+                if(pl.getName().startsWith(".")) c.add(pl.getName().substring(1));
+            }
         }
-        if(args.length==4&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
-            for(Player pl : Bukkit.getOnlinePlayers()) c.add(pl.getName());
+        if(args.length>=4&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
+            c.addAll(List.of("@a","@p","@s"));
+            for(Player pl : Bukkit.getOnlinePlayers()) {
+                c.add(pl.getName());
+                if(pl.getName().startsWith(".")) c.add(pl.getName().substring(1));
+            }
         }
         return c.stream().filter(s->s.startsWith(args[args.length-1].toLowerCase(Locale.ROOT))).toList();
     }

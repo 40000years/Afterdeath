@@ -82,15 +82,22 @@ public final class RelicService implements Listener {
         try { Bukkit.removeRecipe(key); } catch (Exception ignored) {}
         ShapedRecipe recipe = new ShapedRecipe(key, createVoidKey());
         recipe.shape("SS", "SS");
-        recipe.setIngredient('S', new RecipeChoice.ExactChoice(createKeyShard(1)));
+        recipe.setIngredient('S', new RecipeChoice.MaterialChoice(Material.PRISMARINE_SHARD));
         try { Bukkit.addRecipe(recipe); } catch (Exception ignored) {}
+
+        // 1b. Evergarden Key Shapeless (any 4 Prismarine Shards)
+        NamespacedKey keyShapeless = plugin.key("craft_void_key_shapeless");
+        try { Bukkit.removeRecipe(keyShapeless); } catch (Exception ignored) {}
+        ShapelessRecipe recipeShapeless = new ShapelessRecipe(keyShapeless, createVoidKey());
+        recipeShapeless.addIngredient(4, Material.PRISMARINE_SHARD);
+        try { Bukkit.addRecipe(recipeShapeless); } catch (Exception ignored) {}
 
         // 2. Vault Repair Stone (4 Astral Dust + 1 Amethyst Shard)
         NamespacedKey repairKey = plugin.key("craft_repair_stone");
         try { Bukkit.removeRecipe(repairKey); } catch (Exception ignored) {}
         ShapedRecipe repairRecipe = new ShapedRecipe(repairKey, createRepairStone(1));
         repairRecipe.shape(" D ", "DAD", " D ");
-        repairRecipe.setIngredient('D', new RecipeChoice.ExactChoice(createAstralDust(1)));
+        repairRecipe.setIngredient('D', new RecipeChoice.MaterialChoice(Material.SUGAR));
         repairRecipe.setIngredient('A', Material.AMETHYST_SHARD);
         try { Bukkit.addRecipe(repairRecipe); } catch (Exception ignored) {}
 
@@ -98,7 +105,7 @@ public final class RelicService implements Listener {
         NamespacedKey elixirKey = plugin.key("craft_void_elixir");
         try { Bukkit.removeRecipe(elixirKey); } catch (Exception ignored) {}
         ShapelessRecipe elixirRecipe = new ShapelessRecipe(elixirKey, createVoidElixir(1));
-        elixirRecipe.addIngredient(new RecipeChoice.ExactChoice(createAstralDust(1)));
+        elixirRecipe.addIngredient(new RecipeChoice.MaterialChoice(Material.SUGAR));
         elixirRecipe.addIngredient(Material.GLASS_BOTTLE);
         try { Bukkit.addRecipe(elixirRecipe); } catch (Exception ignored) {}
     }
@@ -303,6 +310,77 @@ public final class RelicService implements Listener {
             || type(item)==Relic.VOID_ELIXIR;
     }
 
+    public boolean isAstralDust(ItemStack item) {
+        if(item==null||!item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(plugin.key("astral_dust"),PersistentDataType.BYTE)
+            || type(item)==Relic.ASTRAL_DUST;
+    }
+
+    public static String toRoman(int n) {
+        return switch (n) {
+            case 1 -> "I"; case 2 -> "II"; case 3 -> "III"; case 4 -> "IV"; case 5 -> "V";
+            case 6 -> "VI"; case 7 -> "VII"; case 8 -> "VIII"; case 9 -> "IX"; case 10 -> "X";
+            default -> String.valueOf(n);
+        };
+    }
+
+    public ItemStack evaluateScrollCraft(ItemStack scroll, ItemStack target) {
+        if (scroll == null || target == null || target.getType().isAir()) return null;
+
+        // 1. Scroll of Eternity
+        if (isScrollEternity(scroll)) {
+            if (target.getType().getMaxDurability() <= 0) return null;
+            ItemMeta meta = target.getItemMeta();
+            if (meta == null || meta.isUnbreakable()) return null;
+            meta.setUnbreakable(true);
+            List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+            lore.add(0, Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+            meta.lore(lore);
+            ItemStack result = target.clone();
+            result.setItemMeta(meta);
+            return result;
+        }
+
+        // 2. Limit Break Scroll
+        LimitBreakType type = getLimitBreakType(scroll);
+        if (type != null) {
+            if (!type.category().matches(target.getType())) return null;
+            ItemMeta meta = target.getItemMeta();
+            if (meta == null) return null;
+            int current = meta.getEnchantLevel(type.enchantment());
+            if (current <= 0 || current >= type.maxLevel()) return null;
+            int next = current + 1;
+            meta.addEnchant(type.enchantment(), next, true);
+            List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+            lore.removeIf(line -> net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line).contains(type.thaiTitle()));
+            lore.add(Component.text("✦ " + type.thaiTitle() + " ระดับ " + toRoman(next), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+            meta.lore(lore);
+            ItemStack result = target.clone();
+            result.setItemMeta(meta);
+            return result;
+        }
+
+        // 3. Unique Enchant Scroll
+        UniqueEnchant enchant = getUniqueEnchant(scroll);
+        if (enchant != null) {
+            if (!enchant.category().matches(target.getType())) return null;
+            ItemMeta meta = target.getItemMeta();
+            if (meta == null) return null;
+            NamespacedKey key = new NamespacedKey("evergarden", "ue_" + enchant.id().toLowerCase(Locale.ROOT));
+            if (meta.getPersistentDataContainer().has(key)) return null;
+            meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
+            List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+            lore.add(Component.text("✦ " + enchant.title() + " · " + enchant.thaiTitle(), NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("   §7" + enchant.description()).decoration(TextDecoration.ITALIC, false));
+            meta.lore(lore);
+            ItemStack result = target.clone();
+            result.setItemMeta(meta);
+            return result;
+        }
+
+        return null;
+    }
+
     public boolean migrate(ItemStack item) {
         Relic relic=type(item);if(relic==null)return false;
         var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();String model="voidscape:"+relic.id();
@@ -310,7 +388,17 @@ public final class RelicService implements Listener {
         meta.setItemModel(null);data.setStrings(List.of(model));meta.setCustomModelDataComponent(data);item.setItemMeta(meta);return true;
     }
     public void migrate(Inventory inventory){for(int i=0;i<inventory.getSize();i++){var item=inventory.getItem(i);if(migrate(item))inventory.setItem(i,item);}}
-    @EventHandler public void join(PlayerJoinEvent e){migrate(e.getPlayer().getInventory());migrate(e.getPlayer().getEnderChest());}
+    @EventHandler public void join(PlayerJoinEvent e){
+        Player p=e.getPlayer();
+        migrate(p.getInventory());
+        migrate(p.getEnderChest());
+        p.discoverRecipes(List.of(
+            plugin.key("craft_void_key"),
+            plugin.key("craft_void_key_shapeless"),
+            plugin.key("craft_repair_stone"),
+            plugin.key("craft_void_elixir")
+        ));
+    }
     @EventHandler public void open(org.bukkit.event.inventory.InventoryOpenEvent e){migrate(e.getInventory());migrate(e.getPlayer().getInventory());}
     @EventHandler public void pickup(EntityPickupItemEvent e){var item=e.getItem().getItemStack();if(migrate(item))e.getItem().setItemStack(item);}
     @EventHandler public void drop(ItemSpawnEvent e){var item=e.getEntity().getItemStack();if(migrate(item))e.getEntity().setItemStack(item);}
@@ -416,51 +504,253 @@ public final class RelicService implements Listener {
         p.getPersistentDataContainer().set(plugin.key("cd_"+r.id()),PersistentDataType.LONG,System.currentTimeMillis()+seconds*1000L);
     }
 
-    @EventHandler(priority=EventPriority.HIGH)
-    public void interact(PlayerInteractEvent e) {
-        if(!e.getAction().isRightClick())return;
-        if(e.useItemInHand()==Event.Result.DENY)return;
-        Player p=e.getPlayer();
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPrepareCraft(org.bukkit.event.inventory.PrepareItemCraftEvent e) {
+        CraftingInventory inv = e.getInventory();
+        ItemStack[] matrix = inv.getMatrix();
+        Recipe recipe = e.getRecipe();
 
-        // 1. Vault Repair Stone interaction
-        if(isRepairStone(e.getItem())) {
-            e.setCancelled(true);
-            useRepairStone(p,e.getItem());
+        int nonAir = 0;
+        ItemStack repairStone = null;
+        ItemStack damagedItem = null;
+        ItemStack scroll = null;
+        ItemStack targetEquip = null;
+
+        for (ItemStack it : matrix) {
+            if (it == null || it.getType().isAir()) continue;
+            nonAir++;
+            if (isRepairStone(it)) {
+                repairStone = it;
+            } else if (isScrollEternity(it) || getLimitBreakType(it) != null || getUniqueEnchant(it) != null) {
+                scroll = it;
+            } else if (it.hasItemMeta() && it.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg && it.getType().getMaxDurability() > 0) {
+                damagedItem = it;
+                targetEquip = it;
+            } else if (it.getType().getMaxDurability() > 0) {
+                targetEquip = it;
+            }
+        }
+
+        // 1. Bedrock Repair: 1 Repair Stone + 1 Damaged Item
+        if (nonAir == 2 && repairStone != null && damagedItem != null) {
+            org.bukkit.inventory.meta.Damageable dmg = (org.bukkit.inventory.meta.Damageable) damagedItem.getItemMeta();
+            if (dmg.getDamage() > 0) {
+                ItemStack result = damagedItem.clone();
+                org.bukkit.inventory.meta.Damageable resDmg = (org.bukkit.inventory.meta.Damageable) result.getItemMeta();
+                resDmg.setDamage(Math.max(0, resDmg.getDamage() - 500));
+                result.setItemMeta(resDmg);
+                inv.setResult(result);
+                return;
+            }
+        }
+
+        // 2. Bedrock Scrolls: 1 Scroll + 1 Target Equipment
+        if (nonAir == 2 && scroll != null && targetEquip != null) {
+            ItemStack result = evaluateScrollCraft(scroll, targetEquip);
+            if (result != null) {
+                inv.setResult(result);
+                return;
+            }
+        }
+
+        // 3. Evergarden Bukkit Recipes validation
+        if (recipe instanceof Keyed keyed) {
+            NamespacedKey rKey = keyed.getKey();
+            if (rKey.getNamespace().equals("voidscape")) {
+                if (rKey.getKey().equals("craft_void_key") || rKey.getKey().equals("craft_void_key_shapeless")) {
+                    int shardCount = 0;
+                    for (ItemStack it : matrix) {
+                        if (it == null || it.getType().isAir()) continue;
+                        if (!isKeyShard(it)) {
+                            inv.setResult(null);
+                            return;
+                        }
+                        shardCount++;
+                    }
+                    if (shardCount == 4) {
+                        inv.setResult(createVoidKey());
+                    } else {
+                        inv.setResult(null);
+                    }
+                    return;
+                }
+                if (rKey.getKey().equals("craft_repair_stone")) {
+                    int dustCount = 0;
+                    boolean hasAmethyst = false;
+                    for (ItemStack it : matrix) {
+                        if (it == null || it.getType().isAir()) continue;
+                        if (it.getType() == Material.AMETHYST_SHARD) {
+                            hasAmethyst = true;
+                        } else if (isAstralDust(it)) {
+                            dustCount++;
+                        } else {
+                            inv.setResult(null);
+                            return;
+                        }
+                    }
+                    if (dustCount == 4 && hasAmethyst) {
+                        inv.setResult(createRepairStone(1));
+                    } else {
+                        inv.setResult(null);
+                    }
+                    return;
+                }
+                if (rKey.getKey().equals("craft_void_elixir")) {
+                    int dustCount = 0;
+                    boolean hasBottle = false;
+                    for (ItemStack it : matrix) {
+                        if (it == null || it.getType().isAir()) continue;
+                        if (it.getType() == Material.GLASS_BOTTLE) {
+                            hasBottle = true;
+                        } else if (isAstralDust(it)) {
+                            dustCount++;
+                        } else {
+                            inv.setResult(null);
+                            return;
+                        }
+                    }
+                    if (dustCount == 1 && hasBottle) {
+                        inv.setResult(createVoidElixir(1));
+                    } else {
+                        inv.setResult(null);
+                    }
+                    return;
+                }
+            }
+        }
+
+        // 4. Prevent custom items from being used in unintended recipes (e.g. vanilla recipes)
+        for (ItemStack it : matrix) {
+            if (it == null || it.getType().isAir()) continue;
+            if (isKeyShard(it) || isAstralDust(it) || isRepairStone(it) || isVoidElixir(it) || isScrollEternity(it) || getLimitBreakType(it) != null || getUniqueEnchant(it) != null) {
+                inv.setResult(null);
+                return;
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onCraftItem(org.bukkit.event.inventory.CraftItemEvent e) {
+        if (!(e.getWhoClicked() instanceof Player p)) return;
+        CraftingInventory inv = e.getInventory();
+        ItemStack[] matrix = inv.getMatrix();
+
+        int nonAir = 0;
+        ItemStack repairStone = null;
+        ItemStack damagedItem = null;
+        ItemStack scroll = null;
+        ItemStack equip = null;
+
+        for (ItemStack it : matrix) {
+            if (it == null || it.getType().isAir()) continue;
+            nonAir++;
+            if (isRepairStone(it)) repairStone = it;
+            else if (isScrollEternity(it) || getLimitBreakType(it) != null || getUniqueEnchant(it) != null) scroll = it;
+            else if (it.getType().getMaxDurability() > 0) {
+                if (it.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg && dmg.getDamage() > 0) damagedItem = it;
+                equip = it;
+            }
+        }
+
+        if (nonAir == 2 && repairStone != null && damagedItem != null) {
+            p.playSound(p.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 1.0f, 1.2f);
+            p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.05);
+            p.sendActionBar(Component.text("✦ ศิลาฟื้นฟูมิติ ซ่อมแซมความทนทาน 500 หน่วย!", NamedTextColor.GREEN));
             return;
         }
 
-        Relic r=type(e.getItem());
-        if(r!=Relic.RIFT_BLADE&&r!=Relic.ETERNAL_AEGIS)return;
-        e.setCancelled(true);
-        if(p.getGameMode()==GameMode.SPECTATOR||!ready(p,r))return;
+        if (nonAir == 2 && scroll != null && equip != null) {
+            p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.25f);
+            p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.35f);
+            p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1.2, 0), 25, 0.35, 0.35, 0.35, 0.1);
+            p.sendActionBar(Component.text("✦ ปลุกเสกมนตราผ่านโต๊ะคราฟต์สำเร็จ!", NamedTextColor.GREEN));
+            return;
+        }
+    }
+
+    public void triggerRiftBladeWarp(Player p) {
+        if(p.getGameMode()==GameMode.SPECTATOR||!ready(p,Relic.RIFT_BLADE)||immune(p))return;
+        Location start=p.getLocation(),target=null;
+        Vector direction=start.getDirection();
+        double distance=plugin.integer("relics.blink.distance",8,2,12);
+        for(double d=0.5;d<=distance;d+=0.5) {
+            Location next=start.clone().add(direction.clone().multiply(d));
+            if(!p.getWorld().getWorldBorder().isInside(next))break;
+            if(!p.getWorld().isChunkLoaded(next.getBlockX()>>4,next.getBlockZ()>>4))break;
+            BoundingBox body=BoundingBox.of(next.clone().add(-0.31,0,-0.31),next.clone().add(0.31,1.85,0.31));
+            boolean collision=false;
+            for(int x=(int)Math.floor(body.getMinX());x<=Math.floor(body.getMaxX());x++)
+                for(int y=(int)Math.floor(body.getMinY());y<=Math.floor(body.getMaxY());y++)
+                    for(int z=(int)Math.floor(body.getMinZ());z<=Math.floor(body.getMaxZ());z++)
+                        if(!p.getWorld().getBlockAt(x,y,z).isPassable())collision=true;
+            if(collision)break;target=next;
+        }
+        if(target!=null&&start.distanceSquared(target)>=1&&p.teleport(target,PlayerTeleportEvent.TeleportCause.PLUGIN)) {
+            cooldown(p,Relic.RIFT_BLADE,plugin.integer("relics.blink.cooldown-seconds",8,2,120));
+            p.setFallDistance(0);p.playSound(target,Sound.ENTITY_ENDERMAN_TELEPORT,0.7f,0.7f);
+            p.spawnParticle(Particle.REVERSE_PORTAL,target.clone().add(0,1,0),12,0.3,0.5,0.3,0.03);
+            p.sendActionBar(Component.text("✦ กรีดมิติวาร์ปพริบตา!", NamedTextColor.AQUA));
+        }
+    }
+
+    public void triggerAegis(Player p) {
+        if(p.getGameMode()==GameMode.SPECTATOR||!ready(p,Relic.ETERNAL_AEGIS))return;
+        int seconds=plugin.integer("relics.shield.duration-seconds",3,1,5);
+        p.getPersistentDataContainer().set(shieldUntil,PersistentDataType.LONG,System.currentTimeMillis()+seconds*1000L);
+        cooldown(p,Relic.ETERNAL_AEGIS,plugin.integer("relics.shield.cooldown-seconds",75,10,600));
+        p.playSound(p.getLocation(),Sound.ITEM_TOTEM_USE,0.6f,0.7f);
+        p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,p.getLocation().add(0,1,0),20,0.4,0.4,0.4,0.05);
+        p.sendActionBar(Component.text("โล่แห่งความอมตะ · "+seconds+" วินาที",NamedTextColor.GOLD));
+    }
+
+    @EventHandler(priority=EventPriority.HIGH)
+    public void interact(PlayerInteractEvent e) {
+        Player p=e.getPlayer();
+        ItemStack held=e.getItem();
+        if(held==null||held.getType().isAir())return;
+
+        // 1. Vault Repair Stone interaction (support right click, sneak + left click / swing for Bedrock)
+        if(isRepairStone(held)) {
+            if(e.getAction().isRightClick() || (p.isSneaking() && (e.getAction()==org.bukkit.event.block.Action.LEFT_CLICK_AIR||e.getAction()==org.bukkit.event.block.Action.LEFT_CLICK_BLOCK))) {
+                e.setCancelled(true);
+                useRepairStone(p,held);
+                return;
+            }
+        }
+
+        Relic r=type(held);
         if(r==Relic.ETERNAL_AEGIS) {
-            int seconds=plugin.integer("relics.shield.duration-seconds",3,1,5);
-            p.getPersistentDataContainer().set(shieldUntil,PersistentDataType.LONG,System.currentTimeMillis()+seconds*1000L);
-            cooldown(p,r,plugin.integer("relics.shield.cooldown-seconds",75,10,600));
-            p.playSound(p.getLocation(),Sound.ITEM_TOTEM_USE,0.6f,0.7f);
-            p.sendActionBar(Component.text("โล่แห่งความอมตะ · "+seconds+" วินาที",NamedTextColor.GOLD));
-        } else {
-            if(immune(p))return;
-            Location start=p.getLocation(),target=null;
-            Vector direction=start.getDirection();
-            double distance=plugin.integer("relics.blink.distance",8,2,12);
-            for(double d=0.5;d<=distance;d+=0.5) {
-                Location next=start.clone().add(direction.clone().multiply(d));
-                if(!p.getWorld().getWorldBorder().isInside(next))break;
-                if(!p.getWorld().isChunkLoaded(next.getBlockX()>>4,next.getBlockZ()>>4))break;
-                BoundingBox body=BoundingBox.of(next.clone().add(-0.31,0,-0.31),next.clone().add(0.31,1.85,0.31));
-                boolean collision=false;
-                for(int x=(int)Math.floor(body.getMinX());x<=Math.floor(body.getMaxX());x++)
-                    for(int y=(int)Math.floor(body.getMinY());y<=Math.floor(body.getMaxY());y++)
-                        for(int z=(int)Math.floor(body.getMinZ());z<=Math.floor(body.getMaxZ());z++)
-                            if(!p.getWorld().getBlockAt(x,y,z).isPassable())collision=true;
-                if(collision)break;target=next;
+            if(e.getAction().isRightClick()) {
+                e.setCancelled(true);
+                triggerAegis(p);
+                return;
             }
-            if(target!=null&&start.distanceSquared(target)>=1&&p.teleport(target,PlayerTeleportEvent.TeleportCause.PLUGIN)) {
-                cooldown(p,r,plugin.integer("relics.blink.cooldown-seconds",8,2,120));
-                p.setFallDistance(0);p.playSound(target,Sound.ENTITY_ENDERMAN_TELEPORT,0.7f,0.7f);
-                p.spawnParticle(Particle.REVERSE_PORTAL,target.clone().add(0,1,0),12,0.3,0.5,0.3,0.03);
+        } else if(r==Relic.RIFT_BLADE) {
+            if(e.getAction().isRightClick() || (p.isSneaking() && (e.getAction()==org.bukkit.event.block.Action.LEFT_CLICK_AIR||e.getAction()==org.bukkit.event.block.Action.LEFT_CLICK_BLOCK))) {
+                e.setCancelled(true);
+                triggerRiftBladeWarp(p);
+                return;
             }
+        }
+    }
+
+    @EventHandler(priority=EventPriority.HIGH)
+    public void onSwapHand(PlayerSwapHandItemsEvent e) {
+        Player p=e.getPlayer();
+        if(type(e.getMainHandItem())==Relic.RIFT_BLADE) {
+            e.setCancelled(true);
+            triggerRiftBladeWarp(p);
+        }
+    }
+
+    @EventHandler(priority=EventPriority.HIGH)
+    public void onSneak(PlayerToggleSneakEvent e) {
+        if(!e.isSneaking())return;
+        Player p=e.getPlayer();
+        ItemStack main=p.getInventory().getItemInMainHand();
+        ItemStack off=p.getInventory().getItemInOffHand();
+        if(type(main)==Relic.ETERNAL_AEGIS||type(off)==Relic.ETERNAL_AEGIS) {
+            triggerAegis(p);
         }
     }
 

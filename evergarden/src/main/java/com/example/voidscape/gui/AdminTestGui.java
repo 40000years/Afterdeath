@@ -264,6 +264,7 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         if (!leftover.isEmpty()) {
             leftover.values().forEach(drop -> player.getWorld().dropItemNaturally(player.getLocation(), drop));
         }
+        player.updateInventory();
     }
 
     private void warpToSanctum(Player player, DungeonLayout.Kind kind) {

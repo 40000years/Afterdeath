@@ -16,7 +16,8 @@
         "bedrock_options": {
           "icon": "voidscape.void_key",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "items"
         }
       }
     ],
@@ -35,7 +36,8 @@
         "bedrock_options": {
           "icon": "voidscape.rift_pickaxe",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
@@ -52,7 +54,8 @@
         "bedrock_options": {
           "icon": "voidscape.smelter_pickaxe",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       }
     ],
@@ -71,7 +74,8 @@
         "bedrock_options": {
           "icon": "voidscape.storm_bow",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       },
       {
@@ -88,7 +92,8 @@
         "bedrock_options": {
           "icon": "voidscape.nova_bow",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       }
     ],
@@ -107,7 +112,8 @@
         "bedrock_options": {
           "icon": "voidscape.rift_blade",
           "allow_offhand": true,
-          "display_handheld": true
+          "display_handheld": true,
+          "creative_category": "equipment"
         }
       }
     ],
@@ -126,7 +132,8 @@
         "bedrock_options": {
           "icon": "voidscape.eternal_aegis",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "equipment"
         }
       }
     ],
@@ -145,7 +152,8 @@
         "bedrock_options": {
           "icon": "voidscape.scroll_eternity",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "items"
         }
       },
       {
@@ -162,7 +170,8 @@
         "bedrock_options": {
           "icon": "voidscape.scroll_limit_break",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "items"
         }
       },
       {
@@ -179,7 +188,8 @@
         "bedrock_options": {
           "icon": "voidscape.scroll_unique",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "items"
         }
       }
     ],
@@ -198,7 +208,8 @@
         "bedrock_options": {
           "icon": "voidscape.astral_dust",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "items"
         }
       }
     ],
@@ -217,7 +228,8 @@
         "bedrock_options": {
           "icon": "voidscape.key_shard",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "items"
         }
       }
     ],
@@ -236,7 +248,8 @@
         "bedrock_options": {
           "icon": "voidscape.repair_stone",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "items"
         }
       }
     ],
@@ -255,7 +268,8 @@
         "bedrock_options": {
           "icon": "voidscape.void_elixir",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "items"
         }
       }
     ],
@@ -274,7 +288,8 @@
         "bedrock_options": {
           "icon": "voidscape.thorn_mask",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "equipment"
         }
       },
       {
@@ -291,7 +306,8 @@
         "bedrock_options": {
           "icon": "voidscape.thorn_crown",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "equipment"
         }
       },
       {
@@ -308,7 +324,8 @@
         "bedrock_options": {
           "icon": "voidscape.astral_mask",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "equipment"
         }
       },
       {
@@ -325,7 +342,8 @@
         "bedrock_options": {
           "icon": "voidscape.astral_crown",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "equipment"
         }
       },
       {
@@ -342,7 +360,8 @@
         "bedrock_options": {
           "icon": "voidscape.chrono_mask",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "equipment"
         }
       },
       {
@@ -359,7 +378,8 @@
         "bedrock_options": {
           "icon": "voidscape.chrono_crown",
           "allow_offhand": true,
-          "display_handheld": false
+          "display_handheld": false,
+          "creative_category": "equipment"
         }
       }
     ]

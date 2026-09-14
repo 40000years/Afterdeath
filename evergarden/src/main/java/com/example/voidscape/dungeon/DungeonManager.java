@@ -514,7 +514,7 @@ public final class DungeonManager implements Listener {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,120,1));
                         placeTemporaryWeb(targetLoc.getBlock(),6000L);
                         target.getWorld().spawnParticle(Particle.WITCH,targetLoc.clone().add(0,1,0),25,0.4,0.6,0.4,0.05);
-                        target.getWorld().spawnParticle(Particle.INSTANT_EFFECT,targetLoc.clone().add(0,1,0),20,0.3,0.4,0.3,0.1);
+                        target.getWorld().spawnParticle(Particle.ENCHANTED_HIT,targetLoc.clone().add(0,1,0),20,0.3,0.4,0.3,0.1);
                         target.playSound(targetLoc,Sound.ENTITY_SPLASH_POTION_BREAK,1.0f,0.8f);
                         target.playSound(targetLoc,Sound.ENTITY_EVOKER_CAST_SPELL,0.8f,1.2f);
                         plugin.message(target,"⚠ ภูตพลังเวทร่ายคำสาปใยแมงมุมและสาดน้ำยาบั่นทอนกำลังใส่คุณ!");
