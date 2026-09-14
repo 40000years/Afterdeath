@@ -14,7 +14,9 @@ public final class MagicCommand implements TabExecutor {
         if(args.length==0||args[0].equalsIgnoreCase("list")) {
             sender.sendMessage(ChatColor.LIGHT_PURPLE+"Advance Magic: right-click a wand to cast.");
             for(Spell s:Spell.values())sender.sendMessage(ChatColor.AQUA+s.id()+ChatColor.GRAY+" | "+s.mana+" mana | "+s.cooldown+"s | Core: Core of "+com.example.advancemagic.item.WandService.coreTitle(s));
-            sender.sendMessage(ChatColor.GRAY+"Craft: 8 Netherite Ingots / Nether Stars around a matching Evergarden Vault Core (mix allowed).");return true;
+            sender.sendMessage(ChatColor.GRAY+"Craft: 8 Netherite Ingots / Nether Stars around a matching Evergarden Vault Core (mix allowed).");
+            sender.sendMessage(ChatColor.YELLOW+"เมนูเสก/คราฟ: "+ChatColor.AQUA+"/magic items "+ChatColor.GREEN+"(หยิบคทา/แกนทันที) "+ChatColor.GRAY+"หรือหยิบจาก Bedrock Creative menu ได้โดยตรง");
+            return true;
         }
         if(args[0].equalsIgnoreCase("items")||args[0].equalsIgnoreCase("craft")) {
             if(sender instanceof Player player)plugin.itemMenu().open(player,args[0].equalsIgnoreCase("items"));

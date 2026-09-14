@@ -31,7 +31,9 @@ public final class AdvanceMagicPlugin extends JavaPlugin implements Listener {
         catch(java.io.IOException e){getLogger().log(java.util.logging.Level.SEVERE,"Could not extract bundled resource packs",e);}
     }
     private com.example.advancemagic.item.MagicItemMenu itemMenu;
+    private com.example.advancemagic.item.BedrockCreativeBridge creativeBridge;
     public com.example.advancemagic.item.MagicItemMenu itemMenu(){return itemMenu;}
+    public com.example.advancemagic.item.BedrockCreativeBridge creativeBridge(){return creativeBridge;}
     @Override public void onEnable() {
         saveDefaultConfig();mana=new ManaService(this);wands=new WandService(this);
         effects=new EffectEngine(this,getConfig().getInt("max-active-effects",128));
@@ -41,6 +43,9 @@ public final class AdvanceMagicPlugin extends JavaPlugin implements Listener {
         for(Listener listener:List.of(this,wands,statuses,areas,projectiles,casts,packs))getServer().getPluginManager().registerEvents(listener,this);
         itemMenu=new com.example.advancemagic.item.MagicItemMenu(this);
         getServer().getPluginManager().registerEvents(itemMenu,this);
+        creativeBridge=new com.example.advancemagic.item.BedrockCreativeBridge(this);
+        getServer().getPluginManager().registerEvents(creativeBridge,this);
+        creativeBridge.init();
         packs.start();
         wands.register();MagicCommand command=new MagicCommand(this);
         Objects.requireNonNull(getCommand("magic")).setExecutor(command);getCommand("magic").setTabCompleter(command);
