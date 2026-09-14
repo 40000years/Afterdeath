@@ -202,15 +202,26 @@ public final class WandService implements Listener {
     }
     public void register() {
         for(Spell s:Spell.values()) {
-            NamespacedKey key=new NamespacedKey(plugin,s.id());
-            Bukkit.removeRecipe(key);
-            ShapedRecipe recipe=new ShapedRecipe(key,create(s));
-            recipe.shape("NNN","NCN","NNN");
-            recipe.setIngredient('N',new RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT,Material.NETHER_STAR));
-            // Match material first; authoritative PDC validation below supports renamed/old vault cores.
-            recipe.setIngredient('C',new RecipeChoice.MaterialChoice(CORE_BASE));
-            if(!Bukkit.addRecipe(recipe))throw new IllegalStateException("Duplicate recipe: "+key);
-            recipes.put(key,s);
+            NamespacedKey keyCenter=new NamespacedKey(plugin,s.id());
+            NamespacedKey keyBottom=new NamespacedKey(plugin,s.id()+"_bottom");
+            Bukkit.removeRecipe(keyCenter);
+            Bukkit.removeRecipe(keyBottom);
+
+            // 1. Center Core (NNN / NCN / NNN)
+            ShapedRecipe recipeCenter=new ShapedRecipe(keyCenter,create(s));
+            recipeCenter.shape("NNN","NCN","NNN");
+            recipeCenter.setIngredient('N',new RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT,Material.NETHER_STAR));
+            recipeCenter.setIngredient('C',new RecipeChoice.MaterialChoice(CORE_BASE));
+            if(!Bukkit.addRecipe(recipeCenter))throw new IllegalStateException("Duplicate recipe: "+keyCenter);
+            recipes.put(keyCenter,s);
+
+            // 2. Bottom-Center Core (NNN / NNN / NCN)
+            ShapedRecipe recipeBottom=new ShapedRecipe(keyBottom,create(s));
+            recipeBottom.shape("NNN","NNN","NCN");
+            recipeBottom.setIngredient('N',new RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT,Material.NETHER_STAR));
+            recipeBottom.setIngredient('C',new RecipeChoice.MaterialChoice(CORE_BASE));
+            if(!Bukkit.addRecipe(recipeBottom))throw new IllegalStateException("Duplicate recipe: "+keyBottom);
+            recipes.put(keyBottom,s);
         }
     }
     public void discover(Player p) { if(canCraft(p))p.discoverRecipes(recipes.keySet()); }
@@ -266,18 +277,28 @@ public final class WandService implements Listener {
     public Spell craftingSpell(ItemStack[] matrix) {
         if(matrix==null||matrix.length!=9)return null;
 
-        // Strict 3x3 shaped: Core MUST be in the exact center (Slot 4)
-        Spell center=coreSpell(matrix[4]);
-        if(center==null) return null;
+        // Support Core in Center (Slot 4) or Bottom-Center (Slot 7)
+        int coreSlot = -1;
+        Spell core = coreSpell(matrix[4]);
+        if(core != null) {
+            coreSlot = 4;
+        } else {
+            core = coreSpell(matrix[7]);
+            if(core != null) {
+                coreSlot = 7;
+            }
+        }
+        if(core == null) return null;
 
+        // All other 8 slots must be Netherite Ingot or Nether Star
         for(int i=0;i<9;i++) {
-            if(i==4) continue;
+            if(i == coreSlot) continue;
             ItemStack ing=matrix[i];
             if(ing==null||ing.getAmount()<1||(ing.getType()!=Material.NETHERITE_INGOT&&ing.getType()!=Material.NETHER_STAR)){
                 return null;
             }
         }
-        return center;
+        return core;
     }
 
     @EventHandler(priority=EventPriority.HIGHEST)
@@ -304,24 +325,32 @@ public final class WandService implements Listener {
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void craft(CraftItemEvent e) {
         CraftingInventory inv=e.getInventory();
-        ItemStack clicked=e.getCurrentItem();
-        ItemStack result=inv.getResult();
-        Spell clickedSpell=spell(clicked);
-        if(clickedSpell==null) clickedSpell=spell(result);
-        if(clickedSpell==null&&!ours(e.getRecipe())) return;
-
-        if(!canCraft(e.getWhoClicked())) {
-            e.setCancelled(true);
-            return;
-        }
-
         Spell expected=craftingSpell(inv.getMatrix());
-        if(expected==null||(clickedSpell!=null&&clickedSpell!=expected)) {
-            e.setCancelled(true);
+
+        // If not a wand craft, prevent vanilla from consuming wand ingredients
+        if(expected==null) {
+            if(ours(e.getRecipe())||containsCoreOrHeart(inv.getMatrix())) {
+                e.setCancelled(true);
+            }
             return;
         }
 
-        if(e.getWhoClicked() instanceof Player p) {
+        HumanEntity who = e.getWhoClicked();
+        if(!canCraft(who)) {
+            e.setCancelled(true);
+            if(who instanceof Player p) {
+                p.sendMessage(ChatColor.RED+"คุณไม่มีสิทธิ์ในการสร้างคทาเวทมนตร์");
+            }
+            return;
+        }
+
+        // Authoritative output override:
+        // Solves Bedrock Edition client recipe collision where Bedrock client matched another spell's recipe ID
+        ItemStack wand=create(expected);
+        e.setCurrentItem(wand);
+        inv.setResult(wand);
+
+        if(who instanceof Player p) {
             p.playSound(p.getLocation(),Sound.BLOCK_BEACON_POWER_SELECT,1.0f,1.2f);
             p.playSound(p.getLocation(),Sound.UI_TOAST_CHALLENGE_COMPLETE,0.7f,1.4f);
             p.spawnParticle(Particle.TOTEM_OF_UNDYING,p.getLocation().add(0,1.2,0),25,0.35,0.35,0.35,0.1);
@@ -331,26 +360,24 @@ public final class WandService implements Listener {
     }
 
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void onCraftClick(InventoryClickEvent e) {
+    public void onResultClick(InventoryClickEvent e) {
+        if(e instanceof CraftItemEvent) return; // Handled authoritatively by craft()
         if(!(e.getWhoClicked() instanceof Player p)) return;
         if(!(e.getInventory() instanceof CraftingInventory inv)) return;
         if(e.getSlotType()!=InventoryType.SlotType.RESULT) return;
 
-        ItemStack result=inv.getResult();
-        if(result==null||result.getType().isAir()) return;
-        Spell s=spell(result);
-        if(s==null) return;
+        Spell expected=craftingSpell(inv.getMatrix());
+        if(expected==null) return;
 
         if(!canCraft(p)) {
             e.setCancelled(true);
+            p.sendMessage(ChatColor.RED+"คุณไม่มีสิทธิ์ในการสร้างคทาเวทมนตร์");
             return;
         }
 
-        Spell expected=craftingSpell(inv.getMatrix());
-        if(expected==null||expected!=s) {
-            e.setCancelled(true);
-            return;
-        }
+        ItemStack wand=create(expected);
+        e.setCurrentItem(wand);
+        inv.setResult(wand);
         Bukkit.getScheduler().runTask(plugin, p::updateInventory);
     }
 
