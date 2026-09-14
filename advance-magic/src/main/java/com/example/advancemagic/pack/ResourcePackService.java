@@ -49,6 +49,9 @@ public final class ResourcePackService implements Listener, AutoCloseable {
             }
         }
         if(present) {
+            int cleaned=GeyserPackCleanup.clean(geyser,output.resolve("geyser-mappings.json"),
+                output.resolve("advance-magic-bedrock.mcpack"),"advance-magic.json","advance-magic-bedrock.mcpack");
+            if(cleaned>0)plugin.getLogger().info("Cleaned "+cleaned+" duplicate Geyser files; originals saved in plugin-pack-backups.");
             writeChanged(geyser.resolve("packs/advance-magic-bedrock.mcpack"),Files.readAllBytes(output.resolve("advance-magic-bedrock.mcpack")));
             writeChanged(geyser.resolve("custom_mappings/advance-magic.json"),Files.readAllBytes(output.resolve("geyser-mappings.json")));
             geyserStatus="Bedrock pack + mappings installed before Geyser-Spigot loads.";

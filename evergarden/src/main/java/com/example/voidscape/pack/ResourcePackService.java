@@ -53,9 +53,11 @@ public final class ResourcePackService implements Listener, AutoCloseable {
             }
         }
         if(present) {
+            int cleaned=GeyserPackCleanup.clean(geyser,output.resolve("geyser-mappings.json"),
+                output.resolve("evergarden-bedrock.mcpack"),"voidscape.json","voidscape-bedrock.mcpack");
+            if(cleaned>0)plugin.getLogger().info("Cleaned "+cleaned+" duplicate Geyser files; originals saved in plugin-pack-backups.");
             writeChanged(geyser.resolve("packs/voidscape-bedrock.mcpack"),Files.readAllBytes(output.resolve("evergarden-bedrock.mcpack")));
             writeChanged(geyser.resolve("custom_mappings/voidscape.json"),Files.readAllBytes(output.resolve("geyser-mappings.json")));
-            try{Files.deleteIfExists(geyser.resolve("custom_mappings/voidscape-mappings.json"));}catch(IOException ignored){}
             geyserStatus="Bedrock pack + mappings installed before Geyser-Spigot loads.";
             plugin.getLogger().info(geyserStatus);
         }

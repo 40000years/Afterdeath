@@ -105,3 +105,16 @@ The build uses the workspace's cached Maven dependencies, produces `advance-magi
 ## Balance verification
 
 `evergarden/test.ps1` enumerates all 10,000 possible vault tickets. `tests/build_balance.ps1` builds `target/balance-checks.jar` against a cached Paper 26.2 server. Install the test JAR with Advance Magic only in a disposable server: it edits terrain, creates a server-backed player, tests all 15 automatic extra stages, single mana/mastery/cooldown accounting, protection cancellation and early Soul Drain kills, writes `balance-result.txt`, and shuts down. It is not included in release JARs.
+
+
+## Bedrock crafting and Creative inventory (2026-09-14)
+
+Geyser 2.11.2-b1233 does not reverse-map these custom Creative entries into the plugin's tagged Java items. Use `/magic items` (admin) to receive genuine wands/cores through a chest menu. `/magic give frost_nova` and `/magic givecore frost_nova` also grant items to yourself. This update does not patch Geyser's native Creative inventory.
+
+Use `/magic craft` to craft a selected wand from your inventory: one matching tagged core plus eight Netherite Ingots/Nether Stars, mixing allowed. Normal crafting permission applies even to operators with an explicit denial. Missing ingredients or a full inventory leave all items intact. Materials may be stacked; only storage slots are used, excluding armor/offhand. Every craft produces one wand.
+
+Table recipes now use Paper predicate choices with a representative tagged core. The displayed ingredients distinguish all 15 Geyser core variants while validation accepts renamed/legacy tagged cores. Renaming a normal Heart of the Sea cannot create a core; vanilla Conduit crafting works again. The normal center and bottom-center layouts remain supported.
+
+The pack installer backs up duplicate pack UUIDs and removes only owned identifiers from other mapping files before Geyser starts. Mixed mappings retain other plugins' entries. Backups live in `plugins/Geyser-Spigot/plugin-pack-backups/`, outside pack/mapping scan directories. Requires `resource-pack.geyser.auto-install: true` (default). Stop the server, replace the JAR, start the server and reconnect Bedrock; do not use plugin reload for mapping changes.
+
+Upstream implementation checked: [Geyser Creative requests](https://github.com/GeyserMC/Geyser/blob/fac30e9/core/src/main/java/org/geysermc/geyser/translator/inventory/PlayerInventoryTranslator.java), [reverse item mapping](https://github.com/GeyserMC/Geyser/blob/fac30e9/core/src/main/java/org/geysermc/geyser/registry/type/ItemMappings.java), and [recipe ingredient translation](https://github.com/GeyserMC/Geyser/blob/fac30e9/core/src/main/java/org/geysermc/geyser/inventory/recipe/RecipeUtil.java).

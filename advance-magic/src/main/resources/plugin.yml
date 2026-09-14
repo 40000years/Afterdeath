@@ -7,8 +7,8 @@ softdepend: [floodgate]
 loadbefore: [Geyser-Spigot]
 commands:
   magic:
-    description: List spells, inspect mana or give a wand.
-    usage: /magic [list|mana|pack [resend]|give <player> <spell>]
+    description: List spells, craft wands or open the admin item menu.
+    usage: /magic [list|mana|craft|items|pack [resend]|give <player> <spell>]
 permissions:
   advance-magic.cast:
     default: true

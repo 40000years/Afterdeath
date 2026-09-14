@@ -11,7 +11,12 @@ other = json.loads((root.parent / 'advance-magic/dist/geyser-mappings.json').rea
 definitions = [d for group in mapping['items'].values() for d in group]
 identifiers = {d['bedrock_identifier'] for d in definitions}
 other_ids = {d['bedrock_identifier'] for group in other['items'].values() for d in group}
-assert len(definitions) == len(identifiers) == 13
+expected = {"voidscape:" + name for name in (
+    "void_key", "rift_pickaxe", "smelter_pickaxe", "storm_bow", "nova_bow", "rift_blade", "eternal_aegis",
+    "scroll_eternity", "scroll_limit_break", "scroll_unique", "astral_dust", "key_shard", "repair_stone", "void_elixir",
+    "thorn_mask", "thorn_crown", "astral_mask", "astral_crown", "chrono_mask", "chrono_crown"
+)}
+assert len(definitions) == len(identifiers) and identifiers == expected
 assert not identifiers & other_ids, 'Duplicate Geyser custom item IDs across plugins'
 hashes = json.loads((dist / 'pack-hashes.json').read_text())
 for filename, digest in hashes.items():
@@ -45,4 +50,4 @@ with zipfile.ZipFile(dist / 'evergarden-java.zip') as java, zipfile.ZipFile(dist
 with zipfile.ZipFile(dist / 'evergarden-3.0.0.jar') as jar:
     for filename in (*hashes, 'geyser-mappings.json', 'pack-hashes.json'):
         assert jar.read('resource-packs/' + filename) == (dist / filename).read_bytes()
-print('PASS: 13 model selectors, six Java/Bedrock wearable models, vanilla fallbacks, no cross-plugin Geyser ID collisions, hashes and embedded assets')
+print('PASS: 20 model selectors, six Java/Bedrock wearable models, vanilla fallbacks, no cross-plugin Geyser ID collisions, hashes and embedded assets')

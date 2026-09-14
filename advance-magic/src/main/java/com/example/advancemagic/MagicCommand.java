@@ -16,6 +16,11 @@ public final class MagicCommand implements TabExecutor {
             for(Spell s:Spell.values())sender.sendMessage(ChatColor.AQUA+s.id()+ChatColor.GRAY+" | "+s.mana+" mana | "+s.cooldown+"s | Core: Core of "+com.example.advancemagic.item.WandService.coreTitle(s));
             sender.sendMessage(ChatColor.GRAY+"Craft: 8 Netherite Ingots / Nether Stars around a matching Evergarden Vault Core (mix allowed).");return true;
         }
+        if(args[0].equalsIgnoreCase("items")||args[0].equalsIgnoreCase("craft")) {
+            if(sender instanceof Player player)plugin.itemMenu().open(player,args[0].equalsIgnoreCase("items"));
+            else sender.sendMessage("Use this menu from in-game.");
+            return true;
+        }
         if(args[0].equalsIgnoreCase("mana")&&sender instanceof Player p){
             plugin.casts().actionbar(p,"");
             var a=plugin.mana().account(p);
@@ -87,7 +92,7 @@ public final class MagicCommand implements TabExecutor {
             sender.sendMessage(ChatColor.GREEN+"Gave "+(isCore?"Core of "+com.example.advancemagic.item.WandService.coreTitle(spell):spell.title+" Wand")+" to "+p.getName());
             return true;
         }
-        sender.sendMessage("/magic [list|mana|pack [resend]|give [player] <spell> [wand|core]|givecore [player] <spell>]");return true;
+        sender.sendMessage("/magic [list|mana|craft|items|pack [resend]|give [player] <spell> [wand|core]|givecore [player] <spell>]");return true;
     }
 
     private Player resolvePlayer(CommandSender sender, String targetName) {
@@ -123,7 +128,7 @@ public final class MagicCommand implements TabExecutor {
 
     public List<String> onTabComplete(CommandSender sender,Command command,String alias,String[] args) {
         List<String> values=new ArrayList<>();
-        if(args.length==1){values.addAll(List.of("list","mana"));if(sender.hasPermission("advance-magic.admin"))values.addAll(List.of("give","givecore","pack"));}
+        if(args.length==1){values.addAll(List.of("list","mana","craft"));if(sender.hasPermission("advance-magic.admin"))values.addAll(List.of("give","givecore","pack","items"));}
         if(args.length==2&&sender.hasPermission("advance-magic.admin")&&args[0].equalsIgnoreCase("pack"))values.add("resend");
         if(sender.hasPermission("advance-magic.admin")&&args.length>=2&&(args[0].equalsIgnoreCase("give")||args[0].equalsIgnoreCase("givecore"))) {
             if(args.length==2) {

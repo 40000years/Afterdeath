@@ -82,14 +82,14 @@ public final class RelicService implements Listener {
         try { Bukkit.removeRecipe(key); } catch (Exception ignored) {}
         ShapedRecipe recipe = new ShapedRecipe(key, createVoidKey());
         recipe.shape("SS", "SS");
-        recipe.setIngredient('S', new RecipeChoice.MaterialChoice(Material.PRISMARINE_SHARD));
+        recipe.setIngredient('S', RecipeChoice.predicateChoice(this::isKeyShard,createKeyShard(1)));
         try { Bukkit.addRecipe(recipe); } catch (Exception ignored) {}
 
         // 1b. Evergarden Key Shapeless (any 4 Prismarine Shards)
         NamespacedKey keyShapeless = plugin.key("craft_void_key_shapeless");
         try { Bukkit.removeRecipe(keyShapeless); } catch (Exception ignored) {}
         ShapelessRecipe recipeShapeless = new ShapelessRecipe(keyShapeless, createVoidKey());
-        recipeShapeless.addIngredient(4, Material.PRISMARINE_SHARD);
+        for(int i=0;i<4;i++)recipeShapeless.addIngredient(RecipeChoice.predicateChoice(this::isKeyShard,createKeyShard(1)));
         try { Bukkit.addRecipe(recipeShapeless); } catch (Exception ignored) {}
 
         // 2. Vault Repair Stone (4 Astral Dust + 1 Amethyst Shard)
@@ -97,7 +97,7 @@ public final class RelicService implements Listener {
         try { Bukkit.removeRecipe(repairKey); } catch (Exception ignored) {}
         ShapedRecipe repairRecipe = new ShapedRecipe(repairKey, createRepairStone(1));
         repairRecipe.shape(" D ", "DAD", " D ");
-        repairRecipe.setIngredient('D', new RecipeChoice.MaterialChoice(Material.SUGAR));
+        repairRecipe.setIngredient('D', RecipeChoice.predicateChoice(this::isAstralDust,createAstralDust(1)));
         repairRecipe.setIngredient('A', Material.AMETHYST_SHARD);
         try { Bukkit.addRecipe(repairRecipe); } catch (Exception ignored) {}
 
@@ -105,7 +105,7 @@ public final class RelicService implements Listener {
         NamespacedKey elixirKey = plugin.key("craft_void_elixir");
         try { Bukkit.removeRecipe(elixirKey); } catch (Exception ignored) {}
         ShapelessRecipe elixirRecipe = new ShapelessRecipe(elixirKey, createVoidElixir(1));
-        elixirRecipe.addIngredient(new RecipeChoice.MaterialChoice(Material.SUGAR));
+        elixirRecipe.addIngredient(RecipeChoice.predicateChoice(this::isAstralDust,createAstralDust(1)));
         elixirRecipe.addIngredient(Material.GLASS_BOTTLE);
         try { Bukkit.addRecipe(elixirRecipe); } catch (Exception ignored) {}
     }
