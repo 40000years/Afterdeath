@@ -10,8 +10,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationHandler;
@@ -19,15 +21,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 /**
  * Bridges Bedrock Edition creative inventory actions with Java server.
- * When a Bedrock player selects a custom wand or core from Bedrock creative menu,
- * Geyser does not reverse-map custom model data / PDC back to Java, causing
- * it to revert to a plain vanilla item. This bridge intercepts the Bedrock
- * ItemStackRequestPacket, tracks which custom item was selected, and restores
- * the full custom ItemStack (with CustomModelData, PDC, lore, etc.) when Paper's
- * InventoryCreativeEvent fires.
+ * Intercepts Bedrock ItemStackRequestPacket to detect custom item selections,
+ * and restores the full ItemStack (CustomModelData, PDC, lore, etc.)
+ * via InventoryCreativeEvent and interact fallback.
  */
 public final class BedrockCreativeBridge implements Listener {
     private final AdvanceMagicPlugin plugin;
@@ -62,25 +62,43 @@ public final class BedrockCreativeBridge implements Listener {
         }
     }
 
+    private static Object invokeMethod(Object target, String methodName, Class<?>[] paramTypes, Object[] args) throws Exception {
+        if (target == null) return null;
+        Method m = null;
+        Class<?> clazz = target.getClass();
+        while (clazz != null) {
+            try {
+                m = clazz.getDeclaredMethod(methodName, paramTypes == null ? new Class<?>[0] : paramTypes);
+                break;
+            } catch (NoSuchMethodException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        if (m == null) {
+            m = target.getClass().getMethod(methodName, paramTypes == null ? new Class<?>[0] : paramTypes);
+        }
+        m.setAccessible(true);
+        return m.invoke(target, args == null ? new Object[0] : args);
+    }
+
     public void hookPlayer(Player player) {
         if (!geyserPresent || player == null || !player.isOnline()) return;
         UUID uuid = player.getUniqueId();
         try {
             Class<?> apiClass = Class.forName("org.geysermc.geyser.api.GeyserApi");
-            Object api = apiClass.getMethod("api").invoke(null);
-            Object conn = apiClass.getMethod("connectionByUuid", UUID.class).invoke(api, uuid);
+            Method apiMethod = apiClass.getMethod("api");
+            Object api = apiMethod.invoke(null);
+            Method connMethod = apiClass.getMethod("connectionByUuid", UUID.class);
+            Object conn = connMethod.invoke(api, uuid);
             if (conn == null) return; // Not a Bedrock player
 
-            Method getUpstream = conn.getClass().getMethod("getUpstream");
-            Object upstream = getUpstream.invoke(conn);
+            Object upstream = invokeMethod(conn, "getUpstream", null, null);
             if (upstream == null) return;
 
-            Method getSession = upstream.getClass().getMethod("getSession");
-            Object bedrockSession = getSession.invoke(upstream);
+            Object bedrockSession = invokeMethod(upstream, "getSession", null, null);
             if (bedrockSession == null) return;
 
-            Method getPacketHandler = bedrockSession.getClass().getMethod("getPacketHandler");
-            Object currentHandler = getPacketHandler.invoke(bedrockSession);
+            Object currentHandler = invokeMethod(bedrockSession, "getPacketHandler", null, null);
             if (currentHandler == null) return;
 
             if (Proxy.isProxyClass(currentHandler.getClass())) {
@@ -108,11 +126,12 @@ public final class BedrockCreativeBridge implements Listener {
 
             Method setPacketHandler = bedrockSession.getClass().getMethod("setPacketHandler",
                 Class.forName("org.cloudburstmc.protocol.bedrock.packet.BedrockPacketHandler"));
+            setPacketHandler.setAccessible(true);
             setPacketHandler.invoke(bedrockSession, proxy);
             hookedPlayers.add(uuid);
             plugin.getLogger().info("[BedrockCreativeBridge] Hooked creative packet listener for Bedrock player " + player.getName());
         } catch (Throwable t) {
-            plugin.getLogger().warning("[BedrockCreativeBridge] Could not hook player " + player.getName() + ": " + t.getMessage());
+            plugin.getLogger().log(Level.WARNING, "[BedrockCreativeBridge] Could not hook player " + player.getName(), t);
         }
     }
 
@@ -130,13 +149,14 @@ public final class BedrockCreativeBridge implements Listener {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             String name = method.getName();
-            if (("handle".equals(name) || "handlePacket".equals(name)) && args != null && args.length == 1 && args[0] != null) {
+            if (args != null && args.length == 1 && args[0] != null) {
                 Object packet = args[0];
-                if ("ItemStackRequestPacket".equals(packet.getClass().getSimpleName())) {
+                String packetName = packet.getClass().getSimpleName();
+                if ("ItemStackRequestPacket".equals(packetName)) {
                     try {
                         onItemStackRequest(player, geyserSession, packet);
                     } catch (Throwable t) {
-                        // Suppress reflection issues
+                        plugin.getLogger().log(Level.WARNING, "[BedrockCreativeBridge] Error in onItemStackRequest", t);
                     }
                 }
             }
@@ -146,13 +166,11 @@ public final class BedrockCreativeBridge implements Listener {
 
     private void onItemStackRequest(Player player, Object session, Object packet) {
         try {
-            Method getRequests = packet.getClass().getMethod("getRequests");
-            List<?> requests = (List<?>) getRequests.invoke(packet);
+            List<?> requests = (List<?>) invokeMethod(packet, "getRequests", null, null);
             if (requests == null) return;
 
             for (Object req : requests) {
-                Method getActions = req.getClass().getMethod("getActions");
-                Object actionsObj = getActions.invoke(req);
+                Object actionsObj = invokeMethod(req, "getActions", null, null);
                 Object[] actions = actionsObj instanceof Object[] a ? a :
                                    actionsObj instanceof List<?> l ? l.toArray() : null;
                 if (actions == null) continue;
@@ -161,37 +179,49 @@ public final class BedrockCreativeBridge implements Listener {
                 for (Object action : actions) {
                     if (action == null) continue;
                     if (action.getClass().getSimpleName().contains("CraftCreative")) {
-                        Method getNetId = action.getClass().getMethod("getCreativeItemNetworkId");
-                        creativeNetId = (Integer) getNetId.invoke(action);
+                        Object netIdObj = invokeMethod(action, "getCreativeItemNetworkId", null, null);
+                        if (netIdObj instanceof Integer id) {
+                            creativeNetId = id;
+                        }
                         break;
                     }
                 }
 
                 if (creativeNetId > 0) {
-                    Method getItemMappings = session.getClass().getMethod("getItemMappings");
-                    Object itemMappings = getItemMappings.invoke(session);
-                    Method getCreativeItems = itemMappings.getClass().getMethod("getCreativeItems");
-                    List<?> creativeList = (List<?>) getCreativeItems.invoke(itemMappings);
+                    Object itemMappings = invokeMethod(session, "getItemMappings", null, null);
+                    List<?> creativeList = (List<?>) invokeMethod(itemMappings, "getCreativeItems", null, null);
                     int index = creativeNetId - 1;
-                    if (index >= 0 && index < creativeList.size()) {
+                    if (creativeList != null && index >= 0 && index < creativeList.size()) {
                         Object creativeItem = creativeList.get(index);
-                        Method getItem = creativeItem.getClass().getMethod("getItem");
-                        Object itemData = getItem.invoke(creativeItem);
-                        Method getDef = itemData.getClass().getMethod("getDefinition");
-                        Object def = getDef.invoke(itemData);
-                        Method getId = def.getClass().getMethod("getIdentifier");
-                        String identifier = (String) getId.invoke(def);
+                        Object itemData = invokeMethod(creativeItem, "getItem", null, null);
+                        Object def = invokeMethod(itemData, "getDefinition", null, null);
+                        String identifier = (String) invokeMethod(def, "getIdentifier", null, null);
 
+                        plugin.getLogger().info("[BedrockCreativeBridge] Bedrock creative select: netId=" + creativeNetId + ", id=" + identifier);
                         if (identifier != null && identifier.startsWith("advance_magic:")) {
                             pendingItems.put(player.getUniqueId(), new PendingCreative(identifier, System.currentTimeMillis()));
-                            plugin.getLogger().info("[BedrockCreativeBridge] Intercepted Bedrock creative pick: " + identifier + " by " + player.getName());
+                            plugin.getLogger().info("[BedrockCreativeBridge] Queued creative item: " + identifier + " for " + player.getName());
                         }
                     }
                 }
             }
         } catch (Throwable t) {
-            // Ignore reflection issues during fast packet parsing
+            plugin.getLogger().log(Level.WARNING, "[BedrockCreativeBridge] Error in onItemStackRequest", t);
         }
+    }
+
+    private ItemStack resolveCustomItem(String identifier) {
+        if (identifier == null) return null;
+        if (identifier.startsWith("advance_magic:core_")) {
+            String spellId = identifier.substring("advance_magic:core_".length());
+            Spell spell = Spell.parse(spellId);
+            if (spell != null) return plugin.wands().createCore(spell);
+        } else if (identifier.startsWith("advance_magic:")) {
+            String spellId = identifier.substring("advance_magic:".length());
+            Spell spell = Spell.parse(spellId);
+            if (spell != null) return plugin.wands().create(spell);
+        }
+        return null;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -212,31 +242,20 @@ public final class BedrockCreativeBridge implements Listener {
     public void onCreative(InventoryCreativeEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         PendingCreative pending = pendingItems.get(player.getUniqueId());
+        plugin.getLogger().info("[BedrockCreativeBridge] onCreative fired: slot=" + event.getSlot()
+            + ", cursor=" + (event.getCursor() != null ? event.getCursor().getType() : "null")
+            + ", current=" + (event.getCurrentItem() != null ? event.getCurrentItem().getType() : "null")
+            + ", pending=" + (pending != null ? pending.identifier : "none"));
+
         if (pending == null) return;
 
-        // Pending pickup valid for up to 6 seconds
-        if (System.currentTimeMillis() - pending.timestamp > 6000L) {
+        // Pending pickup valid for up to 10 seconds
+        if (System.currentTimeMillis() - pending.timestamp > 10000L) {
             pendingItems.remove(player.getUniqueId());
             return;
         }
 
-        String id = pending.identifier;
-        ItemStack replacement = null;
-
-        if (id.startsWith("advance_magic:core_")) {
-            String spellId = id.substring("advance_magic:core_".length());
-            Spell spell = Spell.parse(spellId);
-            if (spell != null) {
-                replacement = plugin.wands().createCore(spell);
-            }
-        } else if (id.startsWith("advance_magic:")) {
-            String spellId = id.substring("advance_magic:".length());
-            Spell spell = Spell.parse(spellId);
-            if (spell != null) {
-                replacement = plugin.wands().create(spell);
-            }
-        }
-
+        ItemStack replacement = resolveCustomItem(pending.identifier);
         if (replacement != null) {
             final ItemStack finalItem = replacement;
             event.setCursor(finalItem);
@@ -254,8 +273,36 @@ public final class BedrockCreativeBridge implements Listener {
                 });
             }
 
-            plugin.getLogger().info("[BedrockCreativeBridge] Restored " + id + " for " + player.getName() + " in slot " + slot);
+            plugin.getLogger().info("[BedrockCreativeBridge] Restored " + pending.identifier + " for " + player.getName() + " in slot " + slot);
             pendingItems.remove(player.getUniqueId());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack inHand = event.getItem();
+        if (inHand == null) return;
+        if (inHand.getType() == Material.CARROT_ON_A_STICK || inHand.getType() == Material.HEART_OF_THE_SEA) {
+            boolean isPlain = !inHand.hasItemMeta() ||
+                (!inHand.getItemMeta().hasDisplayName() && !inHand.getItemMeta().hasCustomModelData());
+            if (isPlain) {
+                PendingCreative pending = pendingItems.get(player.getUniqueId());
+                if (pending != null && System.currentTimeMillis() - pending.timestamp < 15000L) {
+                    ItemStack restored = resolveCustomItem(pending.identifier);
+                    if (restored != null) {
+                        if (event.getHand() == EquipmentSlot.HAND) {
+                            player.getInventory().setItemInMainHand(restored);
+                        } else if (event.getHand() == EquipmentSlot.OFF_HAND) {
+                            player.getInventory().setItemInOffHand(restored);
+                        }
+                        player.updateInventory();
+                        player.sendMessage(ChatColor.GREEN + "✦ กู้คืนคทาเวทมนตร์จาก Creative เรียบร้อย!");
+                        plugin.getLogger().info("[BedrockCreativeBridge] Restored plain item in hand on interact: " + pending.identifier);
+                        pendingItems.remove(player.getUniqueId());
+                    }
+                }
+            }
         }
     }
 }
