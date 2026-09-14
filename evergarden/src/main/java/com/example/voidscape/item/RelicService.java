@@ -77,12 +77,30 @@ public final class RelicService implements Listener {
     }
 
     public void registerKeyRecipe() {
+        // 1. Evergarden Key (4 Key Shards 2x2)
         NamespacedKey key = plugin.key("craft_void_key");
         try { Bukkit.removeRecipe(key); } catch (Exception ignored) {}
         ShapedRecipe recipe = new ShapedRecipe(key, createVoidKey());
         recipe.shape("SS", "SS");
         recipe.setIngredient('S', new RecipeChoice.ExactChoice(createKeyShard(1)));
         try { Bukkit.addRecipe(recipe); } catch (Exception ignored) {}
+
+        // 2. Vault Repair Stone (4 Astral Dust + 1 Amethyst Shard)
+        NamespacedKey repairKey = plugin.key("craft_repair_stone");
+        try { Bukkit.removeRecipe(repairKey); } catch (Exception ignored) {}
+        ShapedRecipe repairRecipe = new ShapedRecipe(repairKey, createRepairStone(1));
+        repairRecipe.shape(" D ", "DAD", " D ");
+        repairRecipe.setIngredient('D', new RecipeChoice.ExactChoice(createAstralDust(1)));
+        repairRecipe.setIngredient('A', Material.AMETHYST_SHARD);
+        try { Bukkit.addRecipe(repairRecipe); } catch (Exception ignored) {}
+
+        // 3. Void Walker Elixir (1 Astral Dust + 1 Glass Bottle)
+        NamespacedKey elixirKey = plugin.key("craft_void_elixir");
+        try { Bukkit.removeRecipe(elixirKey); } catch (Exception ignored) {}
+        ShapelessRecipe elixirRecipe = new ShapelessRecipe(elixirKey, createVoidElixir(1));
+        elixirRecipe.addIngredient(new RecipeChoice.ExactChoice(createAstralDust(1)));
+        elixirRecipe.addIngredient(Material.GLASS_BOTTLE);
+        try { Bukkit.addRecipe(elixirRecipe); } catch (Exception ignored) {}
     }
 
     public ItemStack createMagicCore(MagicCore core) {
@@ -197,8 +215,8 @@ public final class RelicService implements Listener {
         meta.displayName(Component.text("✦ เศษกุญแจมิติ (Evergarden Key Shard)",NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC,false));
         meta.lore(List.of(
             Component.text("เศษผลึกโบราณจาก Evergarden Vault",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
-            Component.text("รวบรวมครบ 4 ชิ้น วาง 2×2 ที่โต๊ะคราฟต์",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
-            Component.text("เพื่อรวมเป็น Evergarden Key (1 ดอก)",NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false)
+            Component.text("• วาง 4 ชิ้น (2×2) ที่โต๊ะคราฟต์เพื่อประกอบเป็น Evergarden Key",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
+            Component.text("• ใช้เปิดกล่องสมบัติ Evergarden Vault ประจำวิหาร",NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false)
         ));
         meta.getPersistentDataContainer().set(plugin.key("key_shard"),PersistentDataType.BYTE,(byte)1);
         item.setItemMeta(meta);return item;
@@ -209,8 +227,9 @@ public final class RelicService implements Listener {
         ItemMeta meta=item.getItemMeta();
         meta.displayName(Component.text("✦ ผงละอองดาว (Astral Dust)",NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false));
         meta.lore(List.of(
-            Component.text("ละอองดวงดาวโบราณที่ส่องประกายระยิบระยับ",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
-            Component.text("สสารเวทมนตร์บริสุทธิ์แห่งมิติ Evergarden",NamedTextColor.DARK_AQUA).decoration(TextDecoration.ITALIC,false)
+            Component.text("ละอองดวงดาวโบราณ สสารเวทมนตร์แห่ง Evergarden",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
+            Component.text("• คราฟต์คู่ขวดแก้ว = น้ำยาเดินเวหา (Void Elixir)",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
+            Component.text("• ใช้ 4 ชิ้น + 1 Amethyst = ศิลาฟื้นฟู (Repair Stone)",NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC,false)
         ));
         meta.getPersistentDataContainer().set(plugin.key("astral_dust"),PersistentDataType.BYTE,(byte)1);
         item.setItemMeta(meta);return item;
@@ -223,7 +242,8 @@ public final class RelicService implements Listener {
         meta.lore(List.of(
             Component.text("ศิลาจารึกอักขระฟื้นฟูโบราณ",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
             Component.text("คลิกขวาเพื่อซ่อมแซมความทนทาน 500 หน่วย",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
-            Component.text("(ซ่อมให้กับอุปกรณ์ที่ชำรุดมากที่สุดในตัวคุณ)",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false)
+            Component.text("(ซ่อมให้กับอุปกรณ์ที่ชำรุดมากที่สุดในตัวคุณ)",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
+            Component.text("สูตรคราฟต์: 4 Astral Dust + 1 Amethyst Shard",NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false)
         ));
         meta.getPersistentDataContainer().set(plugin.key("repair_stone"),PersistentDataType.BYTE,(byte)1);
         item.setItemMeta(meta);return item;
@@ -238,7 +258,8 @@ public final class RelicService implements Listener {
             Component.text("ดื่มเพื่อรับผลลัพธ์เป็นเวลา 3 นาที:",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
             Component.text("• ความเร็ว Speed II",NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false),
             Component.text("• กระโดดสูง Jump Boost II",NamedTextColor.GREEN).decoration(TextDecoration.ITALIC,false),
-            Component.text("• ตกช้า Slow Falling (ป้องกันตกหลุม Void)",NamedTextColor.WHITE).decoration(TextDecoration.ITALIC,false)
+            Component.text("• ตกช้า Slow Falling (ป้องกันตกหลุม Void)",NamedTextColor.WHITE).decoration(TextDecoration.ITALIC,false),
+            Component.text("สูตรคราฟต์: 1 Astral Dust + 1 ขวดแก้ว",NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false)
         ));
         meta.getPersistentDataContainer().set(plugin.key("void_elixir"),PersistentDataType.BYTE,(byte)1);
         item.setItemMeta(meta);return item;
@@ -348,10 +369,17 @@ public final class RelicService implements Listener {
         meta.setTitle("คู่มือมิติ Evergarden");
         meta.setAuthor("ผู้พิทักษ์มิติ");
         meta.pages(List.of(
-            Component.text("§1§lมิติ Evergarden\n§8(สวนลอยฟ้าในความว่างเปล่า)\n\n§0§l1. วิธีสร้างประตูมิติ:§r\n§0สร้างกรอบด้วย §5Crying Obsidian§0 ขนาดเริ่มต้น 4x5 (ช่องใน 2x3)\n\n§0จุดไฟด้วย §6Flint & Steel§0 หรือ §bEye of Ender§0 ในกรอบ ประตูสีม่วงจะเปิดออกทันที!"),
-            Component.text("§1§l2. การท้าทายวิหาร\n\n§0• มีวิหาร 3 ธาตุ: §5ความมืด§0, §9ดวงดาว§0, §6กาลเวลา\n§0• คลิกที่แท่น §5Lodestone§0 กลางวิหารเพื่อเริ่มสู้\n• เอาชนะมอนสเตอร์ 3 เวฟ และปราบบอสประจำวิหาร\n• บอสจะดรอป §dEvergarden Key§0 สำหรับเปิดกล่องสมบัติ"),
-            Component.text("§1§l3. รางวัล Evergarden Vault\n\n§0§lของรางวัลสุดแรร์:§r\n§4• 0.5%§0 §6Scroll of Eternity§0 (ไม่มีวันพังถาวร 100%)\n§4• 0.5%§0 §dCore of Levitation§0 (คทาระดับตำนาน)\n§b• 25%§0 §3Limit Break Scrolls§0 (+1 ทลายขีดจำกัด)\n§5• 20%§0 §dUnique Enchants§0 (คัมภีร์สกิลเทพ)\n§e• 14%§0 แกนเวทมนตร์ 14 ธาตุ\n§2• 30%§0 วัตถุดิบ & น้ำยาเดินเวหา"),
-            Component.text("§1§l4. ระบบ Drag & Drop\n\n§0§lวิธีใช้งานคัมภีร์:§r\n§01. เปิดกระเป๋าตัวละคร\n2. หยิบคัมภีร์ที่ต้องการ\n3. §6แตะ/คลิกทับลงบนอาวุธหรืออุปกรณ์โดยตรง§0\n\n§a✔ ติดตั้งทันทีใน 1 วินาที\n§a✔ ไม่ต้องใช้ทั่ง (Anvil)\n§a✔ รองรับผู้เล่น Bedrock / มือถือ 100%!")
+            Component.text("§1§lมิติ Evergarden§r\n§8สวนลอยฟ้าแห่งความว่างเปล่า\n\n§0§lวิธีสร้างประตูมิติ:§r\n§0สร้างกรอบ §5Crying Obsidian§0 ขนาดเริ่มต้น 4×5 (ช่องใน 2×3)\n\n§0จุดไฟด้วย §6Flint & Steel§0, §cFire Charge§0 หรือ §bEye of Ender§0 ในกรอบ ประตูสีม่วงจะเปิดออกทันที\n\n§8คำสั่ง: /evergarden leave (กลับ)\n§8คำสั่ง: /evergarden locate (หาวิหาร)"),
+            Component.text("§1§l3 มหาวิหารธาตุ§r\n\n§0ใน Evergarden มี 3 มหาวิหาร:\n§5• วิหารแห่งความมืด (Darkness)\n§9• วิหารแห่งดวงดาว (Astral)\n§6• วิหารแห่งกาลเวลา (Time)\n\n§0§lการท้าทาย:§r\n§0คลิกขวาที่แท่น §5Lodestone§0 กลางวิหารเพื่อเริ่มสู้ (เปิดให้ผู้เล่นทุกคน)\n§0ปราบบอส 3 เวฟเพื่อรับ §dEvergarden Key§0 นำไปเปิดกล่องสมบัติ Vault"),
+            Component.text("§1§lกุญแจ & วัตถุดิบ§r\n\n§d§lEvergarden Key:§r\n§0ใช้เปิด Evergarden Vault ประจำวิหาร\n\n§5§lEvergarden Key Shard:§r\n§0เศษผลึกกุญแจ รวบรวมครบ §64 ชิ้น§0 วาง 2×2 ที่โต๊ะคราฟต์เพื่อประกอบเป็น §d1 Evergarden Key§0\n\n§b§lAstral Dust (ผงละอองดาว):§r\n§0สสารเวทมนตร์จากมอนสเตอร์ ใช้คราฟต์:\n§0• 4 Dust + 1 Amethyst = ศิลาฟื้นฟู\n§0• 1 Dust + 1 ขวดแก้ว = น้ำยาเดินเวหา"),
+            Component.text("§1§lไอเทมฟื้นฟู & น้ำยา§r\n\n§a§lVault Repair Stone:§r\n§0ศิลาฟื้นฟูมิติ (คลิกขวาใช้งาน)\n§0• ซ่อมแซมความทนทาน §a500 หน่วย§0 ให้อาวุธ/เกราะที่ชำรุดมากที่สุดในตัว\n§8สูตร: 4 Astral Dust + 1 Amethyst\n\n§d§lVoid Walker Elixir:§r\n§0น้ำยาเดินเวหา ดื่มเพื่อรับผล 3 นาที:\n§b• Speed II (วิ่งไว)\n§a• Jump Boost II (กระโดดสูง)\n§f• Slow Falling (ตกช้า ไม่ตก Void)\n§8สูตร: 1 Astral Dust + 1 ขวดแก้ว"),
+            Component.text("§1§lคัมภีร์เวทมนตร์§r\n\n§0§lวิธีใช้งานคัมภีร์ทุกชนิด:§r\n§0เปิดกระเป๋า หยิบคัมภีร์บนเมาส์ แล้ว§6คลิกทับอุปกรณ์เป้าหมายโดยตรง§0\n\n§4§lScroll of Eternity (0.5%):§r\n§0คัมภีร์ตำนาน ทำให้อุปกรณ์กลายเป็น §6Unbreakable (ไม่มีวันพังถาวร 100%)§0\n\n§3§lLimit Break Scrolls:§r\n§0เพิ่มเลเวลเอนแชนต์เดิม +1 ทลายขีดจำกัด (สูงสุดระดับ X) มี 6 ชนิด: Sharpness, Protection, Power, Efficiency, Fortune, Looting"),
+            Component.text("§1§lมนตรา: ธนู & อุปกรณ์ขุด§r\n\n§9§lธนู (Bows):§r\n§0• Colossus Slayer: ยิงแรงตาม %HP บอส\n§0• Ricochet: ศรชิ่ง 3 เป้าหมาย + สายฟ้า\n§0• Kinetic Grapple: ยิงปักแล้วดึงตัวพุ่งไป\n§0• Absolute Zero: แช่แข็งหยุดนิ่ง 3.5 วิ\n§0• Singularity: หลุมดำดูดมอน 3 วินาที\n§0• Meteor Arrow: ศรเรียกอุกกาบาตยักษ์\n\n§6§lเครื่องมือขุด (Tools):§r\n§0• Seismic Slam: ขุดระเบิดโพรง 3×3×1\n§0• Vein Smelter: ขุดทั้งสายแร่ + เผาแท่ง\n§0• Bedrock Resonance: เรดาร์ส่องแร่ 12 บล็อก\n§0• Demeter's Scythe: เก็บ+ปลูกคืน 9×9\n§0• Timber Titan: โค่นต้นไม้ทั้งต้น\n§0• Telepathy: ของที่ขุดวาร์ปเข้าตัว 100%"),
+            Component.text("§1§lมนตรา: ดาบ & ชุดเกราะ§r\n\n§c§lดาบ & อาวุธประชิด:§r\n§0• Guillotine: สังหารศัตรูเลือด <15% ทันที\n§0• Echo Strike: โอกาส 35% เงาฟันซ้ำ 100%\n§0• Blade Vortex: ปล่อยคลื่นดาบ 7 บล็อก\n§0• Soul Harvest: วิญญาณเพิ่มวิ่งไว+ดูดเลือด\n§0• Thunderlord: ตี 3 ครั้งผ่าสายฟ้าสวรรค์\n§0• Vampiric: แปลง 15% ดาเมจเป็นเลือด\n\n§2§lชุดเกราะ & อรรถประโยชน์:§r\n§0• Phoenix Rebirth: ฟื้นคืนชีพ 50% HP\n§0• Shadow Step: ย่อ 2 ครั้งวาร์ป 6 บล็อก\n§0• Titan Stance: กันกระเด็น 100% + กันบึ้ม\n§0• Soulbound: ของไม่ตกเมื่อตาย"),
+            Component.text("§1§lยุทธภัณฑ์โบราณ (Relics)§r\n\n§0§lRift Pickaxe (อีเต้อแยกพิภพ):§r\n§0ขุด 3×3 บล็อกพร้อมกัน (กดย่อขุด 1 บล็อก)\n\n§0§lSmelter Pickaxe (อีเต้อหลอมเพลิง):§r\n§0หลอมบล็อก/แร่ที่ขุดเป็นแท่งโลหะอัตโนมัติ\n\n§0§lStorm Bow (ธนูพิพากษาสายฟ้า):§r\n§0ยิงผ่าสายฟ้าต่อเนื่องใส่ศัตรู 3 เป้าหมาย\n\n§0§lNova Bow (ธนูสะเก็ดดาว):§r\n§0ชาร์จเต็มยิงระเบิดพลังงานหมู่รุนแรง\n\n§0§lRift Blade (ดาบกรีดมิติ):§r\n§0คลิกขวากะพริบตาวาร์ปไปข้างหน้า 8 บล็อก\n\n§0§lEternal Aegis (โล่แห่งความอมตะ):§r\n§0คลิกขวาอมตะ 3 วิ ป้องกันดาเมจ 100%"),
+            Component.text("§1§lคทาเวทมนตร์ (1/3)§r\n\n§0§lสูตรคราฟต์คทา:§r\n§0นำ §6Magic Core§0 วางตรงกลางโต๊ะคราฟต์ ล้อมด้วย §8Netherite Ingot§0 หรือ §eNether Star§0 8 ช่อง\n\n§4§lShulker Levitation [MYTHIC]:§r\n§0คทาต้องห้าม เรียกพายุฟ้าร้อง+มังกรคำราม ดึงศัตรูขึ้นฟ้าดูดเลือด ระเบิด Singularity ดาเมจ 120 + ปล่อยพื้นที่ Sculk Wither III\n\n§e§lLightning Strike:§r\n§0ผ่าสายฟ้า 60 ดาเมจ + สโลว์ พร้อมระเบิดคลื่นไฟฟ้าสถิตซ้ำระลอกสอง\n\n§b§lFrost Nova:§r\n§0แช่แข็งศัตรูรอบตัว 7 บล็อก แล้วแตกกระจายผลักกระเด็น (35 ดาเมจ)"),
+            Component.text("§1§lคทาเวทมนตร์ (2/3)§r\n\n§c§lMeteor Strike:§r\n§0เรียกห่าฝนอุกกาบาตยักษ์ 3 ลูกถล่มจากฟ้า ระเบิด 90 ดาเมจ + ไฟลุกไหม้\n\n§5§lDragon's Breath:§r\n§0พ่นเพลิงมังกรโบราณ 30 ดาเมจ/วิ + ทิ้งหมอกพิษ Wither & Weakness\n\n§1§lVoid Pull:§r\n§0ยิงบอลมิติดูดรวบศัตรูเข้าจุดศูนย์กลาง ตรึงขา แล้วระเบิดขอบฟ้าผลักลอยฟ้า\n\n§8§lWither Ray:§r\n§0ยิงหัวกะโหลกวิเธอร์ต่อเนื่อง 6 ลูกรัวๆ ปิดท้ายด้วยหัวชาร์จพลังระเบิดแรง\n\n§a§lPoison Spores:§r\n§0ยิงสปอร์พิษแตกกระจาย ติด Poison II + แตกหน่อสปอร์ย่อย 3 ทิศทาง"),
+            Component.text("§1§lคทาเวทมนตร์ (3/3)§r\n\n§6§lEarth Wall:§r\n§0ยกกำแพงหินลึก 2 ชั้น กันลูกธนู/เวท 100% พร้อมคลื่นแผ่นดินไหวผลักศัตรู\n\n§5§lShadow Step:§r\n§0วาร์ปทะลุกำแพง 12 บล็อก ทิ้งควันตาบอด ระเบิดเงา 25 ดาเมจ + ได้ Speed II\n\n§2§lNature's Bloom:§r\n§0ลบล้างดีบัฟ ฮีลทั้งปาร์ตี้ + มอบ Regen IV, Absorption V + หนามแทงศัตรู\n\n§7§lIron Armor:§r\n§0สวมเกราะเหล็ก ผลักศัตรูรอบตัว + Resistance IV, Fire Resis, Strength II\n\n§3§lTime Dilation:§r\n§0โดมเวลา ลูกธนูช้าลง ศัตรูติด Slowness VII ขณะที่เพื่อนได้ Speed & Haste\n\n§3§lSoul Drain:§r\n§0ลำแสงดูดเลือดศัตรูมาฮีลตัวเอง แล้วระเบิด Soul Nova ฮีลเพื่อนรอบข้าง")
         ));
         book.setItemMeta(meta);
         return book;
