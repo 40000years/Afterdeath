@@ -615,6 +615,35 @@ public final class DungeonManager implements Listener {
         clearWebs(enc.site);
         if(enc.bar!=null)enc.bar.removeAll();
     }
+    public void resetAllCooldowns() {
+        ledger.set("sites", null);
+        save();
+    }
+    public void clearAllDungeonMobs() {
+        for(Encounter enc : new ArrayList<>(active.values())) remove(enc);
+        active.clear();
+        clearWebs(null);
+    }
+    public LivingEntity spawnTestBoss(Location where, DungeonLayout.Kind kind) {
+        Encounter enc = new Encounter(new DungeonLayout.Site(kind, where.getBlockX(), where.getBlockZ(), 0L), 1);
+        enc.bossStarted = true;
+        active.put(enc.site.id(), enc);
+        LivingEntity b = spawn(enc, Species.BOSS, where, 1);
+        if (b != null) {
+            String title = switch(kind) {
+                case SANCTUM_DARK -> "จอมมารแห่งความมืด (Shadow Overlord)";
+                case SANCTUM_ASTRAL -> "อัครเทวทูตดวงดาว (Astral Archon)";
+                case SANCTUM_TIME -> "ผู้พิทักษ์กาลเวลา (Chronos Vanguard)";
+            };
+            enc.bar = Bukkit.createBossBar("✦ [TEST BOSS] " + title, BarColor.PURPLE, BarStyle.SEGMENTED_10);
+            for (Player p : where.getWorld().getPlayers()) {
+                if (p.getLocation().distanceSquared(where) <= 2500) {
+                    enc.bar.addPlayer(p);
+                }
+            }
+        }
+        return b;
+    }
     public void close(){for(Encounter enc:active.values())remove(enc);active.clear();clearWebs(null);if(storageHealthy)save();}
     public int waveCount(){return plugin.integer("combat.waves",5,2,12);}
 }

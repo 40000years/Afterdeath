@@ -23,6 +23,7 @@ public final class VoidscapePlugin extends JavaPlugin {
     private TravelListener travel;
 
     private com.example.voidscape.pack.ResourcePackService packs;
+    private com.example.voidscape.gui.AdminTestGui testGui;
     private boolean loadFailed;
     @Override public void onLoad() {
         try {
@@ -85,6 +86,7 @@ public final class VoidscapePlugin extends JavaPlugin {
             var pm=getServer().getPluginManager();pm.registerEvents(relics,this);pm.registerEvents(dungeons,this);pm.registerEvents(travel,this);
             pm.registerEvents(new com.example.voidscape.enchant.EnchantApplyListener(this,relics),this);
             pm.registerEvents(new com.example.voidscape.enchant.UniqueAbilityListener(this),this);
+            testGui=new com.example.voidscape.gui.AdminTestGui(this);pm.registerEvents(testGui,this);
             packs.start();pm.registerEvents(packs,this);
             getServer().getOnlinePlayers().forEach(p->{relics.migrate(p.getInventory());relics.migrate(p.getEnderChest());packs.offer(p);});
             getServer().getWorlds().forEach(w->w.getEntities().forEach(relics::migrateEntity));
@@ -104,4 +106,5 @@ public final class VoidscapePlugin extends JavaPlugin {
     public com.example.voidscape.pack.ResourcePackService packs(){return packs;}
     public World world(){return voidWorld;} public DungeonLayout layout(){return layout;}
     public RelicService relics(){return relics;} public DungeonManager dungeons(){return dungeons;} public TravelListener travel(){return travel;}
+    public com.example.voidscape.gui.AdminTestGui testGui(){return testGui;}
 }

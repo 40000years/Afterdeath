@@ -19,8 +19,12 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
     @Override public boolean onCommand(CommandSender sender,Command command,String label,String[] args) {
         String sub=args.length==0?"help":args[0].toLowerCase(Locale.ROOT);
         Player p=sender instanceof Player player?player:null;
-        if(Set.of("give","pregen","reload","status","pack").contains(sub)&&!isAdmin(sender)){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
+        if(Set.of("give","pregen","reload","status","pack","test","dev","kit").contains(sub)&&!isAdmin(sender)){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
         switch(sub) {
+            case "test", "dev", "kit" -> {
+                if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
+                plugin.testGui().open(p);
+            }
             case "pack" -> {
                 if(args.length>1&&args[1].equalsIgnoreCase("resend")&&p!=null)plugin.packs().offer(p);
                 plugin.packs().describe(sender);
@@ -134,7 +138,7 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             default -> {
                 plugin.message(sender,"Evergarden 3.0 (Advance Magic Expansion) · /evergarden guide · /evergarden locate · /evergarden leave");
                 plugin.message(sender,"สร้างประตู Crying Obsidian แล้วจุดด้วย Fire Charge หรือ Eye of Ender เพื่อเดินทาง");
-                if(isAdmin(sender))plugin.message(sender,"แอดมิน: tp [dark|astral|time|spawn] · locate · give · status · pregen · reload");
+                if(isAdmin(sender))plugin.message(sender,"แอดมิน: test (เมนูทดสอบ) · tp [dark|astral|time|spawn] · locate · give · status · pregen · reload");
             }
         }
         return true;
@@ -157,7 +161,7 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
     }
     @Override public List<String> onTabComplete(CommandSender sender,Command command,String alias,String[] args) {
         List<String> c=new ArrayList<>();
-        if(args.length==1){c.addAll(List.of("help","guide","enter","leave","locate"));if(isAdmin(sender))c.addAll(List.of("tp","give","status","reload","pregen","pack"));}
+        if(args.length==1){c.addAll(List.of("help","guide","enter","leave","locate"));if(isAdmin(sender))c.addAll(List.of("test","tp","give","status","reload","pregen","pack"));}
         if(args.length==2&&args[0].equalsIgnoreCase("tp")&&isAdmin(sender))c.addAll(List.of("dark","astral","time","spawn"));
         if(args.length==2&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
             for(Relic r:Relic.values())c.add(r.id());

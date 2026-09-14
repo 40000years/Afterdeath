@@ -5,6 +5,8 @@ import org.bukkit.enchantments.Enchantment;
 public enum LimitBreakType {
     SHARPNESS(Enchantment.SHARPNESS, "Sharpness +1", "คมสถิตมิติ (+1 Sharpness)", "อาวุธระยะประชิด (Sword / Axe)", ItemCategory.MELEE, 10),
     PROTECTION(Enchantment.PROTECTION, "Protection +1", "ปราการสถิตมิติ (+1 Protection)", "ชุดเกราะ (Armor)", ItemCategory.ARMOR, 10),
+    POWER(Enchantment.POWER, "Power +1", "พลังสถิตมิติ (+1 Power)", "ธนู (Bow)", ItemCategory.BOW, 10),
+    EFFICIENCY(Enchantment.EFFICIENCY, "Efficiency +1", "ประสิทธิภาพสถิตมิติ (+1 Efficiency)", "อุปกรณ์ขุดเจาะ (Tools)", ItemCategory.TOOL, 10),
     FORTUNE(Enchantment.FORTUNE, "Fortune +1", "โชคลาภสถิตมิติ (+1 Fortune)", "ที่ขุด (Pickaxe)", ItemCategory.PICKAXE, 10),
     LOOTING(Enchantment.LOOTING, "Looting +1", "ล่าสมบัติสถิตมิติ (+1 Looting)", "ดาบ (Sword)", ItemCategory.SWORD, 10);
 
