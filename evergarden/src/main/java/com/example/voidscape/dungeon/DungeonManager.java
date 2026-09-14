@@ -70,7 +70,7 @@ public final class DungeonManager implements Listener {
 
     public boolean inCombat(Player p){return combatUntil.getOrDefault(p.getUniqueId(),0L)>System.currentTimeMillis();}
     public int mobCount(){return owners.size();} public int activeCount(){return active.size();}
-    private boolean playable(Player p){return p.isOnline()&&!p.isDead()&&(p.getGameMode()==GameMode.SURVIVAL||p.getGameMode()==GameMode.ADVENTURE);}
+    private boolean playable(Player p){return p.isOnline()&&!p.isDead()&&p.getGameMode()!=GameMode.SPECTATOR;}
 
     private List<Player> players(Site site) {
         List<Player> result=new ArrayList<>();
@@ -110,43 +110,70 @@ public final class DungeonManager implements Listener {
         }
     }
 
-    @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true)
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
     public void interact(PlayerInteractEvent e) {
-        Player p=e.getPlayer();Block block=e.getClickedBlock();
-        if(p.getWorld()!=plugin.world()||block==null||!e.getAction().isRightClick()||e.getHand()!=EquipmentSlot.HAND||!playable(p))return;
-        Site site=plugin.layout().at(block.getX(),block.getZ(),0);if(site==null)return;
+        Player p=e.getPlayer();
+        if(p.getWorld()!=plugin.world())return;
+        if(p.getGameMode()==GameMode.SPECTATOR)return;
+        if(e.getHand()!=null&&e.getHand()!=EquipmentSlot.HAND)return;
+
+        Block block=e.getClickedBlock();
+        if(block==null&&e.getAction().isRightClick()) {
+            block=p.getTargetBlockExact(5);
+        }
+        if(block==null)return;
 
         // Vault interaction
         if(block.getType()==Material.VAULT) {
-            e.setCancelled(true);
-            openVault(p,site,block);
-            return;
+            Site site=plugin.layout().at(block.getX(),block.getZ(),12);
+            if(site!=null) {
+                e.setCancelled(true);
+                openVault(p,site,block);
+                return;
+            }
         }
 
-        // Altar Lodestone interaction at (site.x, 97, site.z + 8)
-        if(block.getType()!=Material.LODESTONE||block.getX()!=site.x()||block.getY()!=97||block.getZ()!=site.z()+8)return;
-        e.setCancelled(true);
+        // Altar Lodestone interaction at sanctum center
+        if(block.getType()==Material.LODESTONE) {
+            Site site=plugin.layout().at(block.getX(),block.getZ(),12);
+            if(site!=null) {
+                if(Math.abs(block.getX()-site.x())<=10 && Math.abs(block.getZ()-(site.z()+8))<=10) {
+                    e.setCancelled(true);
 
-        if(!storageHealthy){plugin.message(p,"ระบบบันทึกไม่พร้อม · แจ้งแอดมิน");return;}
-        long next=ledger.getLong(path(site)+".next-open",0);
-        if(next>System.currentTimeMillis()){plugin.message(p,"วิหารกำลังฟื้นตัว · อีก "+Math.max(1,(next-System.currentTimeMillis())/60000)+" นาที");return;}
+                    if(!storageHealthy){plugin.message(p,"ระบบบันทึกไม่พร้อม · แจ้งแอดมิน");return;}
+                    long next=ledger.getLong(path(site)+".next-open",0);
+                    if(next>System.currentTimeMillis()) {
+                        if(p.isOp()||p.hasPermission("voidscape.admin")||p.hasPermission("evergarden.admin")||p.getGameMode()==GameMode.CREATIVE) {
+                            plugin.message(p,"§d[Admin Bypass] ข้ามคูลดาวน์วิหารสำหรับผู้ดูแลระบบ");
+                        } else {
+                            plugin.message(p,"วิหารกำลังฟื้นตัว · อีก "+Math.max(1,(next-System.currentTimeMillis())/60000)+" นาที");
+                            return;
+                        }
+                    }
 
-        Encounter encounter=active.get(site.id());
-        if(encounter!=null) {
-            plugin.message(p,"การต่อสู้ในวิหารนี้กำลังดำเนินอยู่!");
-            return;
+                    Encounter encounter=active.get(site.id());
+                    if(encounter!=null) {
+                        plugin.message(p,"การต่อสู้ในวิหารนี้กำลังดำเนินอยู่!");
+                        return;
+                    }
+                    if(active.size()>=plugin.integer("performance.max-active-dungeons",6,1,16)){plugin.message(p,"มีการต่อสู้หลายแห่งในมิติ · ลองใหม่ภายหลัง");return;}
+                    if(mobCount()+6>plugin.integer("performance.max-dungeon-mobs",64,4,128)){plugin.message(p,"พลังงานมิติยังไม่คงที่ · ลองใหม่ภายหลัง");return;}
+
+                    p.getWorld().playSound(block.getLocation().add(0.5,0.5,0.5),Sound.BLOCK_BEACON_ACTIVATE,1.0f,1.2f);
+                    p.getWorld().spawnParticle(Particle.PORTAL,block.getLocation().add(0.5,1.0,0.5),25,0.3,0.3,0.3,0.1);
+
+                    encounter=new Encounter(site,waveCount());
+                    active.put(site.id(),encounter);
+                    startWave(encounter,1);
+                    return;
+                }
+            }
         }
-        if(active.size()>=plugin.integer("performance.max-active-dungeons",6,1,16)){plugin.message(p,"มีการต่อสู้หลายแห่งในมิติ · ลองใหม่ภายหลัง");return;}
-        if(mobCount()+6>plugin.integer("performance.max-dungeon-mobs",64,4,128)){plugin.message(p,"พลังงานมิติยังไม่คงที่ · ลองใหม่ภายหลัง");return;}
-
-        encounter=new Encounter(site,waveCount());
-        active.put(site.id(),encounter);
-        startWave(encounter,1);
     }
 
     private void openVault(Player p,Site site,Block block) {
         String openedPath=path(site)+".opened."+p.getUniqueId();
-        if(ledger.getBoolean(openedPath,false)) {
+        if(ledger.getBoolean(openedPath,false)&&!(p.isSneaking()&&(p.isOp()||p.hasPermission("voidscape.admin")||p.hasPermission("evergarden.admin")||p.getGameMode()==GameMode.CREATIVE))) {
             plugin.message(p,"คุณเคยเปิดกล่องสมบัตินี้ไปแล้ว (เปิดได้คนละ 1 ครั้งต่อวิหาร)");
             p.playSound(p.getLocation(),Sound.BLOCK_CHEST_LOCKED,0.7f,1.0f);
             return;
@@ -446,6 +473,7 @@ public final class DungeonManager implements Listener {
 
             // Anti-Pillar & Anti-Camp Warp
             for (Player p : team) {
+                if (p.getGameMode() == GameMode.CREATIVE) continue;
                 if (p.getLocation().getY() > 103.5 || !enc.site.contains(p.getX(), p.getZ(), 11)) {
                     Location groundLoc = position(enc.site, 0, 97, 8);
                     p.teleport(groundLoc);

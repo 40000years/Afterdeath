@@ -31,11 +31,13 @@ public final class TravelListener implements Listener {
         return list.isEmpty() || list.contains(p.getWorld().getName()) || (p.getWorld().getEnvironment()==World.Environment.NORMAL && list.contains("world"));
     }
 
-    @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true)
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
     public void interact(PlayerInteractEvent e) {
         Player p=e.getPlayer();
-        if(!e.getAction().isRightClick()||e.getClickedBlock()==null)return;
+        if(!e.getAction().isRightClick())return;
         Block clicked=e.getClickedBlock();
+        if(clicked==null) clicked=p.getTargetBlockExact(5);
+        if(clicked==null)return;
 
         // Spawn Lectern Guide Book interaction
         if(clicked.getWorld()==plugin.world()&&clicked.getType()==Material.LECTERN&&clicked.getX()==0&&clicked.getZ()==4) {
