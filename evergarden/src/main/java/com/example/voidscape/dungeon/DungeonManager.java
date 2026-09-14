@@ -576,7 +576,7 @@ public final class DungeonManager implements Listener {
                                     mob.setHealth(healAmount);
                                 }
                                 case SANCTUM_ASTRAL -> {
-                                    blastLoc.getWorld().spawnParticle(Particle.FLASH,blastLoc.clone().add(0,1,0),5,0.2,0.5,0.2,0.0);
+                                    blastLoc.getWorld().spawnParticle(Particle.FLASH,blastLoc.clone().add(0,1,0),5,0.2,0.5,0.2,0.0,Color.WHITE);
                                     blastLoc.getWorld().spawnParticle(Particle.FIREWORK,blastLoc.clone().add(0,1,0),50,1.5,1.5,1.5,0.1);
                                     blastLoc.getWorld().strikeLightningEffect(blastLoc);
                                     for(Player p:team) {
