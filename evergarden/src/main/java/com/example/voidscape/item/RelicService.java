@@ -293,27 +293,35 @@ public final class RelicService implements Listener {
     }
 
     public boolean isKeyShard(ItemStack item) {
-        if(item==null||!item.hasItemMeta()) return false;
-        return item.getItemMeta().getPersistentDataContainer().has(plugin.key("key_shard"),PersistentDataType.BYTE)
-            || type(item)==Relic.KEY_SHARD;
+        if(item==null||item.getType()!=Material.PRISMARINE_SHARD||!item.hasItemMeta()) return false;
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        return pdc.has(plugin.key("key_shard"),PersistentDataType.BYTE)
+            || type(item)==Relic.KEY_SHARD
+            || (item.getItemMeta().hasDisplayName() && net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()).contains("Key Shard"));
     }
 
     public boolean isRepairStone(ItemStack item) {
-        if(item==null||!item.hasItemMeta()) return false;
-        return item.getItemMeta().getPersistentDataContainer().has(plugin.key("repair_stone"),PersistentDataType.BYTE)
-            || type(item)==Relic.REPAIR_STONE;
+        if(item==null||item.getType()!=Material.FLINT||!item.hasItemMeta()) return false;
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        return pdc.has(plugin.key("repair_stone"),PersistentDataType.BYTE)
+            || type(item)==Relic.REPAIR_STONE
+            || (item.getItemMeta().hasDisplayName() && net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()).contains("Repair Stone"));
     }
 
     public boolean isVoidElixir(ItemStack item) {
-        if(item==null||!item.hasItemMeta()) return false;
-        return item.getItemMeta().getPersistentDataContainer().has(plugin.key("void_elixir"),PersistentDataType.BYTE)
-            || type(item)==Relic.VOID_ELIXIR;
+        if(item==null||item.getType()!=Material.HONEY_BOTTLE||!item.hasItemMeta()) return false;
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        return pdc.has(plugin.key("void_elixir"),PersistentDataType.BYTE)
+            || type(item)==Relic.VOID_ELIXIR
+            || (item.getItemMeta().hasDisplayName() && net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()).contains("Void Walker Elixir"));
     }
 
     public boolean isAstralDust(ItemStack item) {
-        if(item==null||!item.hasItemMeta()) return false;
-        return item.getItemMeta().getPersistentDataContainer().has(plugin.key("astral_dust"),PersistentDataType.BYTE)
-            || type(item)==Relic.ASTRAL_DUST;
+        if(item==null||item.getType()!=Material.SUGAR||!item.hasItemMeta()) return false;
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        return pdc.has(plugin.key("astral_dust"),PersistentDataType.BYTE)
+            || type(item)==Relic.ASTRAL_DUST
+            || (item.getItemMeta().hasDisplayName() && net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()).contains("Astral Dust"));
     }
 
     public static String toRoman(int n) {
@@ -504,38 +512,71 @@ public final class RelicService implements Listener {
         p.getPersistentDataContainer().set(plugin.key("cd_"+r.id()),PersistentDataType.LONG,System.currentTimeMillis()+seconds*1000L);
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPrepareCraft(org.bukkit.event.inventory.PrepareItemCraftEvent e) {
         CraftingInventory inv = e.getInventory();
         ItemStack[] matrix = inv.getMatrix();
-        Recipe recipe = e.getRecipe();
 
-        int nonAir = 0;
-        ItemStack repairStone = null;
-        ItemStack damagedItem = null;
-        ItemStack scroll = null;
-        ItemStack targetEquip = null;
+        int totalItems = 0;
+        int keyShards = 0;
+        int astralDust = 0;
+        int repairStones = 0;
+        int amethystShards = 0;
+        int glassBottles = 0;
+        int scrollCount = 0;
+        int damagedEquipCount = 0;
+        ItemStack singleScroll = null;
+        ItemStack singleEquip = null;
+        ItemStack singleDamagedEquip = null;
 
         for (ItemStack it : matrix) {
             if (it == null || it.getType().isAir()) continue;
-            nonAir++;
-            if (isRepairStone(it)) {
-                repairStone = it;
+            totalItems++;
+            if (isKeyShard(it)) {
+                keyShards++;
+            } else if (isAstralDust(it)) {
+                astralDust++;
+            } else if (isRepairStone(it)) {
+                repairStones++;
             } else if (isScrollEternity(it) || getLimitBreakType(it) != null || getUniqueEnchant(it) != null) {
-                scroll = it;
-            } else if (it.hasItemMeta() && it.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg && it.getType().getMaxDurability() > 0) {
-                damagedItem = it;
-                targetEquip = it;
+                scrollCount++;
+                singleScroll = it;
+            } else if (it.getType() == Material.AMETHYST_SHARD) {
+                amethystShards++;
+            } else if (it.getType() == Material.GLASS_BOTTLE) {
+                glassBottles++;
             } else if (it.getType().getMaxDurability() > 0) {
-                targetEquip = it;
+                singleEquip = it;
+                if (it.hasItemMeta() && it.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg && dmg.getDamage() > 0) {
+                    damagedEquipCount++;
+                    singleDamagedEquip = it;
+                }
             }
         }
 
-        // 1. Bedrock Repair: 1 Repair Stone + 1 Damaged Item
-        if (nonAir == 2 && repairStone != null && damagedItem != null) {
-            org.bukkit.inventory.meta.Damageable dmg = (org.bukkit.inventory.meta.Damageable) damagedItem.getItemMeta();
+        // 1. Evergarden Key: exactly 4 Key Shards and nothing else
+        if (keyShards == 4 && totalItems == 4) {
+            inv.setResult(createVoidKey());
+            return;
+        }
+
+        // 2. Vault Repair Stone: exactly 4 Astral Dust + 1 Amethyst Shard and nothing else
+        if (astralDust == 4 && amethystShards == 1 && totalItems == 5) {
+            inv.setResult(createRepairStone(1));
+            return;
+        }
+
+        // 3. Void Walker Elixir: exactly 1 Astral Dust + 1 Glass Bottle and nothing else
+        if (astralDust == 1 && glassBottles == 1 && totalItems == 2) {
+            inv.setResult(createVoidElixir(1));
+            return;
+        }
+
+        // 4. Bedrock Crafting Table Repair: 1 Repair Stone + 1 Damaged Item
+        if (repairStones == 1 && damagedEquipCount == 1 && totalItems == 2) {
+            org.bukkit.inventory.meta.Damageable dmg = (org.bukkit.inventory.meta.Damageable) singleDamagedEquip.getItemMeta();
             if (dmg.getDamage() > 0) {
-                ItemStack result = damagedItem.clone();
+                ItemStack result = singleDamagedEquip.clone();
                 org.bukkit.inventory.meta.Damageable resDmg = (org.bukkit.inventory.meta.Damageable) result.getItemMeta();
                 resDmg.setDamage(Math.max(0, resDmg.getDamage() - 500));
                 result.setItemMeta(resDmg);
@@ -544,122 +585,62 @@ public final class RelicService implements Listener {
             }
         }
 
-        // 2. Bedrock Scrolls: 1 Scroll + 1 Target Equipment
-        if (nonAir == 2 && scroll != null && targetEquip != null) {
-            ItemStack result = evaluateScrollCraft(scroll, targetEquip);
+        // 5. Bedrock Scrolls in Crafting Table: 1 Scroll + 1 Target Equipment
+        if (scrollCount == 1 && singleEquip != null && totalItems == 2) {
+            ItemStack result = evaluateScrollCraft(singleScroll, singleEquip);
             if (result != null) {
                 inv.setResult(result);
                 return;
             }
         }
 
-        // 3. Evergarden Bukkit Recipes validation
-        if (recipe instanceof Keyed keyed) {
-            NamespacedKey rKey = keyed.getKey();
-            if (rKey.getNamespace().equals("voidscape")) {
-                if (rKey.getKey().equals("craft_void_key") || rKey.getKey().equals("craft_void_key_shapeless")) {
-                    int shardCount = 0;
-                    for (ItemStack it : matrix) {
-                        if (it == null || it.getType().isAir()) continue;
-                        if (!isKeyShard(it)) {
-                            inv.setResult(null);
-                            return;
-                        }
-                        shardCount++;
-                    }
-                    if (shardCount == 4) {
-                        inv.setResult(createVoidKey());
-                    } else {
-                        inv.setResult(null);
-                    }
-                    return;
-                }
-                if (rKey.getKey().equals("craft_repair_stone")) {
-                    int dustCount = 0;
-                    boolean hasAmethyst = false;
-                    for (ItemStack it : matrix) {
-                        if (it == null || it.getType().isAir()) continue;
-                        if (it.getType() == Material.AMETHYST_SHARD) {
-                            hasAmethyst = true;
-                        } else if (isAstralDust(it)) {
-                            dustCount++;
-                        } else {
-                            inv.setResult(null);
-                            return;
-                        }
-                    }
-                    if (dustCount == 4 && hasAmethyst) {
-                        inv.setResult(createRepairStone(1));
-                    } else {
-                        inv.setResult(null);
-                    }
-                    return;
-                }
-                if (rKey.getKey().equals("craft_void_elixir")) {
-                    int dustCount = 0;
-                    boolean hasBottle = false;
-                    for (ItemStack it : matrix) {
-                        if (it == null || it.getType().isAir()) continue;
-                        if (it.getType() == Material.GLASS_BOTTLE) {
-                            hasBottle = true;
-                        } else if (isAstralDust(it)) {
-                            dustCount++;
-                        } else {
-                            inv.setResult(null);
-                            return;
-                        }
-                    }
-                    if (dustCount == 1 && hasBottle) {
-                        inv.setResult(createVoidElixir(1));
-                    } else {
-                        inv.setResult(null);
-                    }
-                    return;
-                }
-            }
-        }
-
-        // 4. Prevent custom items from being used in unintended recipes (e.g. vanilla recipes)
-        for (ItemStack it : matrix) {
-            if (it == null || it.getType().isAir()) continue;
-            if (isKeyShard(it) || isAstralDust(it) || isRepairStone(it) || isVoidElixir(it) || isScrollEternity(it) || getLimitBreakType(it) != null || getUniqueEnchant(it) != null) {
-                inv.setResult(null);
-                return;
-            }
+        // 6. Block custom items from being consumed in vanilla recipes
+        if (keyShards > 0 || astralDust > 0 || repairStones > 0 || scrollCount > 0) {
+            inv.setResult(null);
+            return;
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onCraftItem(org.bukkit.event.inventory.CraftItemEvent e) {
         if (!(e.getWhoClicked() instanceof Player p)) return;
         CraftingInventory inv = e.getInventory();
-        ItemStack[] matrix = inv.getMatrix();
+        ItemStack result = inv.getResult();
+        if (result == null || result.getType().isAir()) return;
 
-        int nonAir = 0;
-        ItemStack repairStone = null;
-        ItemStack damagedItem = null;
-        ItemStack scroll = null;
-        ItemStack equip = null;
+        ItemStack[] matrix = inv.getMatrix();
+        int totalItems = 0;
+        int keyShards = 0;
+        int astralDust = 0;
+        int repairStones = 0;
+        int scrollCount = 0;
+        int damagedEquipCount = 0;
 
         for (ItemStack it : matrix) {
             if (it == null || it.getType().isAir()) continue;
-            nonAir++;
-            if (isRepairStone(it)) repairStone = it;
-            else if (isScrollEternity(it) || getLimitBreakType(it) != null || getUniqueEnchant(it) != null) scroll = it;
-            else if (it.getType().getMaxDurability() > 0) {
-                if (it.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg && dmg.getDamage() > 0) damagedItem = it;
-                equip = it;
-            }
+            totalItems++;
+            if (isKeyShard(it)) keyShards++;
+            else if (isAstralDust(it)) astralDust++;
+            else if (isRepairStone(it)) repairStones++;
+            else if (isScrollEternity(it) || getLimitBreakType(it) != null || getUniqueEnchant(it) != null) scrollCount++;
+            else if (it.hasItemMeta() && it.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg && dmg.getDamage() > 0) damagedEquipCount++;
         }
 
-        if (nonAir == 2 && repairStone != null && damagedItem != null) {
+        if (keyShards == 4 && totalItems == 4) {
+            p.playSound(p.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.2f);
+            p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.05);
+            p.sendActionBar(Component.text("✦ ประกอบ Evergarden Key สำเร็จ!", NamedTextColor.LIGHT_PURPLE));
+            return;
+        }
+
+        if (repairStones == 1 && damagedEquipCount == 1 && totalItems == 2) {
             p.playSound(p.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 1.0f, 1.2f);
             p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.05);
             p.sendActionBar(Component.text("✦ ศิลาฟื้นฟูมิติ ซ่อมแซมความทนทาน 500 หน่วย!", NamedTextColor.GREEN));
             return;
         }
 
-        if (nonAir == 2 && scroll != null && equip != null) {
+        if (scrollCount == 1 && totalItems == 2) {
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.25f);
             p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.35f);
             p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1.2, 0), 25, 0.35, 0.35, 0.35, 0.1);
