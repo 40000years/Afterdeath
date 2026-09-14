@@ -467,20 +467,64 @@ public final class UniqueAbilityListener implements Listener {
         recursiveBreaking.add(player.getUniqueId());
         try {
             Material type = origin.getType();
+            ItemStack tool = player.getInventory().getItemInMainHand();
+            boolean hasTelepathy = EnchantApplyListener.hasUnique(tool, UniqueEnchant.TELEPATHY);
             Queue<Block> queue = new LinkedList<>();
             Set<Block> visited = new HashSet<>();
             queue.add(origin);
             visited.add(origin);
             int count = 0;
+            int totalExp = 0;
 
             while (!queue.isEmpty() && count < 32) {
                 Block curr = queue.poll();
                 count++;
-                ItemStack smelted = getSmeltedProduct(curr.getType());
+
+                // Retrieve drops taking player's tool and Fortune enchant into account
+                Collection<ItemStack> drops = curr.getDrops(tool, player);
+                if (drops == null || drops.isEmpty()) {
+                    ItemStack fallback = getSmeltedProduct(curr.getType());
+                    if (fallback != null) drops = List.of(fallback);
+                } else {
+                    List<ItemStack> converted = new ArrayList<>();
+                    for (ItemStack item : drops) {
+                        converted.add(smeltItem(item));
+                    }
+                    drops = converted;
+                }
+
+                int exp = getOreExp(curr.getType());
+                if (exp > 0) totalExp += exp;
+
                 curr.setType(Material.AIR);
-                if (smelted != null) {
-                    curr.getWorld().dropItemNaturally(curr.getLocation().add(0.5, 0.5, 0.5), smelted);
-                    curr.getWorld().spawnParticle(Particle.FLAME, curr.getLocation().add(0.5, 0.5, 0.5), 4, 0.2, 0.2, 0.2, 0.02);
+
+                if (drops != null) {
+                    for (ItemStack drop : drops) {
+                        if (drop == null || drop.getType() == Material.AIR || drop.getAmount() <= 0) continue;
+                        if (hasTelepathy) {
+                            var leftover = player.getInventory().addItem(drop);
+                            leftover.values().forEach(rem -> curr.getWorld().dropItemNaturally(curr.getLocation().add(0.5, 0.5, 0.5), rem));
+                        } else {
+                            curr.getWorld().dropItemNaturally(curr.getLocation().add(0.5, 0.5, 0.5), drop);
+                        }
+                    }
+                }
+                curr.getWorld().spawnParticle(Particle.FLAME, curr.getLocation().add(0.5, 0.5, 0.5), 4, 0.2, 0.2, 0.2, 0.02);
+
+                // Tool durability damage (if not unbreakable)
+                if (count > 1 && player.getGameMode() == GameMode.SURVIVAL && tool.hasItemMeta() && !tool.getItemMeta().isUnbreakable()) {
+                    if (tool.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg) {
+                        int unbreaking = tool.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.UNBREAKING);
+                        if (Math.random() < (1.0 / (unbreaking + 1))) {
+                            dmg.setDamage(dmg.getDamage() + 1);
+                            tool.setItemMeta(dmg);
+                            if (dmg.getDamage() >= tool.getType().getMaxDurability()) {
+                                tool.setAmount(0);
+                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 for (int x = -1; x <= 1; x++) {
@@ -495,6 +539,12 @@ public final class UniqueAbilityListener implements Listener {
                     }
                 }
             }
+
+            if (totalExp > 0) {
+                player.giveExp(totalExp);
+                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.2f);
+            }
+
             player.playSound(origin.getLocation(), Sound.BLOCK_FURNACE_FIRE_CRACKLE, 1.0f, 1.2f);
             player.sendActionBar(Component.text("✦ หลอมสายแร่คู่! (ขุดและหลอม " + count + " ก้อน)", NamedTextColor.GOLD));
         } finally {
@@ -524,13 +574,49 @@ public final class UniqueAbilityListener implements Listener {
         return n.contains("_ORE") || m == Material.ANCIENT_DEBRIS || n.contains("RAW_");
     }
 
+    private ItemStack smeltItem(ItemStack raw) {
+        if (raw == null) return null;
+        int amount = raw.getAmount();
+        return switch (raw.getType()) {
+            case RAW_IRON, IRON_ORE, DEEPSLATE_IRON_ORE -> new ItemStack(Material.IRON_INGOT, amount);
+            case RAW_GOLD, GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE -> new ItemStack(Material.GOLD_INGOT, amount);
+            case RAW_COPPER, COPPER_ORE, DEEPSLATE_COPPER_ORE -> new ItemStack(Material.COPPER_INGOT, amount);
+            case RAW_IRON_BLOCK -> new ItemStack(Material.IRON_INGOT, amount * 9);
+            case RAW_GOLD_BLOCK -> new ItemStack(Material.GOLD_INGOT, amount * 9);
+            case RAW_COPPER_BLOCK -> new ItemStack(Material.COPPER_INGOT, amount * 9);
+            case ANCIENT_DEBRIS -> new ItemStack(Material.NETHERITE_SCRAP, amount);
+            case COBBLESTONE -> new ItemStack(Material.STONE, amount);
+            case COBBLED_DEEPSLATE -> new ItemStack(Material.DEEPSLATE, amount);
+            case SAND, RED_SAND -> new ItemStack(Material.GLASS, amount);
+            case CLAY_BALL -> new ItemStack(Material.BRICK, amount);
+            default -> raw.clone(); // Natural gems/minerals (Coal, Diamond, Emerald, Lapis, Redstone, Quartz) remain intact!
+        };
+    }
+
     private ItemStack getSmeltedProduct(Material m) {
         return switch (m) {
             case IRON_ORE, DEEPSLATE_IRON_ORE, RAW_IRON_BLOCK -> new ItemStack(Material.IRON_INGOT, m == Material.RAW_IRON_BLOCK ? 9 : 1);
             case GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE, RAW_GOLD_BLOCK -> new ItemStack(Material.GOLD_INGOT, m == Material.RAW_GOLD_BLOCK ? 9 : 1);
             case COPPER_ORE, DEEPSLATE_COPPER_ORE, RAW_COPPER_BLOCK -> new ItemStack(Material.COPPER_INGOT, m == Material.RAW_COPPER_BLOCK ? 9 : 1);
             case ANCIENT_DEBRIS -> new ItemStack(Material.NETHERITE_SCRAP, 1);
-            default -> new ItemStack(Material.STONE, 1);
+            case COAL_ORE, DEEPSLATE_COAL_ORE -> new ItemStack(Material.COAL, 1);
+            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE -> new ItemStack(Material.DIAMOND, 1);
+            case EMERALD_ORE, DEEPSLATE_EMERALD_ORE -> new ItemStack(Material.EMERALD, 1);
+            case LAPIS_ORE, DEEPSLATE_LAPIS_ORE -> new ItemStack(Material.LAPIS_LAZULI, 6);
+            case REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE -> new ItemStack(Material.REDSTONE, 5);
+            case NETHER_QUARTZ_ORE -> new ItemStack(Material.QUARTZ, 1);
+            default -> null;
+        };
+    }
+
+    private int getOreExp(Material m) {
+        return switch (m) {
+            case COAL_ORE, DEEPSLATE_COAL_ORE -> (int) (Math.random() * 3);
+            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE, EMERALD_ORE, DEEPSLATE_EMERALD_ORE -> (int) (Math.random() * 5) + 3;
+            case LAPIS_ORE, DEEPSLATE_LAPIS_ORE, NETHER_QUARTZ_ORE -> (int) (Math.random() * 4) + 2;
+            case REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE -> (int) (Math.random() * 4) + 1;
+            case NETHER_GOLD_ORE -> (int) (Math.random() * 2);
+            default -> 1;
         };
     }
 
