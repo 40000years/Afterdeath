@@ -67,7 +67,8 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         inv.setItem(12, plugin.relics().createScrollLimitBreak(LimitBreakType.EFFICIENCY));
         inv.setItem(13, plugin.relics().createScrollLimitBreak(LimitBreakType.FORTUNE));
         inv.setItem(14, plugin.relics().createScrollLimitBreak(LimitBreakType.LOOTING));
-        inv.setItem(15, createSeparator(Material.GRAY_STAINED_GLASS_PANE));
+        inv.setItem(15, createActionItem(Material.CARROT_ON_A_STICK, "§d§l✨ รับคทาเวทมนตร์ครบ 15 เล่ม",
+            List.of("§7คลิกเพื่อรับ Magic Wand ครบทั้ง 15 สาย", "§7ลงในกระเป๋าทันที")));
         inv.setItem(16, createActionItem(Material.CHEST, "§b§l📦 รับ Limit Break x5 ทุกชนิด",
             List.of("§7คลิกเพื่อรับคัมภีร์ Limit Break ทุกสาย", "§7สายละ 5 เล่มลงในกระเป๋า")));
         inv.setItem(17, createActionItem(Material.BOOKSHELF, "§d§l📜 รับ Unique Enchants ครบ 22 ใบ",
@@ -163,7 +164,7 @@ public final class AdminTestGui implements InventoryHolder, Listener {
                     : reward.getType().name();
                 plugin.message(player, "สุ่มเปิด Vault ได้รับ: " + name + " ×" + reward.getAmount());
             }
-            case 15, 40 -> { /* Separator, do nothing */ }
+            case 40 -> { /* Separator, do nothing */ }
             case 16 -> { // Limit Break All x5
                 for (LimitBreakType lb : LimitBreakType.values()) {
                     ItemStack scroll = plugin.relics().createScrollLimitBreak(lb);
@@ -215,12 +216,20 @@ public final class AdminTestGui implements InventoryHolder, Listener {
                 player.playSound(spawnLoc, Sound.ENTITY_WITHER_SPAWN, 0.8f, 1.0f);
                 plugin.message(player, "เสกบอสทดสอบ (Shadow Overlord) ตรงหน้าแล้ว!");
             }
-            case 50 -> { // 14 Magic Cores
+            case 15 -> { // 15 Magic Wands
+                for (RelicService.MagicCore c : RelicService.MAGIC_CORES) {
+                    ItemStack wand = com.example.voidscape.command.VoidCommand.createWandViaAdvanceMagic(c.id());
+                    if (wand != null) giveOrDrop(player, wand);
+                }
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.9f, 1.2f);
+                plugin.message(player, "ได้รับ Ancient Magic Wands ครบทั้ง 15 เล่ม!");
+            }
+            case 50 -> { // 15 Magic Cores
                 for (RelicService.MagicCore c : RelicService.MAGIC_CORES) {
                     giveOrDrop(player, plugin.relics().createMagicCore(c));
                 }
                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.9f, 1.2f);
-                plugin.message(player, "ได้รับ Ancient Magic Cores ครบทุกธาตุ 14 ชิ้น!");
+                plugin.message(player, "ได้รับ Ancient Magic Cores ครบทุกธาตุ 15 ชิ้น!");
             }
             case 51 -> { // Clear mobs
                 plugin.dungeons().clearAllDungeonMobs();

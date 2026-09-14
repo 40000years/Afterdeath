@@ -338,6 +338,38 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             }
         }
 
+        // 10. Magic Wands (e.g. "lightning_strike_wand", "lightning_wand", "wand_lightning_strike")
+        if (clean.contains("wand")) {
+            String spellName = clean.replace("wand_", "").replace("_wand", "").replace("wand", "");
+            for (var core : RelicService.MAGIC_CORES) {
+                if (core.id().equalsIgnoreCase(spellName)
+                        || core.id().replace("_", "").equalsIgnoreCase(spellName)
+                        || core.wandTitle().replace(" ", "").equalsIgnoreCase(spellName)
+                        || core.title().replace(" ", "").equalsIgnoreCase(spellName)) {
+                    ItemStack wand = createWandViaAdvanceMagic(core.id());
+                    if (wand != null) {
+                        if (count > 1) wand.setAmount(Math.min(count, 64));
+                        return wand;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public static ItemStack createWandViaAdvanceMagic(String spellId) {
+        try {
+            org.bukkit.plugin.Plugin p = Bukkit.getPluginManager().getPlugin("advance-magic");
+            if (p != null) {
+                Object wands = p.getClass().getMethod("wands").invoke(p);
+                Class<?> spellEnum = Class.forName("com.example.advancemagic.spell.Spell");
+                Object spell = spellEnum.getMethod("parse", String.class).invoke(null, spellId);
+                if (spell != null) {
+                    return (ItemStack) wands.getClass().getMethod("create", spellEnum).invoke(wands, spell);
+                }
+            }
+        } catch (Throwable ignored) {}
         return null;
     }
 
@@ -362,9 +394,11 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             for(var core : RelicService.MAGIC_CORES) {
                 c.add(core.id());
                 c.add("core_"+core.id());
+                c.add(core.id()+"_wand");
+                c.add("wand_"+core.id());
             }
             // Shortcuts
-            c.addAll(List.of("eternity","key","shard","dust","repair","elixir","storm","nova","blade","aegis","shulker_levitation","shulker"));
+            c.addAll(List.of("eternity","key","shard","dust","repair","elixir","storm","nova","blade","aegis","shulker_levitation","shulker","wand"));
         }
         if(args.length==3&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
             c.addAll(List.of("@a","@p","@s","1","2","4","8","16","32","64"));
