@@ -9,6 +9,7 @@ public enum UniqueEnchant {
     KINETIC_GRAPPLE("Kinetic Grapple", "ฮุกช็อตเวหา", "ยิงปักบล็อกแล้วดึงตัวผู้เล่นพุ่งไปหาจุดปักทันที", ItemCategory.BOW),
     ABSOLUTE_ZERO("Absolute Zero", "เยือกแข็งสัมบูรณ์", "สตัฟฟ์แช่แข็งศัตรูในระยะหยุดนิ่ง 3.5 วินาที", ItemCategory.BOW),
     SINGULARITY("Singularity", "หลุมดำกลืนมิติ", "ลูกธนูปักแล้วสร้างหลุมดำดูดรวบมอนสเตอร์ 3 วินาที", ItemCategory.BOW),
+    METEOR_ARROW("Meteor Arrow", "ศรดาวตกวินาศ", "เมื่อลูกธนูปักพื้น 1 วิ อุกกาบาตยักษ์จะตกลงมาเผาพื้นที่ 5x5", ItemCategory.BOW),
 
     // Mining & Tools
     SEISMIC_SLAM("Seismic Slam", "ขุดทลาย 3x3", "ขุด 1 ครั้งระเบิดเปิดโพรง 3×3×1 ทันที", ItemCategory.PICKAXE),
