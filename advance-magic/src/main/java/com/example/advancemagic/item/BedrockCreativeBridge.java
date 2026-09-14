@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -26,23 +27,14 @@ import java.util.logging.Level;
 /**
  * Bridges Bedrock Edition creative inventory actions with Java server.
  * Intercepts Bedrock ItemStackRequestPacket to detect custom item selections,
- * and restores the full ItemStack (CustomModelData, PDC, lore, etc.)
- * via InventoryCreativeEvent and interact fallback.
+ * and directly spawns the full custom ItemStack into the Bedrock player's
+ * inventory with proper Geyser reverse sync.
  */
 public final class BedrockCreativeBridge implements Listener {
     private final AdvanceMagicPlugin plugin;
-    private final Map<UUID, PendingCreative> pendingItems = new ConcurrentHashMap<>();
+    private final Map<String, Long> lastSpawnTime = new ConcurrentHashMap<>();
     private final Set<UUID> hookedPlayers = Collections.synchronizedSet(new HashSet<>());
     private boolean geyserPresent = false;
-
-    private static final class PendingCreative {
-        final String identifier;
-        final long timestamp;
-        PendingCreative(String identifier, long timestamp) {
-            this.identifier = identifier;
-            this.timestamp = timestamp;
-        }
-    }
 
     public BedrockCreativeBridge(AdvanceMagicPlugin plugin) {
         this.plugin = plugin;
@@ -148,7 +140,6 @@ public final class BedrockCreativeBridge implements Listener {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            String name = method.getName();
             if (args != null && args.length == 1 && args[0] != null) {
                 Object packet = args[0];
                 String packetName = packet.getClass().getSimpleName();
@@ -197,10 +188,18 @@ public final class BedrockCreativeBridge implements Listener {
                         Object def = invokeMethod(itemData, "getDefinition", null, null);
                         String identifier = (String) invokeMethod(def, "getIdentifier", null, null);
 
-                        plugin.getLogger().info("[BedrockCreativeBridge] Bedrock creative select: netId=" + creativeNetId + ", id=" + identifier);
-                        if (identifier != null && identifier.startsWith("advance_magic:")) {
-                            pendingItems.put(player.getUniqueId(), new PendingCreative(identifier, System.currentTimeMillis()));
-                            plugin.getLogger().info("[BedrockCreativeBridge] Queued creative item: " + identifier + " for " + player.getName());
+                        if (identifier != null && (identifier.startsWith("advance_magic:") || identifier.startsWith("voidscape:") || identifier.startsWith("evergarden:"))) {
+                            // Debounce duplicate clicks within 350ms
+                            long now = System.currentTimeMillis();
+                            String debounceKey = player.getUniqueId() + ":" + identifier;
+                            Long last = lastSpawnTime.get(debounceKey);
+                            if (last != null && now - last < 350L) {
+                                continue;
+                            }
+                            lastSpawnTime.put(debounceKey, now);
+
+                            plugin.getLogger().info("[BedrockCreativeBridge] Bedrock creative spawn triggered: " + identifier + " for " + player.getName());
+                            Bukkit.getScheduler().runTask(plugin, () -> spawnItemDirectly(player, identifier));
                         }
                     }
                 }
@@ -210,8 +209,29 @@ public final class BedrockCreativeBridge implements Listener {
         }
     }
 
+    private void spawnItemDirectly(Player player, String identifier) {
+        if (!player.isOnline()) return;
+        ItemStack item = resolveCustomItem(identifier);
+        if (item == null) return;
+
+        int heldSlot = player.getInventory().getHeldItemSlot();
+        ItemStack held = player.getInventory().getItem(heldSlot);
+        if (held == null || held.getType().isAir()) {
+            player.getInventory().setItem(heldSlot, item);
+        } else {
+            var left = player.getInventory().addItem(item);
+            if (!left.isEmpty()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
+            }
+        }
+        player.updateInventory();
+        plugin.getLogger().info("[BedrockCreativeBridge] Successfully spawned " + identifier + " into " + player.getName() + "'s inventory!");
+    }
+
     private ItemStack resolveCustomItem(String identifier) {
         if (identifier == null) return null;
+
+        // 1. Advance Magic Wands & Cores
         if (identifier.startsWith("advance_magic:core_")) {
             String spellId = identifier.substring("advance_magic:core_".length());
             Spell spell = Spell.parse(spellId);
@@ -221,6 +241,38 @@ public final class BedrockCreativeBridge implements Listener {
             Spell spell = Spell.parse(spellId);
             if (spell != null) return plugin.wands().create(spell);
         }
+
+        // 2. Evergarden / Voidscape Relics & Cores
+        if (identifier.startsWith("voidscape:") || identifier.startsWith("evergarden:")) {
+            String relicId = identifier.replace("voidscape:", "").replace("evergarden:", "").toLowerCase(Locale.ROOT);
+            Plugin evergarden = Bukkit.getPluginManager().getPlugin("Evergarden");
+            if (evergarden != null) {
+                try {
+                    Method relicsMethod = evergarden.getClass().getMethod("relics");
+                    Object relicService = relicsMethod.invoke(evergarden);
+
+                    // Check if it's a magic core
+                    if (relicId.startsWith("core_")) {
+                        String coreId = relicId.substring("core_".length());
+                        Method createCoreMethod = relicService.getClass().getMethod("createMagicCore", String.class);
+                        return (ItemStack) createCoreMethod.invoke(relicService, coreId);
+                    }
+
+                    // Check if it's a relic
+                    Class<?> relicEnum = Class.forName("com.example.voidscape.item.RelicService$Relic");
+                    for (Object enumConstant : relicEnum.getEnumConstants()) {
+                        String id = (String) invokeMethod(enumConstant, "id", null, null);
+                        if (relicId.equalsIgnoreCase(id)) {
+                            Method createMethod = relicService.getClass().getMethod("create", relicEnum, int.class);
+                            return (ItemStack) createMethod.invoke(relicService, enumConstant, 1);
+                        }
+                    }
+                } catch (Throwable t) {
+                    plugin.getLogger().warning("[BedrockCreativeBridge] Could not resolve Evergarden item " + identifier + ": " + t.getMessage());
+                }
+            }
+        }
+
         return null;
     }
 
@@ -234,47 +286,20 @@ public final class BedrockCreativeBridge implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
-        pendingItems.remove(uuid);
         hookedPlayers.remove(uuid);
+        lastSpawnTime.keySet().removeIf(k -> k.startsWith(uuid.toString()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCreative(InventoryCreativeEvent event) {
+        // Fallback for creative drag/drop if triggered
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        PendingCreative pending = pendingItems.get(player.getUniqueId());
-        plugin.getLogger().info("[BedrockCreativeBridge] onCreative fired: slot=" + event.getSlot()
-            + ", cursor=" + (event.getCursor() != null ? event.getCursor().getType() : "null")
-            + ", current=" + (event.getCurrentItem() != null ? event.getCurrentItem().getType() : "null")
-            + ", pending=" + (pending != null ? pending.identifier : "none"));
-
-        if (pending == null) return;
-
-        // Pending pickup valid for up to 10 seconds
-        if (System.currentTimeMillis() - pending.timestamp > 10000L) {
-            pendingItems.remove(player.getUniqueId());
-            return;
-        }
-
-        ItemStack replacement = resolveCustomItem(pending.identifier);
-        if (replacement != null) {
-            final ItemStack finalItem = replacement;
-            event.setCursor(finalItem);
-            event.setCurrentItem(finalItem);
-
-            final int slot = event.getSlot();
-            if (slot == -1) {
-                player.getWorld().dropItemNaturally(player.getLocation(), finalItem);
-            } else {
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    if (slot >= 0 && slot < player.getInventory().getSize()) {
-                        player.getInventory().setItem(slot, finalItem);
-                    }
-                    player.updateInventory();
-                });
+        ItemStack cursor = event.getCursor();
+        if (cursor != null && (cursor.getType() == Material.CARROT_ON_A_STICK || cursor.getType() == Material.HEART_OF_THE_SEA)) {
+            if (!cursor.hasItemMeta() || (!cursor.getItemMeta().hasDisplayName() && !cursor.getItemMeta().hasCustomModelData())) {
+                // Vanilla base item in creative event - cancel to prevent plain item overwrites
+                event.setCancelled(true);
             }
-
-            plugin.getLogger().info("[BedrockCreativeBridge] Restored " + pending.identifier + " for " + player.getName() + " in slot " + slot);
-            pendingItems.remove(player.getUniqueId());
         }
     }
 
@@ -287,21 +312,10 @@ public final class BedrockCreativeBridge implements Listener {
             boolean isPlain = !inHand.hasItemMeta() ||
                 (!inHand.getItemMeta().hasDisplayName() && !inHand.getItemMeta().hasCustomModelData());
             if (isPlain) {
-                PendingCreative pending = pendingItems.get(player.getUniqueId());
-                if (pending != null && System.currentTimeMillis() - pending.timestamp < 15000L) {
-                    ItemStack restored = resolveCustomItem(pending.identifier);
-                    if (restored != null) {
-                        if (event.getHand() == EquipmentSlot.HAND) {
-                            player.getInventory().setItemInMainHand(restored);
-                        } else if (event.getHand() == EquipmentSlot.OFF_HAND) {
-                            player.getInventory().setItemInOffHand(restored);
-                        }
-                        player.updateInventory();
-                        player.sendMessage(ChatColor.GREEN + "✦ กู้คืนคทาเวทมนตร์จาก Creative เรียบร้อย!");
-                        plugin.getLogger().info("[BedrockCreativeBridge] Restored plain item in hand on interact: " + pending.identifier);
-                        pendingItems.remove(player.getUniqueId());
-                    }
-                }
+                // If player is holding a plain vanilla item from previous stripped drags, open magic items menu
+                player.sendMessage(ChatColor.YELLOW + "✦ กำลังเปิดเมนูเลือกคทา/แกนเวทมนตร์...");
+                plugin.itemMenu().open(player, true);
+                event.setCancelled(true);
             }
         }
     }
