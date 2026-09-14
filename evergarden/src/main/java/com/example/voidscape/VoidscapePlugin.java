@@ -55,19 +55,23 @@ public final class VoidscapePlugin extends JavaPlugin {
             // Placement parameters are locked per world; changing density must never move existing dungeons.
             File file=new File(getDataFolder(),"world-layout.yml");
             YamlConfiguration saved=YamlConfiguration.loadConfiguration(file);
+            String configuredWorld=getConfig().getString("dimension.world-name","evergarden");
             if(!file.exists()) {
-                saved.set("world",getConfig().getString("dimension.world-name","the_void_v2"));
+                saved.set("world",configuredWorld);
                 saved.set("seed",getConfig().getLong("dimension.seed",72819345L));
                 saved.set("spacing",integer("structures.spacing-chunks",18,14,64));
                 saved.set("chance",getConfig().getDouble("structures.chance",1.0));
                 saved.save(file);
+            } else if(saved.getString("world","").equals("the_void") || saved.getString("world","").equals("the_void_v2")) {
+                saved.set("world",configuredWorld);
+                saved.save(file);
             }
             long seed=saved.getLong("seed");
             layout=new DungeonLayout(seed,saved.getInt("spacing",18),saved.getDouble("chance",1.0));
-            String worldName=saved.getString("world","the_void_v2");
-            if(worldName.equals("the_void"))throw new IllegalStateException("Use a new world name for v2; never replace the legacy world generator.");
+            String worldName=saved.getString("world",configuredWorld);
+            if(worldName.equals("the_void"))throw new IllegalStateException("Use a new world name for Evergarden; never replace the legacy world generator.");
             voidWorld=new WorldCreator(worldName).seed(seed).environment(World.Environment.NORMAL).generator(new VoidGenerator(seed,layout)).createWorld();
-            if(voidWorld==null)throw new IllegalStateException("Cannot load Void world");
+            if(voidWorld==null)throw new IllegalStateException("Cannot load Evergarden world");
             voidWorld.setSpawnLocation(0,97,0);voidWorld.setTime(integer("dimension.time",13000,0,23999));
             voidWorld.setGameRule(GameRule.DO_DAYLIGHT_CYCLE,false);
             voidWorld.setGameRule(GameRule.DO_WEATHER_CYCLE,false);

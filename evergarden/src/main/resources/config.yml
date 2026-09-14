@@ -1,7 +1,7 @@
 # Evergarden — Twilight Gardens / Advance Magic
 config-version: 2
 dimension:
-  world-name: the_void_v2
+  world-name: evergarden
   seed: 72819345
   border-size: 24000
   # Fixed twilight: light gardens, dark sky, visible stars.
