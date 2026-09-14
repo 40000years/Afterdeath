@@ -1,6 +1,9 @@
 package com.example.voidscape.command;
 
 import com.example.voidscape.VoidscapePlugin;
+import com.example.voidscape.enchant.LimitBreakType;
+import com.example.voidscape.enchant.UniqueEnchant;
+import com.example.voidscape.item.RelicService;
 import com.example.voidscape.item.RelicService.Relic;
 import com.example.voidscape.world.DungeonLayout;
 import org.bukkit.*;
@@ -59,54 +62,40 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             }
             case "leave" -> {if(p!=null&&p.getWorld()==plugin.world())plugin.travel().leave(p,false);}
             case "give" -> {
-                if(args.length<2){plugin.message(sender,"/evergarden give <ชื่อไอเทม|core_<ชื่อแกน>> [ผู้เล่น]");return true;}
-                Player target=args.length>2?Bukkit.getPlayerExact(args[2]):p;
-                if(target==null){plugin.message(sender,"ระบุผู้เล่นออนไลน์ด้วย");return true;}
-                if(target.getInventory().firstEmpty()<0){plugin.message(sender,"กระเป๋าผู้รับเต็ม");return true;}
-                String itemArg=args[1].toLowerCase(Locale.ROOT);
-                if(itemArg.startsWith("core_")||itemArg.startsWith("core")) {
-                    String coreId=itemArg.startsWith("core_")?itemArg.substring(5):itemArg.substring(4);
-                    if(coreId.startsWith("_")) coreId=coreId.substring(1);
-                    ItemStack coreItem=plugin.relics().createMagicCore(coreId);
-                    target.getInventory().addItem(coreItem);
-                    plugin.message(sender,"มอบ "+itemArg+" แล้ว");
+                if(args.length<2){plugin.message(sender,"/evergarden give <ชื่อไอเทม/เอนแชนต์/แกน> [จำนวน/ผู้เล่น] [ผู้เล่น]");return true;}
+                int count = 1;
+                Player target = p;
+                if(args.length == 3) {
+                    try {
+                        count = Math.max(1, Integer.parseInt(args[2]));
+                    } catch(NumberFormatException ignored) {
+                        target = Bukkit.getPlayerExact(args[2]);
+                    }
+                } else if(args.length >= 4) {
+                    try {
+                        count = Math.max(1, Integer.parseInt(args[2]));
+                        target = Bukkit.getPlayerExact(args[3]);
+                    } catch(NumberFormatException ignored) {
+                        target = Bukkit.getPlayerExact(args[2]);
+                    }
+                }
+                if(target == null) {
+                    plugin.message(sender, "ระบุผู้เล่นออนไลน์ด้วย หรือรันคำสั่งในฐานะผู้เล่น");
                     return true;
                 }
-                if(itemArg.equals("scroll_eternity")||itemArg.equals("eternity")) {
-                    target.getInventory().addItem(plugin.relics().createScrollEternity());
-                    plugin.message(sender,"มอบ Scroll of Eternity (Unbreakable) แล้ว");
+                if(target.getInventory().firstEmpty() < 0) {
+                    plugin.message(sender, "กระเป๋าผู้รับเต็ม");
                     return true;
                 }
-                if(itemArg.startsWith("lb_")||itemArg.startsWith("limit_break_")) {
-                    String typeName=itemArg.replace("limit_break_","").replace("lb_","").toUpperCase(Locale.ROOT);
-                    try {
-                        var lb=com.example.voidscape.enchant.LimitBreakType.valueOf(typeName);
-                        target.getInventory().addItem(plugin.relics().createScrollLimitBreak(lb));
-                        plugin.message(sender,"มอบ Limit Break Scroll: "+lb.name()+" แล้ว");
-                        return true;
-                    }catch(Exception ignored){}
+                ItemStack item = resolveItem(args[1], count);
+                if(item == null) {
+                    plugin.message(sender, "ไม่พบไอเทม: "+args[1]+" (ลองพิมพ์ชื่อตรงๆ เช่น ricochet, sharpness, storm_bow, eternity, lightning_strike)");
+                    return true;
                 }
-                if(itemArg.startsWith("ue_")||itemArg.startsWith("unique_")) {
-                    String typeName=itemArg.replace("unique_","").replace("ue_","").toUpperCase(Locale.ROOT);
-                    try {
-                        var ue=com.example.voidscape.enchant.UniqueEnchant.valueOf(typeName);
-                        target.getInventory().addItem(plugin.relics().createScrollUnique(ue));
-                        plugin.message(sender,"มอบ Unique Enchant: "+ue.name()+" แล้ว");
-                        return true;
-                    }catch(Exception ignored){}
-                }
-                try {
-                    Relic r=Relic.valueOf(args[1].toUpperCase(Locale.ROOT));
-                    if(r==Relic.SCROLL_ETERNITY) target.getInventory().addItem(plugin.relics().createScrollEternity());
-                    else if(r==Relic.SCROLL_LIMIT_BREAK) target.getInventory().addItem(plugin.relics().createScrollLimitBreak(com.example.voidscape.enchant.LimitBreakType.SHARPNESS));
-                    else if(r==Relic.SCROLL_UNIQUE) target.getInventory().addItem(plugin.relics().createScrollUnique(com.example.voidscape.enchant.UniqueEnchant.COLOSSUS_SLAYER));
-                    else if(r==Relic.KEY_SHARD) target.getInventory().addItem(plugin.relics().createKeyShard(1));
-                    else if(r==Relic.ASTRAL_DUST) target.getInventory().addItem(plugin.relics().createAstralDust(1));
-                    else if(r==Relic.REPAIR_STONE) target.getInventory().addItem(plugin.relics().createRepairStone(1));
-                    else if(r==Relic.VOID_ELIXIR) target.getInventory().addItem(plugin.relics().createVoidElixir(1));
-                    else target.getInventory().addItem(plugin.relics().create(r,1));
-                    plugin.message(sender,"มอบ "+r.id()+" แล้ว");
-                }catch(RuntimeException e){plugin.message(sender,"/evergarden give <ชื่อไอเทม|core_<ชื่อแกน>|lb_<ชนิด>|ue_<สกิล>> [ผู้เล่น]");}
+                target.getInventory().addItem(item);
+                String itemName = item.hasItemMeta() && item.getItemMeta().hasDisplayName() ? item.getItemMeta().getDisplayName() : item.getType().name();
+                plugin.message(sender, "มอบ "+itemName+" x"+item.getAmount()+" ให้ "+target.getName()+" แล้ว");
+                return true;
             }
             case "locate" -> {
                 int x=p!=null&&p.getWorld()==plugin.world()?p.getLocation().getBlockX():0;
@@ -159,15 +148,150 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             }));
         }}.runTaskTimer(plugin,1,2);
     }
+    private ItemStack resolveItem(String raw, int count) {
+        if(raw == null || raw.isBlank()) return null;
+        String clean = raw.toLowerCase(Locale.ROOT).trim().replace("-", "_");
+
+        // 1. Scroll of Eternity (Unbreakable)
+        if(clean.equals("scroll_eternity") || clean.equals("eternity") || clean.equals("unbreakable") || clean.equals("scroll_of_eternity")) {
+            ItemStack is = plugin.relics().createScrollEternity();
+            if(count > 1) is.setAmount(Math.min(count, 64));
+            return is;
+        }
+
+        // 2. Magic Cores with prefix (core_ or wand_)
+        if(clean.startsWith("core_") || clean.startsWith("core") || clean.startsWith("wand_")) {
+            String coreId = clean;
+            if(coreId.startsWith("core_")) coreId = coreId.substring(5);
+            else if(coreId.startsWith("wand_")) coreId = coreId.substring(5);
+            else if(coreId.startsWith("core")) coreId = coreId.substring(4);
+            if(coreId.startsWith("_")) coreId = coreId.substring(1);
+            if(!coreId.isEmpty()) {
+                ItemStack is = plugin.relics().createMagicCore(coreId);
+                if(count > 1) is.setAmount(Math.min(count, 64));
+                return is;
+            }
+        }
+
+        // 3. Limit Break with prefix (lb_ or limit_break_)
+        if(clean.startsWith("lb_") || clean.startsWith("limit_break_")) {
+            String lbName = clean.replace("limit_break_", "").replace("lb_", "").replace("_", "");
+            for(var lb : LimitBreakType.values()) {
+                if(lb.name().replace("_", "").equalsIgnoreCase(lbName)) {
+                    ItemStack is = plugin.relics().createScrollLimitBreak(lb);
+                    if(count > 1) is.setAmount(Math.min(count, 64));
+                    return is;
+                }
+            }
+        }
+
+        // 4. Unique Enchant with prefix (ue_ or unique_)
+        if(clean.startsWith("ue_") || clean.startsWith("unique_")) {
+            String ueName = clean.replace("unique_", "").replace("ue_", "").replace("_", "");
+            for(var ue : UniqueEnchant.values()) {
+                if(ue.name().replace("_", "").equalsIgnoreCase(ueName) || ue.id().replace("_", "").equalsIgnoreCase(ueName)) {
+                    ItemStack is = plugin.relics().createScrollUnique(ue);
+                    if(count > 1) is.setAmount(Math.min(count, 64));
+                    return is;
+                }
+            }
+        }
+
+        // 5. Unique Enchants DIRECT name (e.g. "ricochet", "colossus_slayer", "absolute_zero", etc.)
+        for(var ue : UniqueEnchant.values()) {
+            if(ue.name().equalsIgnoreCase(clean) || ue.id().equalsIgnoreCase(clean) || ue.name().replace("_", "").equalsIgnoreCase(clean.replace("_", ""))) {
+                ItemStack is = plugin.relics().createScrollUnique(ue);
+                if(count > 1) is.setAmount(Math.min(count, 64));
+                return is;
+            }
+        }
+
+        // 6. Limit Breaks DIRECT name (e.g. "sharpness", "protection", "power", "efficiency", "fortune", "looting")
+        for(var lb : LimitBreakType.values()) {
+            if(lb.name().equalsIgnoreCase(clean) || lb.name().replace("_", "").equalsIgnoreCase(clean.replace("_", ""))) {
+                ItemStack is = plugin.relics().createScrollLimitBreak(lb);
+                if(count > 1) is.setAmount(Math.min(count, 64));
+                return is;
+            }
+        }
+
+        // 7. Common aliases & shortcuts
+        switch(clean) {
+            case "key", "void_key", "voidkey" -> { return plugin.relics().createVoidKey(); }
+            case "shard", "key_shard", "keyshard" -> { return plugin.relics().createKeyShard(Math.max(1, count)); }
+            case "dust", "astral_dust", "astraldust" -> { return plugin.relics().createAstralDust(Math.max(1, count)); }
+            case "repair", "repair_stone", "repairstone" -> { return plugin.relics().createRepairStone(Math.max(1, count)); }
+            case "elixir", "void_elixir", "voidelixir" -> { return plugin.relics().createVoidElixir(Math.max(1, count)); }
+            case "pickaxe", "rift_pickaxe", "riftpickaxe" -> { return plugin.relics().create(Relic.RIFT_PICKAXE, 1); }
+            case "smelter", "smelter_pickaxe", "smelterpickaxe" -> { return plugin.relics().create(Relic.SMELTER_PICKAXE, 1); }
+            case "blade", "sword", "rift_blade", "riftblade", "rift_sword" -> { return plugin.relics().create(Relic.RIFT_BLADE, 1); }
+            case "aegis", "shield", "eternal_aegis", "eternalaegis" -> { return plugin.relics().create(Relic.ETERNAL_AEGIS, 1); }
+            case "storm", "storm_bow", "stormbow" -> { return plugin.relics().create(Relic.STORM_BOW, 1); }
+            case "nova", "nova_bow", "novabow" -> { return plugin.relics().create(Relic.NOVA_BOW, 1); }
+            case "mythic_core", "shulker_core", "levitation_core" -> { return plugin.relics().createMagicCore("shulker_levitation"); }
+        }
+
+        // 8. Relic enum match
+        for(Relic r : Relic.values()) {
+            if(r.name().equalsIgnoreCase(clean) || r.id().equalsIgnoreCase(clean) || r.name().replace("_", "").equalsIgnoreCase(clean.replace("_", ""))) {
+                if(r == Relic.SCROLL_ETERNITY) {
+                    ItemStack is = plugin.relics().createScrollEternity();
+                    if(count > 1) is.setAmount(Math.min(count, 64));
+                    return is;
+                }
+                if(r == Relic.SCROLL_LIMIT_BREAK) return plugin.relics().createScrollLimitBreak(LimitBreakType.SHARPNESS);
+                if(r == Relic.SCROLL_UNIQUE) return plugin.relics().createScrollUnique(UniqueEnchant.COLOSSUS_SLAYER);
+                if(r == Relic.KEY_SHARD) return plugin.relics().createKeyShard(Math.max(1, count));
+                if(r == Relic.ASTRAL_DUST) return plugin.relics().createAstralDust(Math.max(1, count));
+                if(r == Relic.REPAIR_STONE) return plugin.relics().createRepairStone(Math.max(1, count));
+                if(r == Relic.VOID_ELIXIR) return plugin.relics().createVoidElixir(Math.max(1, count));
+                return plugin.relics().create(r, 1);
+            }
+        }
+
+        // 9. Magic Cores DIRECT match (e.g. "lightning_strike", "frost_nova")
+        for(var core : RelicService.MAGIC_CORES) {
+            if(core.id().equalsIgnoreCase(clean) || core.id().replace("_", "").equalsIgnoreCase(clean.replace("_", ""))) {
+                ItemStack is = plugin.relics().createMagicCore(core);
+                if(count > 1) is.setAmount(Math.min(count, 64));
+                return is;
+            }
+        }
+
+        return null;
+    }
+
     @Override public List<String> onTabComplete(CommandSender sender,Command command,String alias,String[] args) {
         List<String> c=new ArrayList<>();
         if(args.length==1){c.addAll(List.of("help","guide","enter","leave","locate"));if(isAdmin(sender))c.addAll(List.of("test","tp","give","status","reload","pregen","pack"));}
         if(args.length==2&&args[0].equalsIgnoreCase("tp")&&isAdmin(sender))c.addAll(List.of("dark","astral","time","spawn"));
         if(args.length==2&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
-            for(Relic r:Relic.values())c.add(r.id());
-            for(var core : com.example.voidscape.item.RelicService.MAGIC_CORES) c.add("core_"+core.id());
-            for(var lb : com.example.voidscape.enchant.LimitBreakType.values()) c.add("lb_"+lb.name().toLowerCase(Locale.ROOT));
-            for(var ue : com.example.voidscape.enchant.UniqueEnchant.values()) c.add("ue_"+ue.id());
+            // Relics & Equipment
+            for(Relic r:Relic.values()) c.add(r.id());
+            // Unique Enchants (both direct and prefixed)
+            for(var ue : UniqueEnchant.values()) {
+                c.add(ue.id());
+                c.add("ue_"+ue.id());
+            }
+            // Limit Breaks (both direct and prefixed)
+            for(var lb : LimitBreakType.values()) {
+                c.add(lb.name().toLowerCase(Locale.ROOT));
+                c.add("lb_"+lb.name().toLowerCase(Locale.ROOT));
+            }
+            // Magic Cores (both direct and prefixed)
+            for(var core : RelicService.MAGIC_CORES) {
+                c.add(core.id());
+                c.add("core_"+core.id());
+            }
+            // Shortcuts
+            c.addAll(List.of("eternity","key","shard","dust","repair","elixir","storm","nova","blade","aegis"));
+        }
+        if(args.length==3&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
+            for(Player pl : Bukkit.getOnlinePlayers()) c.add(pl.getName());
+            c.addAll(List.of("1","2","4","8","16","32","64"));
+        }
+        if(args.length==4&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
+            for(Player pl : Bukkit.getOnlinePlayers()) c.add(pl.getName());
         }
         if(args.length==2&&args[0].equalsIgnoreCase("locate"))c.addAll(List.of("dark","astral","time"));
         return c.stream().filter(s->s.startsWith(args[args.length-1].toLowerCase(Locale.ROOT))).toList();

@@ -186,7 +186,18 @@ def main():
   if base=='bow':
    stages=[]
    for n in range(3):
-    stage=f'{name}_pulling_{n}';png(java/f'assets/voidscape/textures/item/{stage}.png',icon(name,n+1))
+    stage=f'{name}_pulling_{n}'
+    stage_art = ROOT / 'art' / 'equipment' / f'{stage}.png'
+    if stage_art.is_file():
+     data = stage_art.read_bytes()
+     dest_java = java / f'assets/voidscape/textures/item/{stage}.png'
+     dest_bedrock = bedrock / f'textures/items/{stage}.png'
+     dest_java.parent.mkdir(parents=True, exist_ok=True)
+     dest_java.write_bytes(data)
+     dest_bedrock.parent.mkdir(parents=True, exist_ok=True)
+     dest_bedrock.write_bytes(data)
+    else:
+     png(java/f'assets/voidscape/textures/item/{stage}.png',icon(name,n+1))
     write_json(java/f'assets/voidscape/models/item/{stage}.json',{'parent':'minecraft:item/bow','textures':{'layer0':'voidscape:item/'+stage}})
     stages.append({'threshold':[0,0.65,0.9][n],'model':{'type':'minecraft:model','model':'voidscape:item/'+stage}})
    definition={'model':{'type':'minecraft:condition','property':'minecraft:using_item','on_false':definition['model'],'on_true':{'type':'minecraft:range_dispatch','property':'minecraft:use_duration','scale':0.05,'fallback':stages[0]['model'],'entries':stages}}}

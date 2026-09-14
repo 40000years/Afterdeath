@@ -544,6 +544,11 @@ def main():
         png(out_path, pixels, 32)
         colors = {c for row in pixels for c in row if c[3] > 0}
         print(f'Generated {name}.png: {len(colors)} unique colors')
+    try:
+        import generate_bows
+        generate_bows.main()
+    except Exception as e:
+        print(f'Note: generate_bows error: {e}')
 
 if __name__ == '__main__':
     main()
