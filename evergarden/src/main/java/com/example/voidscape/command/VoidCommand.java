@@ -97,37 +97,13 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
                 plugin.message(sender, "มอบ "+itemName+" x"+item.getAmount()+" ให้ "+target.getName()+" แล้ว");
                 return true;
             }
-            case "locate" -> {
-                int x=p!=null&&p.getWorld()==plugin.world()?p.getLocation().getBlockX():0;
-                int z=p!=null&&p.getWorld()==plugin.world()?p.getLocation().getBlockZ():0;
-                if(args.length>1) {
-                    var kind=args[1].toLowerCase(Locale.ROOT).contains("astral")?DungeonLayout.Kind.SANCTUM_ASTRAL:
-                             args[1].toLowerCase(Locale.ROOT).contains("time")?DungeonLayout.Kind.SANCTUM_TIME:
-                             DungeonLayout.Kind.SANCTUM_DARK;
-                    var s=plugin.layout().locate(x,z,kind,12);
-                    if(s==null){plugin.message(sender,"ไม่พบในขอบเขตค้นหา");}
-                    else {
-                        int dist=(int)Math.hypot(s.x()-x,s.z()-z);
-                        plugin.message(sender,s.kind().displayName+" X="+s.x()+" Z="+s.z()+" · ทางเข้า Y=97 (ห่าง "+dist+" บล็อก)");
-                    }
-                } else {
-                    plugin.message(sender,"✦ ตำแหน่งวิหารทั้ง 3 ธาตุใกล้ที่สุด (มีไม่จำกัดทั่วทั้งมิติ):");
-                    for(DungeonLayout.Kind k : DungeonLayout.Kind.values()) {
-                        var s=plugin.layout().locate(x,z,k,12);
-                        if(s!=null) {
-                            int dist=(int)Math.hypot(s.x()-x,s.z()-z);
-                            plugin.message(sender,"• "+k.displayName+" · X="+s.x()+" Z="+s.z()+" · Y=97 (ห่าง "+dist+" บล็อก)");
-                        }
-                    }
-                }
-            }
             case "pregen" -> pregen(sender,args);
             case "reload" -> {plugin.reloadConfig();plugin.message(sender,"โหลดการตั้งค่าแล้ว · ตำแหน่งวิหารคงเดิมตาม world-layout.yml");}
             case "status" -> plugin.message(sender,"Evergarden 3.0 · "+plugin.world().getName()+" · การต่อสู้ "+plugin.dungeons().activeCount()+" · มอน "+plugin.dungeons().mobCount()+" · pregen "+generated+"/"+total);
             default -> {
-                plugin.message(sender,"Evergarden 3.0 (Advance Magic Expansion) · /evergarden guide · /evergarden locate · /evergarden leave");
+                plugin.message(sender,"Evergarden 3.0 (Advance Magic Expansion) · /evergarden guide · /evergarden leave");
                 plugin.message(sender,"สร้างประตู Crying Obsidian แล้วจุดด้วย Fire Charge หรือ Eye of Ender เพื่อเดินทาง");
-                if(isAdmin(sender))plugin.message(sender,"แอดมิน: test (เมนูทดสอบ) · tp [dark|astral|time|spawn] · locate · give · status · pregen · reload");
+                if(isAdmin(sender))plugin.message(sender,"แอดมิน: test (เมนูทดสอบ) · tp [dark|astral|time|spawn] · give · status · pregen · reload");
             }
         }
         return true;
@@ -263,7 +239,7 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
 
     @Override public List<String> onTabComplete(CommandSender sender,Command command,String alias,String[] args) {
         List<String> c=new ArrayList<>();
-        if(args.length==1){c.addAll(List.of("help","guide","enter","leave","locate"));if(isAdmin(sender))c.addAll(List.of("test","tp","give","status","reload","pregen","pack"));}
+        if(args.length==1){c.addAll(List.of("help","guide","enter","leave"));if(isAdmin(sender))c.addAll(List.of("test","tp","give","status","reload","pregen","pack"));}
         if(args.length==2&&args[0].equalsIgnoreCase("tp")&&isAdmin(sender))c.addAll(List.of("dark","astral","time","spawn"));
         if(args.length==2&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
             // Relics & Equipment
@@ -293,7 +269,6 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
         if(args.length==4&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
             for(Player pl : Bukkit.getOnlinePlayers()) c.add(pl.getName());
         }
-        if(args.length==2&&args[0].equalsIgnoreCase("locate"))c.addAll(List.of("dark","astral","time"));
         return c.stream().filter(s->s.startsWith(args[args.length-1].toLowerCase(Locale.ROOT))).toList();
     }
 }
