@@ -1,8 +1,11 @@
 package com.example.voidscape.item;
 
 import com.example.voidscape.VoidscapePlugin;
+import com.example.voidscape.enchant.LimitBreakType;
+import com.example.voidscape.enchant.UniqueEnchant;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -14,8 +17,11 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.*;
 import org.bukkit.util.Vector;
+
 import java.util.*;
 
 public final class RelicService implements Listener {
@@ -26,15 +32,25 @@ public final class RelicService implements Listener {
         STORM_BOW(Material.BOW,"ธนูพิพากษาสายฟ้า","ยิงธนูผ่าสายฟ้าต่อเนื่องใส่ศัตรู"),
         NOVA_BOW(Material.BOW,"ธนูสะเก็ดดาว","ชาร์จเต็ม: ระเบิดพลังงาน · ไม่ทำลายบล็อก"),
         RIFT_BLADE(Material.NETHERITE_SWORD,"ดาบกรีดมิติ","คลิกขวา: วาร์ปไปข้างหน้า · ต้องมีทางโล่ง"),
-        ETERNAL_AEGIS(Material.SHIELD,"โล่แห่งความอมตะ","คลิกขวา: อมตะ 3 วินาที · โจมตีไม่ได้ขณะใช้งาน");
+        ETERNAL_AEGIS(Material.SHIELD,"โล่แห่งความอมตะ","คลิกขวา: อมตะ 3 วินาที · โจมตีไม่ได้ขณะใช้งาน"),
+        SCROLL_ETERNITY(Material.PAPER,"คัมภีร์ศิลานิรันดร์","ลากทับไอเทมเพื่อทำให้อุปกรณ์ 'ไม่มีวันพังถาวร (Unbreakable)'"),
+        SCROLL_LIMIT_BREAK(Material.PAPER,"คัมภีร์ทลายขีดจำกัด","ลากทับไอเทมเพื่อเพิ่มเลเวลเอนแชนต์เดิม +1"),
+        SCROLL_UNIQUE(Material.PAPER,"คัมภีร์มนตราโบราณ","ลากทับไอเทมเพื่อสลักเวทมนตร์เฉพาะตัว"),
+        ASTRAL_DUST(Material.SUGAR,"ผงละอองดาว","ละอองดาวดึกดำบรรพ์ สสารเวทมนตร์แห่ง Evergarden"),
+        KEY_SHARD(Material.PRISMARINE_SHARD,"เศษกุญแจมิติ","รวบรวมครบ 4 ชิ้นคราฟต์เป็น Evergarden Key ได้ที่โต๊ะคราฟต์"),
+        REPAIR_STONE(Material.FLINT,"ศิลาฟื้นฟูมิติ","คลิกขวาเพื่อซ่อมแซมความทนทานของอุปกรณ์ 500 หน่วย"),
+        VOID_ELIXIR(Material.HONEY_BOTTLE,"น้ำยาเดินเวหา","ดื่มเพื่อรับ Speed II, Jump Boost II และ Slow Falling 3 นาที");
+
         public final Material material; public final String title,lore;
         Relic(Material m,String t,String l){material=m;title=t;lore=l;}
         public String id(){return name().toLowerCase(Locale.ROOT);}
     }
+
     private final VoidscapePlugin plugin;
     private final NamespacedKey type,shot,shotOwner,shieldUntil,voidKeyTag;
     private final Set<UUID> mining=new HashSet<>();
     private final Map<UUID,Long> arrows=new HashMap<>();
+
     public record MagicCore(String id, String title, String wandTitle) {}
     public static final List<MagicCore> MAGIC_CORES = List.of(
         new MagicCore("lightning_strike", "Core of Lightning", "Lightning Strike"),
@@ -53,21 +69,22 @@ public final class RelicService implements Listener {
         new MagicCore("time_dilation", "Core of Time", "Time Dilation"),
         new MagicCore("soul_drain", "Core of Souls", "Soul Drain")
     );
-    private static final Material[] ARMOR_TRIMS = {
-        Material.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE, Material.SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE,
-        Material.WARD_ARMOR_TRIM_SMITHING_TEMPLATE, Material.VEX_ARMOR_TRIM_SMITHING_TEMPLATE,
-        Material.RIB_ARMOR_TRIM_SMITHING_TEMPLATE, Material.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE,
-        Material.TIDE_ARMOR_TRIM_SMITHING_TEMPLATE, Material.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE,
-        Material.RAISER_ARMOR_TRIM_SMITHING_TEMPLATE, Material.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE,
-        Material.HOST_ARMOR_TRIM_SMITHING_TEMPLATE, Material.FLOW_ARMOR_TRIM_SMITHING_TEMPLATE,
-        Material.BOLT_ARMOR_TRIM_SMITHING_TEMPLATE, Material.EYE_ARMOR_TRIM_SMITHING_TEMPLATE,
-        Material.DUNE_ARMOR_TRIM_SMITHING_TEMPLATE, Material.COAST_ARMOR_TRIM_SMITHING_TEMPLATE,
-        Material.WILD_ARMOR_TRIM_SMITHING_TEMPLATE, Material.SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE
-    };
+
     public RelicService(VoidscapePlugin plugin) {
         this.plugin=plugin; type=plugin.key("relic_v2");shot=plugin.key("shot");shotOwner=plugin.key("shot_owner");shieldUntil=plugin.key("shield_until");
         voidKeyTag=plugin.key("void_key");
+        registerKeyRecipe();
     }
+
+    public void registerKeyRecipe() {
+        NamespacedKey key = plugin.key("craft_void_key");
+        try { Bukkit.removeRecipe(key); } catch (Exception ignored) {}
+        ShapedRecipe recipe = new ShapedRecipe(key, createVoidKey());
+        recipe.shape("SS", "SS");
+        recipe.setIngredient('S', new RecipeChoice.ExactChoice(createKeyShard(1)));
+        try { Bukkit.addRecipe(recipe); } catch (Exception ignored) {}
+    }
+
     public ItemStack createMagicCore(MagicCore core) {
         ItemStack item=new ItemStack(Material.HEART_OF_THE_SEA);
         ItemMeta meta=item.getItemMeta();
@@ -78,7 +95,7 @@ public final class RelicService implements Listener {
                 ChatColor.DARK_PURPLE+""+ChatColor.MAGIC+"Forbidden Dragon Heart",
                 ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.BLACK+""+ChatColor.BOLD+"Shulker Levitation Wand",
                 ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
-                ChatColor.RED+"✦ อัตราดรอปต่ำสุดใน Evergarden Vault (เรทตำนาน 0.1%)"
+                ChatColor.RED+"✦ อัตราดรอป 0.5% ใน Evergarden Vault"
             ));
         } else {
             meta.setDisplayName(ChatColor.GOLD+"✦ "+core.title());
@@ -98,26 +115,29 @@ public final class RelicService implements Listener {
         item.setItemMeta(meta);
         return item;
     }
+
     public ItemStack createMagicCore(String id) {
         for(MagicCore c : MAGIC_CORES) {
             if(c.id().equalsIgnoreCase(id)||c.id().replace("_","").equalsIgnoreCase(id.replace("_",""))) return createMagicCore(c);
         }
         return createMagicCore(MAGIC_CORES.get(0));
     }
+
     public ItemStack create(Relic relic,int count) {
         ItemStack item=new ItemStack(relic.material,Math.min(relic.material.getMaxStackSize(),Math.max(1,count)));
         ItemMeta meta=item.getItemMeta();
-        meta.displayName(Component.text(relic.title,relic==Relic.VOID_KEY?NamedTextColor.LIGHT_PURPLE:NamedTextColor.AQUA));
+        meta.displayName(Component.text(relic.title,relic==Relic.VOID_KEY?NamedTextColor.LIGHT_PURPLE:NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
-            Component.text(relic.lore,NamedTextColor.GRAY),
-            Component.text(relic==Relic.VOID_KEY?"EVERGARDEN · TRIAL KEY":"EVERGARDEN · RELIC",NamedTextColor.DARK_PURPLE)
+            Component.text(relic.lore,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
+            Component.text(relic==Relic.VOID_KEY?"EVERGARDEN · TRIAL KEY":"EVERGARDEN · RELIC",NamedTextColor.DARK_PURPLE).decoration(TextDecoration.ITALIC, false)
         ));
         meta.setItemModel(null);
         var selector=meta.getCustomModelDataComponent();selector.setStrings(List.of("voidscape:"+relic.id()));meta.setCustomModelDataComponent(selector);
         meta.getPersistentDataContainer().set(type,PersistentDataType.STRING,relic.name());
+
         if(relic==Relic.VOID_KEY) {
             meta.getPersistentDataContainer().set(voidKeyTag,PersistentDataType.BYTE,(byte)1);
-        } else {
+        } else if(relic.material==Material.NETHERITE_PICKAXE||relic.material==Material.NETHERITE_SWORD||relic.material==Material.BOW||relic.material==Material.SHIELD) {
             meta.addEnchant(Enchantment.UNBREAKING,3,true);
             if(relic==Relic.RIFT_PICKAXE||relic==Relic.SMELTER_PICKAXE) {meta.addEnchant(Enchantment.EFFICIENCY,5,true);meta.addEnchant(Enchantment.FORTUNE,3,true);}
             if(relic==Relic.RIFT_BLADE) meta.addEnchant(Enchantment.SHARPNESS,8,true);
@@ -125,6 +145,143 @@ public final class RelicService implements Listener {
         }
         item.setItemMeta(meta); return item;
     }
+
+    public ItemStack createScrollEternity() {
+        ItemStack item=create(Relic.SCROLL_ETERNITY,1);
+        ItemMeta meta=item.getItemMeta();
+        meta.displayName(Component.text("✦ คัมภีร์ศิลานิรันดร์ (Scroll of Eternity) [MYTHIC]",NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false));
+        meta.lore(List.of(
+            Component.text("[ระดับตำนานสูงสุด · MYTHIC 0.5%]",NamedTextColor.RED).decoration(TextDecoration.ITALIC,false),
+            Component.text("ลากคัมภีร์นี้ไปแตะที่อาวุธ ชุดเกราะ หรือเครื่องมือ",NamedTextColor.WHITE).decoration(TextDecoration.ITALIC,false),
+            Component.text("ไอเทมนั้นจะได้รับสถานะ 'ไม่มีวันพังเสียหาย (Unbreakable 100%)'",NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false),
+            Component.text("หลอดเลือดความทนทานจะหายไปถาวร",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
+            Component.text("วิธีใช้: ลากคัมภีร์ไปแตะทับไอเทมในกระเป๋า (รองรับมือถือ)",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false)
+        ));
+        meta.getPersistentDataContainer().set(plugin.key("scroll_eternity"),PersistentDataType.BYTE,(byte)1);
+        item.setItemMeta(meta);return item;
+    }
+
+    public ItemStack createScrollLimitBreak(LimitBreakType lb) {
+        ItemStack item=create(Relic.SCROLL_LIMIT_BREAK,1);
+        ItemMeta meta=item.getItemMeta();
+        meta.displayName(Component.text("✦ คัมภีร์ทลายขีดจำกัด: "+lb.title(),NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false));
+        meta.lore(List.of(
+            Component.text("✦ "+lb.thaiTitle(),NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false),
+            Component.text("ใช้สำหรับ: "+lb.targetDescription(),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
+            Component.text("วิธีใช้: ลากคัมภีร์ไปแตะทับไอเทมในกระเป๋า",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
+            Component.text("เพื่อเพิ่มเลเวลเอนแชนต์เดิมขึ้น +1 (สูงสุดเลเวล "+lb.maxLevel()+")",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
+            Component.text("[อัตราสำเร็จ 100% · ลากแตะเพื่อใช้งาน]",NamedTextColor.GREEN).decoration(TextDecoration.ITALIC,false)
+        ));
+        meta.getPersistentDataContainer().set(plugin.key("limit_break_type"),PersistentDataType.STRING,lb.name());
+        item.setItemMeta(meta);return item;
+    }
+
+    public ItemStack createScrollUnique(UniqueEnchant ue) {
+        ItemStack item=create(Relic.SCROLL_UNIQUE,1);
+        ItemMeta meta=item.getItemMeta();
+        meta.displayName(Component.text("✦ มนตราโบราณ: "+ue.title(),NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC,false));
+        meta.lore(List.of(
+            Component.text("✦ "+ue.thaiTitle(),NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false),
+            Component.text("ความสามารถ: "+ue.description(),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
+            Component.text("ประเภทอุปกรณ์: "+ue.category().name(),NamedTextColor.DARK_AQUA).decoration(TextDecoration.ITALIC,false),
+            Component.text("วิธีใช้: ลากคัมภีร์ไปแตะทับอุปกรณ์ในกระเป๋า",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
+            Component.text("[อัตราสำเร็จ 100% · ลากแตะเพื่อใช้งาน]",NamedTextColor.GREEN).decoration(TextDecoration.ITALIC,false)
+        ));
+        meta.getPersistentDataContainer().set(plugin.key("unique_enchant"),PersistentDataType.STRING,ue.name());
+        item.setItemMeta(meta);return item;
+    }
+
+    public ItemStack createKeyShard(int count) {
+        ItemStack item=create(Relic.KEY_SHARD,count);
+        ItemMeta meta=item.getItemMeta();
+        meta.displayName(Component.text("✦ เศษกุญแจมิติ (Evergarden Key Shard)",NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC,false));
+        meta.lore(List.of(
+            Component.text("เศษผลึกโบราณจาก Evergarden Vault",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
+            Component.text("รวบรวมครบ 4 ชิ้น วาง 2×2 ที่โต๊ะคราฟต์",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
+            Component.text("เพื่อรวมเป็น Evergarden Key (1 ดอก)",NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false)
+        ));
+        meta.getPersistentDataContainer().set(plugin.key("key_shard"),PersistentDataType.BYTE,(byte)1);
+        item.setItemMeta(meta);return item;
+    }
+
+    public ItemStack createAstralDust(int count) {
+        ItemStack item=create(Relic.ASTRAL_DUST,count);
+        ItemMeta meta=item.getItemMeta();
+        meta.displayName(Component.text("✦ ผงละอองดาว (Astral Dust)",NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false));
+        meta.lore(List.of(
+            Component.text("ละอองดวงดาวโบราณที่ส่องประกายระยิบระยับ",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
+            Component.text("สสารเวทมนตร์บริสุทธิ์แห่งมิติ Evergarden",NamedTextColor.DARK_AQUA).decoration(TextDecoration.ITALIC,false)
+        ));
+        meta.getPersistentDataContainer().set(plugin.key("astral_dust"),PersistentDataType.BYTE,(byte)1);
+        item.setItemMeta(meta);return item;
+    }
+
+    public ItemStack createRepairStone(int count) {
+        ItemStack item=create(Relic.REPAIR_STONE,count);
+        ItemMeta meta=item.getItemMeta();
+        meta.displayName(Component.text("✦ ศิลาฟื้นฟูมิติ (Vault Repair Stone)",NamedTextColor.GREEN).decoration(TextDecoration.ITALIC,false));
+        meta.lore(List.of(
+            Component.text("ศิลาจารึกอักขระฟื้นฟูโบราณ",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
+            Component.text("คลิกขวาเพื่อซ่อมแซมความทนทาน 500 หน่วย",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
+            Component.text("(ซ่อมให้กับอุปกรณ์ที่ชำรุดมากที่สุดในตัวคุณ)",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false)
+        ));
+        meta.getPersistentDataContainer().set(plugin.key("repair_stone"),PersistentDataType.BYTE,(byte)1);
+        item.setItemMeta(meta);return item;
+    }
+
+    public ItemStack createVoidElixir(int count) {
+        ItemStack item=create(Relic.VOID_ELIXIR,count);
+        ItemMeta meta=item.getItemMeta();
+        meta.displayName(Component.text("✦ น้ำยาเดินเวหา (Void Walker Elixir)",NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC,false));
+        meta.lore(List.of(
+            Component.text("น้ำยาเรืองแสงผสมละอองดาวบริสุทธิ์",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false),
+            Component.text("ดื่มเพื่อรับผลลัพธ์เป็นเวลา 3 นาที:",NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC,false),
+            Component.text("• ความเร็ว Speed II",NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false),
+            Component.text("• กระโดดสูง Jump Boost II",NamedTextColor.GREEN).decoration(TextDecoration.ITALIC,false),
+            Component.text("• ตกช้า Slow Falling (ป้องกันตกหลุม Void)",NamedTextColor.WHITE).decoration(TextDecoration.ITALIC,false)
+        ));
+        meta.getPersistentDataContainer().set(plugin.key("void_elixir"),PersistentDataType.BYTE,(byte)1);
+        item.setItemMeta(meta);return item;
+    }
+
+    public boolean isScrollEternity(ItemStack item) {
+        if(item==null||!item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(plugin.key("scroll_eternity"),PersistentDataType.BYTE)
+            || type(item)==Relic.SCROLL_ETERNITY;
+    }
+
+    public LimitBreakType getLimitBreakType(ItemStack item) {
+        if(item==null||!item.hasItemMeta()) return null;
+        String raw=item.getItemMeta().getPersistentDataContainer().get(plugin.key("limit_break_type"),PersistentDataType.STRING);
+        if(raw==null) return null;
+        try{return LimitBreakType.valueOf(raw);}catch(Exception e){return null;}
+    }
+
+    public UniqueEnchant getUniqueEnchant(ItemStack item) {
+        if(item==null||!item.hasItemMeta()) return null;
+        String raw=item.getItemMeta().getPersistentDataContainer().get(plugin.key("unique_enchant"),PersistentDataType.STRING);
+        if(raw==null) return null;
+        try{return UniqueEnchant.valueOf(raw);}catch(Exception e){return null;}
+    }
+
+    public boolean isKeyShard(ItemStack item) {
+        if(item==null||!item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(plugin.key("key_shard"),PersistentDataType.BYTE)
+            || type(item)==Relic.KEY_SHARD;
+    }
+
+    public boolean isRepairStone(ItemStack item) {
+        if(item==null||!item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(plugin.key("repair_stone"),PersistentDataType.BYTE)
+            || type(item)==Relic.REPAIR_STONE;
+    }
+
+    public boolean isVoidElixir(ItemStack item) {
+        if(item==null||!item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(plugin.key("void_elixir"),PersistentDataType.BYTE)
+            || type(item)==Relic.VOID_ELIXIR;
+    }
+
     public boolean migrate(ItemStack item) {
         Relic relic=type(item);if(relic==null)return false;
         var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();String model="voidscape:"+relic.id();
@@ -142,6 +299,7 @@ public final class RelicService implements Listener {
     }
     @EventHandler public void load(org.bukkit.event.world.EntitiesLoadEvent e){e.getEntities().forEach(this::migrateEntity);}
     @EventHandler public void click(org.bukkit.event.inventory.InventoryClickEvent e){if(migrate(e.getCurrentItem()))e.setCurrentItem(e.getCurrentItem());}
+
     public boolean isVoidKey(ItemStack item) {
         if(item==null||!item.hasItemMeta()) return false;
         return item.getItemMeta().getPersistentDataContainer().has(voidKeyTag,PersistentDataType.BYTE)
@@ -150,40 +308,55 @@ public final class RelicService implements Listener {
     public ItemStack createVoidKey() {
         return create(Relic.VOID_KEY,1);
     }
+
     public ItemStack rollVaultReward() {
         var random=java.util.concurrent.ThreadLocalRandom.current();
         return switch(VaultLootTable.reward(random.nextInt(10000))) {
-            case DIAMONDS -> new ItemStack(Material.DIAMOND_BLOCK,2);
-            case NETHERITE -> new ItemStack(Material.NETHERITE_INGOT,2);
-            case TRIM -> new ItemStack(ARMOR_TRIMS[random.nextInt(ARMOR_TRIMS.length)],2);
-            case EQUIPMENT -> {
-                Relic[] equipment={Relic.RIFT_PICKAXE,Relic.SMELTER_PICKAXE,Relic.STORM_BOW};
-                yield create(equipment[random.nextInt(equipment.length)],1);
+            case SCROLL_ETERNITY -> createScrollEternity();
+            case MYTHIC_CORE -> createMagicCore("shulker_levitation");
+            case LIMIT_BREAK -> {
+                LimitBreakType[] types=LimitBreakType.values();
+                yield createScrollLimitBreak(types[random.nextInt(types.length)]);
+            }
+            case UNIQUE_SCROLL -> {
+                UniqueEnchant[] enchants=UniqueEnchant.values();
+                yield createScrollUnique(enchants[random.nextInt(enchants.length)]);
             }
             case CORE -> {
                 List<MagicCore> cores=MAGIC_CORES.stream().filter(c->!c.id().equals("shulker_levitation")).toList();
                 yield createMagicCore(cores.get(random.nextInt(cores.size())));
             }
-            case MYTHIC_CORE -> createMagicCore("shulker_levitation");
+            case EQUIPMENT -> {
+                Relic[] equipment={Relic.RIFT_PICKAXE,Relic.SMELTER_PICKAXE,Relic.STORM_BOW,Relic.NOVA_BOW,Relic.RIFT_BLADE,Relic.ETERNAL_AEGIS};
+                yield create(equipment[random.nextInt(equipment.length)],1);
+            }
+            case CONSUMABLE -> {
+                int sub=random.nextInt(4);
+                yield switch(sub) {
+                    case 0 -> createKeyShard(2);
+                    case 1 -> createAstralDust(4);
+                    case 2 -> createRepairStone(2);
+                    default -> createVoidElixir(2);
+                };
+            }
         };
     }
+
     public ItemStack createGuideBook() {
         ItemStack book=new ItemStack(Material.WRITTEN_BOOK);
         org.bukkit.inventory.meta.BookMeta meta=(org.bukkit.inventory.meta.BookMeta)book.getItemMeta();
-        meta.setTitle("บันทึกมิติ Evergarden");
+        meta.setTitle("คู่มือมิติ Evergarden");
         meta.setAuthor("ผู้พิทักษ์มิติ");
         meta.pages(List.of(
-            Component.text("§1§lมิติความว่างเปล่า\n§0(Evergarden Realm)\n§8ส่วนขยาย Advance Magic\n\n§0ยินดีต้อนรับสู่ Evergarden!\nสวนลอยฟ้าในความว่างเปล่า ป่าดอกไม้และคริสตัลซ่อนร่องรอยวิหารโบราณ\nพร้อมวิหารโบราณ 3 ธาตุ กระจายตัวไม่จำกัดทั่วโลก"),
-            Component.text("§1§lการสร้างประตูมิติ\n§01. สร้างกรอบคล้าย Nether Portal ด้วย §5Crying Obsidian§0 ขนาดเริ่มต้น 4x5 (ช่องใน 2x3 หรือใหญ่กว่า)\n\n§02. จุดไฟด้วย §6Flint & Steel§0, §cFire Charge§0 หรือ §bEye of Ender§0 ในกรอบ\n\n§03. ประตูสีม่วงจะเปิดออกทันที!"),
-            Component.text("§1§lสำรวจสวนลอยฟ้า\n§0เดินตามทางแสงไปวิหาร หรือใช้ §5Elytra§0 สำรวจต่อ สร้างบ้านบนทุ่งนอกเขตวิหารได้\n\n§0วิหารโบราณทั้ง 3 ธาตุมีอยู่ §c§lไม่จำกัดทั่วทั้งมิติ§r§0 (เกิดซ้ำเรื่อยๆ ทุกๆ ~280 บล็อก)\n\n§0วิหารใกล้จุดเกิดที่สุด:\n§51. วิหารความมืด§0 (มุ่งหน้าทิศเหนือ Z = -250)\n§92. วิหารดวงดาว§0 (ทิศ ต.อ.เฉียงใต้ X = 220, Z = 130)\n§63. วิหารกาลเวลา§0 (ทิศ ต.ต.เฉียงใต้ X = -220, Z = 130)\n\n§8พิมพ์ /evergarden locate เพื่อดูพิกัดวิหารใกล้ตัวคุณ"),
-            Component.text("§1§lกฎการท้าทาย\n§0"+plugin.integer("combat.waves",5,2,12)+" เวฟ แล้วตามด้วยบอส\n- คลิกที่แท่น §5Lodestone§0 กลางวิหารเพื่อเรียกผู้พิทักษ์\n\n§0⚠ §c§lคำเตือน:§r§0 ห้ามนำเรือหรือรถรางมาขังมอนสเตอร์เด็ดขาด! พลังวิหารจะขับไล่ยานพาหนะทันที"),
-            Component.text("§1§lรางวัล & Evergarden Vault\n§0- ชนะวิหารเพื่อรับ §dEvergarden Key§0\n- ใช้เปิด §5Evergarden Vault§0\n- §cเปิดได้คนละ 1 ครั้งต่อวิหาร§0\n\n§0§lโอกาสดรอป:\n§b• 35%§0 Diamond Block ×2\n§8• 35%§0 Netherite Ingot ×2\n§e• 10%§0 Armor Trim สุ่ม ×2\n§d• 15%§0 อุปกรณ์พิเศษ\n§5• 4.9%§0 แกนเวทมนตร์ทั่วไป\n§4• 0.1%§0 แกนระดับตำนาน"),
-            Component.text("§1§lแกนเวทย์ & อุปกรณ์\n§0• §6แกน Core of ...§0: นำไปล้อมด้วย Netherite Ingot หรือ Nether Star รวม 8 ชิ้น ที่โต๊ะคราฟต์เพื่อสร้างคทาเวทมนตร์ Advance Magic!\n\n§0• §bที่ขุด 3x3§0: ขุดพื้นที่ 3x3 บล็อกพร้อมกัน\n• §6ที่ขุดหลอมอัตโนมัติ§0: ขุดทรายได้กระจก ขุดแร่ได้แท่งโลหะ\n• §dธนูสายฟ้า§0: ยิงธนูผ่าสายฟ้าต่อเนื่อง"),
-            Component.text("§0§l✦ §kUnknown Mythic Wand§r§0 ✦\n§8[ตำนานมหาคทาต้องห้าม]\n\n§0บันทึกลับโบราณกล่าวถึงคทาหายนะที่สาบสูญ:\n§5§kABXQWZLKMNVOPTRSYJ\n§8§kENDER DRAGON SINGULARITY\n§4§kCATACLYSMIC CALAMITY\n§0§kVOID SCULK WITHER DOMAIN\n\n§c§lอัตราการค้นพบ:\n§4§l• เรทดรอป: 0.1% §8(เรทต่ำสุดในวิหาร)\n\n§0ผู้ใดครอบครองจะสามารถเปลี่ยนฟ้าดินเป็นพายุคลั่ง เรียกมังกรจุติ หลุมดำกลืนมิติ และแผ่ดินแดน Sculk Wither III")
+            Component.text("§1§lมิติ Evergarden\n§8(สวนลอยฟ้าในความว่างเปล่า)\n\n§0§l1. วิธีสร้างประตูมิติ:§r\n§0สร้างกรอบด้วย §5Crying Obsidian§0 ขนาดเริ่มต้น 4x5 (ช่องใน 2x3)\n\n§0จุดไฟด้วย §6Flint & Steel§0 หรือ §bEye of Ender§0 ในกรอบ ประตูสีม่วงจะเปิดออกทันที!"),
+            Component.text("§1§l2. การท้าทายวิหาร\n\n§0• มีวิหาร 3 ธาตุ: §5ความมืด§0, §9ดวงดาว§0, §6กาลเวลา\n§0• คลิกที่แท่น §5Lodestone§0 กลางวิหารเพื่อเริ่มสู้\n• เอาชนะมอนสเตอร์ 3 เวฟ และปราบบอสประจำวิหาร\n• บอสจะดรอป §dEvergarden Key§0 สำหรับเปิดกล่องสมบัติ"),
+            Component.text("§1§l3. รางวัล Evergarden Vault\n\n§0§lของรางวัลสุดแรร์:§r\n§4• 0.5%§0 §6Scroll of Eternity§0 (ไม่มีวันพังถาวร 100%)\n§4• 0.5%§0 §dCore of Levitation§0 (คทาระดับตำนาน)\n§b• 25%§0 §3Limit Break Scrolls§0 (+1 ทลายขีดจำกัด)\n§5• 20%§0 §dUnique Enchants§0 (คัมภีร์สกิลเทพ)\n§e• 14%§0 แกนเวทมนตร์ 14 ธาตุ\n§2• 30%§0 วัตถุดิบ & น้ำยาเดินเวหา"),
+            Component.text("§1§l4. ระบบ Drag & Drop\n\n§0§lวิธีใช้งานคัมภีร์:§r\n§01. เปิดกระเป๋าตัวละคร\n2. หยิบคัมภีร์ที่ต้องการ\n3. §6แตะ/คลิกทับลงบนอาวุธหรืออุปกรณ์โดยตรง§0\n\n§a✔ ติดตั้งทันทีใน 1 วินาที\n§a✔ ไม่ต้องใช้ทั่ง (Anvil)\n§a✔ รองรับผู้เล่น Bedrock / มือถือ 100%!")
         ));
         book.setItemMeta(meta);
         return book;
     }
+
     public Relic type(ItemStack item) {
         if(item==null||!item.hasItemMeta()) return null;
         String id=item.getItemMeta().getPersistentDataContainer().get(type,PersistentDataType.STRING);
@@ -201,12 +374,21 @@ public final class RelicService implements Listener {
     private void cooldown(Player p,Relic r,int seconds) {
         p.getPersistentDataContainer().set(plugin.key("cd_"+r.id()),PersistentDataType.LONG,System.currentTimeMillis()+seconds*1000L);
     }
+
     @EventHandler(priority=EventPriority.HIGH)
     public void interact(PlayerInteractEvent e) {
         if(!e.getAction().isRightClick())return;
-        // Air clicks can be pre-cancelled by vanilla; honour the item-use decision separately.
         if(e.useItemInHand()==Event.Result.DENY)return;
-        Relic r=type(e.getItem()); Player p=e.getPlayer();
+        Player p=e.getPlayer();
+
+        // 1. Vault Repair Stone interaction
+        if(isRepairStone(e.getItem())) {
+            e.setCancelled(true);
+            useRepairStone(p,e.getItem());
+            return;
+        }
+
+        Relic r=type(e.getItem());
         if(r!=Relic.RIFT_BLADE&&r!=Relic.ETERNAL_AEGIS)return;
         e.setCancelled(true);
         if(p.getGameMode()==GameMode.SPECTATOR||!ready(p,r))return;
@@ -240,6 +422,54 @@ public final class RelicService implements Listener {
             }
         }
     }
+
+    private void useRepairStone(Player p,ItemStack item) {
+        ItemStack best=null;
+        int maxDamage=0;
+        List<ItemStack> candidates=new ArrayList<>();
+        if(p.getInventory().getArmorContents()!=null) {
+            candidates.addAll(Arrays.asList(p.getInventory().getArmorContents()));
+        }
+        candidates.add(p.getInventory().getItemInOffHand());
+        candidates.add(p.getInventory().getItemInMainHand());
+        for(ItemStack it:candidates) {
+            if(it!=null&&it.hasItemMeta()&&it.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg) {
+                if(dmg.getDamage()>maxDamage&&!it.equals(item)) {
+                    maxDamage=dmg.getDamage();
+                    best=it;
+                }
+            }
+        }
+        if(best==null||maxDamage<=0) {
+            p.playSound(p.getLocation(),Sound.ENTITY_VILLAGER_NO,0.8f,1.0f);
+            p.sendActionBar(Component.text("⚠ อุปกรณ์และชุดเกราะของคุณไม่ได้รับความเสียหาย",NamedTextColor.YELLOW));
+            return;
+        }
+        org.bukkit.inventory.meta.Damageable dmg=(org.bukkit.inventory.meta.Damageable)best.getItemMeta();
+        int repaired=Math.min(500,dmg.getDamage());
+        dmg.setDamage(dmg.getDamage()-repaired);
+        best.setItemMeta(dmg);
+
+        item.subtract(1);
+        p.playSound(p.getLocation(),Sound.BLOCK_GRINDSTONE_USE,1.0f,1.2f);
+        p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER,p.getLocation().add(0,1,0),15,0.3,0.3,0.3,0.05);
+        p.sendActionBar(Component.text("✦ ศิลาฟื้นฟูมิติ ซ่อมแซมความทนทาน "+repaired+" หน่วย!",NamedTextColor.GREEN));
+    }
+
+    @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true)
+    public void onConsume(PlayerItemConsumeEvent e) {
+        if(isVoidElixir(e.getItem())) {
+            Player p=e.getPlayer();
+            p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,20*180,1));
+            p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST,20*180,1));
+            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING,20*180,0));
+            p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION,20*30,0));
+            p.playSound(p.getLocation(),Sound.BLOCK_AMETHYST_BLOCK_CHIME,1.0f,1.4f);
+            p.getWorld().spawnParticle(Particle.PORTAL,p.getLocation().add(0,1,0),30,0.5,0.5,0.5,0.1);
+            p.sendActionBar(Component.text("✦ พลังแห่งเดินเวหาตื่นขึ้น! (Speed II + Jump II + Slow Falling 3 นาที)",NamedTextColor.LIGHT_PURPLE));
+        }
+    }
+
     @EventHandler(priority=EventPriority.HIGHEST)
     public void shieldDamage(EntityDamageEvent e) {if(e.getEntity() instanceof Player p&&immune(p))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
@@ -308,7 +538,7 @@ public final class RelicService implements Listener {
                     if(!block.getWorld().isChunkLoaded(block.getX()>>4,block.getZ()>>4)||p.getLocation().distanceSquared(block.getLocation())>64)continue;
                     if(!Tag.MINEABLE_PICKAXE.isTagged(block.getType())||block.getType().getHardness()<0||block.getState() instanceof org.bukkit.inventory.InventoryHolder)continue;
                     if(type(p.getInventory().getItemInMainHand())!=Relic.RIFT_PICKAXE)break;
-                    p.breakBlock(block); // Native events, claims, drops, XP, Fortune and durability for EACH block.
+                    p.breakBlock(block);
                 }
             } finally {mining.remove(id);}
         });

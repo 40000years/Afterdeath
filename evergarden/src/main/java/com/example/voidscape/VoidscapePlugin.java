@@ -83,6 +83,7 @@ public final class VoidscapePlugin extends JavaPlugin {
             voidWorld.getWorldBorder().setSize(integer("dimension.border-size",24000,4096,60000));
             relics=new RelicService(this);dungeons=new DungeonManager(this);travel=new TravelListener(this);
             var pm=getServer().getPluginManager();pm.registerEvents(relics,this);pm.registerEvents(dungeons,this);pm.registerEvents(travel,this);
+            pm.registerEvents(new com.example.voidscape.enchant.EnchantApplyListener(this,relics),this);
             packs.start();pm.registerEvents(packs,this);
             getServer().getOnlinePlayers().forEach(p->{relics.migrate(p.getInventory());relics.migrate(p.getEnderChest());packs.offer(p);});
             getServer().getWorlds().forEach(w->w.getEntities().forEach(relics::migrateEntity));

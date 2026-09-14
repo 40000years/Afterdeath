@@ -17,7 +17,14 @@ ITEMS = {
  'storm_bow':('bow','Storm Verdict'),
  'nova_bow':('bow','Nova Bow'),
  'rift_blade':('netherite_sword','Rift Blade'),
- 'eternal_aegis':('shield','Eternal Aegis')}
+ 'eternal_aegis':('shield','Eternal Aegis'),
+ 'scroll_eternity':('paper','Scroll of Eternity'),
+ 'scroll_limit_break':('paper','Limit Break Scroll'),
+ 'scroll_unique':('paper','Ancient Wisdom Scroll'),
+ 'astral_dust':('sugar','Astral Dust'),
+ 'key_shard':('prismarine_shard','Evergarden Key Shard'),
+ 'repair_stone':('flint','Vault Repair Stone'),
+ 'void_elixir':('honey_bottle','Void Walker Elixir')}
 
 MASKS = {f'{theme}_{rank}': ('carved_pumpkin', f'{theme.title()} {rank.title()}')
          for theme in ('thorn','astral','chrono') for rank in ('mask','crown')}

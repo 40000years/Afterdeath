@@ -130,6 +130,135 @@
         }
       }
     ],
+    "minecraft:paper": [
+      {
+        "type": "definition",
+        "model": "minecraft:paper",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:scroll_eternity"
+        },
+        "bedrock_identifier": "voidscape:scroll_eternity",
+        "display_name": "Scroll of Eternity",
+        "bedrock_options": {
+          "icon": "voidscape.scroll_eternity",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:paper",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:scroll_limit_break"
+        },
+        "bedrock_identifier": "voidscape:scroll_limit_break",
+        "display_name": "Limit Break Scroll",
+        "bedrock_options": {
+          "icon": "voidscape.scroll_limit_break",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:paper",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:scroll_unique"
+        },
+        "bedrock_identifier": "voidscape:scroll_unique",
+        "display_name": "Ancient Wisdom Scroll",
+        "bedrock_options": {
+          "icon": "voidscape.scroll_unique",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      }
+    ],
+    "minecraft:sugar": [
+      {
+        "type": "definition",
+        "model": "minecraft:sugar",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:astral_dust"
+        },
+        "bedrock_identifier": "voidscape:astral_dust",
+        "display_name": "Astral Dust",
+        "bedrock_options": {
+          "icon": "voidscape.astral_dust",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      }
+    ],
+    "minecraft:prismarine_shard": [
+      {
+        "type": "definition",
+        "model": "minecraft:prismarine_shard",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:key_shard"
+        },
+        "bedrock_identifier": "voidscape:key_shard",
+        "display_name": "Evergarden Key Shard",
+        "bedrock_options": {
+          "icon": "voidscape.key_shard",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      }
+    ],
+    "minecraft:flint": [
+      {
+        "type": "definition",
+        "model": "minecraft:flint",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:repair_stone"
+        },
+        "bedrock_identifier": "voidscape:repair_stone",
+        "display_name": "Vault Repair Stone",
+        "bedrock_options": {
+          "icon": "voidscape.repair_stone",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      }
+    ],
+    "minecraft:honey_bottle": [
+      {
+        "type": "definition",
+        "model": "minecraft:honey_bottle",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:void_elixir"
+        },
+        "bedrock_identifier": "voidscape:void_elixir",
+        "display_name": "Void Walker Elixir",
+        "bedrock_options": {
+          "icon": "voidscape.void_elixir",
+          "allow_offhand": true,
+          "display_handheld": false
+        }
+      }
+    ],
     "minecraft:carved_pumpkin": [
       {
         "type": "definition",

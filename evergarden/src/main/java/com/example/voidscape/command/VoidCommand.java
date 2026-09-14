@@ -68,10 +68,41 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
                     plugin.message(sender,"มอบ "+itemArg+" แล้ว");
                     return true;
                 }
+                if(itemArg.equals("scroll_eternity")||itemArg.equals("eternity")) {
+                    target.getInventory().addItem(plugin.relics().createScrollEternity());
+                    plugin.message(sender,"มอบ Scroll of Eternity (Unbreakable) แล้ว");
+                    return true;
+                }
+                if(itemArg.startsWith("lb_")||itemArg.startsWith("limit_break_")) {
+                    String typeName=itemArg.replace("limit_break_","").replace("lb_","").toUpperCase(Locale.ROOT);
+                    try {
+                        var lb=com.example.voidscape.enchant.LimitBreakType.valueOf(typeName);
+                        target.getInventory().addItem(plugin.relics().createScrollLimitBreak(lb));
+                        plugin.message(sender,"มอบ Limit Break Scroll: "+lb.name()+" แล้ว");
+                        return true;
+                    }catch(Exception ignored){}
+                }
+                if(itemArg.startsWith("ue_")||itemArg.startsWith("unique_")) {
+                    String typeName=itemArg.replace("unique_","").replace("ue_","").toUpperCase(Locale.ROOT);
+                    try {
+                        var ue=com.example.voidscape.enchant.UniqueEnchant.valueOf(typeName);
+                        target.getInventory().addItem(plugin.relics().createScrollUnique(ue));
+                        plugin.message(sender,"มอบ Unique Enchant: "+ue.name()+" แล้ว");
+                        return true;
+                    }catch(Exception ignored){}
+                }
                 try {
                     Relic r=Relic.valueOf(args[1].toUpperCase(Locale.ROOT));
-                    target.getInventory().addItem(plugin.relics().create(r,1));plugin.message(sender,"มอบ "+r.id()+" แล้ว");
-                }catch(RuntimeException e){plugin.message(sender,"/evergarden give <ชื่อไอเทม|core_<ชื่อแกน>> [ผู้เล่น]");}
+                    if(r==Relic.SCROLL_ETERNITY) target.getInventory().addItem(plugin.relics().createScrollEternity());
+                    else if(r==Relic.SCROLL_LIMIT_BREAK) target.getInventory().addItem(plugin.relics().createScrollLimitBreak(com.example.voidscape.enchant.LimitBreakType.SHARPNESS));
+                    else if(r==Relic.SCROLL_UNIQUE) target.getInventory().addItem(plugin.relics().createScrollUnique(com.example.voidscape.enchant.UniqueEnchant.COLOSSUS_SLAYER));
+                    else if(r==Relic.KEY_SHARD) target.getInventory().addItem(plugin.relics().createKeyShard(1));
+                    else if(r==Relic.ASTRAL_DUST) target.getInventory().addItem(plugin.relics().createAstralDust(1));
+                    else if(r==Relic.REPAIR_STONE) target.getInventory().addItem(plugin.relics().createRepairStone(1));
+                    else if(r==Relic.VOID_ELIXIR) target.getInventory().addItem(plugin.relics().createVoidElixir(1));
+                    else target.getInventory().addItem(plugin.relics().create(r,1));
+                    plugin.message(sender,"มอบ "+r.id()+" แล้ว");
+                }catch(RuntimeException e){plugin.message(sender,"/evergarden give <ชื่อไอเทม|core_<ชื่อแกน>|lb_<ชนิด>|ue_<สกิล>> [ผู้เล่น]");}
             }
             case "locate" -> {
                 int x=p!=null&&p.getWorld()==plugin.world()?p.getLocation().getBlockX():0;
@@ -131,6 +162,8 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
         if(args.length==2&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
             for(Relic r:Relic.values())c.add(r.id());
             for(var core : com.example.voidscape.item.RelicService.MAGIC_CORES) c.add("core_"+core.id());
+            for(var lb : com.example.voidscape.enchant.LimitBreakType.values()) c.add("lb_"+lb.name().toLowerCase(Locale.ROOT));
+            for(var ue : com.example.voidscape.enchant.UniqueEnchant.values()) c.add("ue_"+ue.id());
         }
         if(args.length==2&&args[0].equalsIgnoreCase("locate"))c.addAll(List.of("dark","astral","time"));
         return c.stream().filter(s->s.startsWith(args[args.length-1].toLowerCase(Locale.ROOT))).toList();
