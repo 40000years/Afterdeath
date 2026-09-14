@@ -278,8 +278,8 @@ public final class DungeonManager implements Listener {
             double baseHp;
             double attackDamage;
             if (species == Species.BOSS) {
-                // Boss HP scaling: 3,500 base + 1,500 per extra player (capped at 10,000 HP max)
-                baseHp = Math.min(10000.0, 3500.0 + Math.max(0, teamSize - 1) * 1500.0);
+                // Boss HP scaling: 750 base + 125 per extra player (capped at 1,000 HP max to respect Paper's 1024.0 attribute clamp)
+                baseHp = Math.min(1000.0, 750.0 + Math.max(0, teamSize - 1) * 125.0);
                 attackDamage = 45.0 + Math.max(0, teamSize - 1) * 10.0;
                 if (m.getAttribute(Attribute.ARMOR) != null) m.getAttribute(Attribute.ARMOR).setBaseValue(24.0);
                 if (m.getAttribute(Attribute.ARMOR_TOUGHNESS) != null) m.getAttribute(Attribute.ARMOR_TOUGHNESS).setBaseValue(16.0);

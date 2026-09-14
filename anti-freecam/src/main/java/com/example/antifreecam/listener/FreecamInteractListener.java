@@ -44,6 +44,11 @@ public class FreecamInteractListener implements Listener {
         Block clicked = event.getClickedBlock();
         if (clicked == null) return;
 
+        // Only inspect valuable container blocks (chests, spawners, barrels, shulkers, etc.)
+        if (!masker.isTargetValuable(clicked.getType())) {
+            return;
+        }
+
         Location eye = player.getEyeLocation();
         Location target = clicked.getLocation();
 
@@ -73,6 +78,11 @@ public class FreecamInteractListener implements Listener {
         }
 
         Block block = event.getBlock();
+        // Only inspect valuable container blocks (chests, spawners, barrels, shulkers, etc.)
+        if (!masker.isTargetValuable(block.getType())) {
+            return;
+        }
+
         Location eye = player.getEyeLocation();
         Location target = block.getLocation();
 

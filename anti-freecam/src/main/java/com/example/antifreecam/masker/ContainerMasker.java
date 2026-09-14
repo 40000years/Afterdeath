@@ -135,7 +135,12 @@ public class ContainerMasker {
                 true
         );
 
-        return result == null || result.getHitBlock() == null;
+        if (result == null || result.getHitBlock() == null) {
+            return true;
+        }
+
+        // Direct hit on the target block means clear line of sight
+        return result.getHitBlock().getLocation().equals(targetLoc);
     }
 
     public boolean isTargetValuable(Material material) {
