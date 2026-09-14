@@ -24,13 +24,24 @@ combat:
   waves: 5
   custom-appearance: true
   boss-skill-damage: 35
+  boss-health: 1024
+  guardian-health: 135
+  specialist-health: 80
+  boss-attack: 27
+  guardian-attack: 16
+  caster-interval-ms: 7000
+  boss-skill-interval-ms: 5500
+  # Preserve the 2.2-second warning; increase the configured base damage by 10%.
+  boss-skill-power-percent: 110
 rewards:
   # Vault Loot Table Percentages:
-  # 10% tagged Magic Core (one of 15, equal chance); ordinary items are not cores.
-  # 30% Diamond Block
-  # 30% Netherite Ingot
-  # 20% Random Armor Trim Smithing Template
-  # 10% Special Equipment (Rift 3x3 Pickaxe, Smelter Pickaxe, Storm Bow)
+  # One reward per vault; rates are defined in VaultLootTable.
+  # 35% Diamond Block x2
+  # 35% Netherite Ingot x2
+  # 10% Random Armor Trim Smithing Template x2
+  # 15% Special Equipment (Rift 3x3 Pickaxe, Smelter Pickaxe, Storm Bow)
+  # 4.9% normal tagged Magic Core (14 types, equal chance)
+  # 0.1% Mythic Core of Levitation (5% total Magic Core chance)
 relics:
   allow-pvp: false
   bow:

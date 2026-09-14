@@ -7,6 +7,7 @@ meteor:
   # Explosions damage entities but never remove terrain blocks.
   damage: 90.0
 damage:
+  poison-impact: 20.0
   lightning: 60.0
   lightning-secondary: 30.0
   frost-shatter: 35.0
@@ -20,6 +21,26 @@ damage:
   soul-nova: 35.0
   shroud-ambush: 50.0
   natures-bloom-thorns: 20.0
+# Automatic extra stage from the same cast, with no additional mana or cooldown.
+# Existing customized base damage settings are preserved when upgrading.
+follow-up:
+  damage:
+    lightning_strike: 18.0
+    frost_nova: 25.0
+    shadow_step: 20.0
+    natures_bloom: 15.0
+    earth_wall: 25.0
+    dragons_breath: 30.0
+    void_pull: 20.0
+    invisibility_shroud: 20.0
+    poison_spores: 30.0
+    wither_ray: 15.0
+    shulker_levitation: 20.0
+    meteor_strike: 15.0
+    iron_armor: 25.0
+    # Damage on each existing 2.5-second pulse (five pulses per dome).
+    time_dilation: 12.0
+    soul_drain: 20.0
 # Bundled pack is automatically offered one tick after joining.
 resource-pack:
   enabled: true

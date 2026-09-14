@@ -158,6 +158,9 @@ public final class GardensChecks extends JavaPlugin {
                 var mobs=(Map<UUID,?>)field(encounter,"mobs");check(!mobs.isEmpty()&&mobs.size()<=8,"bounded wave population");
                 for(UUID id:new ArrayList<>(mobs.keySet())) {
                     Mob mob=(Mob)Bukkit.getEntity(id);
+                    check(mob.getHealth()==(mobs.get(id).toString().equals("MINION")?135:80),"buffed guardian health");
+                    if(mob.getAttribute(Attribute.ATTACK_DAMAGE)!=null)
+                        check(mob.getAttribute(Attribute.ATTACK_DAMAGE).getBaseValue()==16,"buffed guardian attack");
                     check(mob.getEquipment().getHelmet().getItemMeta().getCustomModelDataComponent().getStrings().getFirst().endsWith("_mask"),"guardian equipped custom mask");
                     check(mob.getEquipment().getHelmetDropChance()==0,"cosmetic mask cannot drop");
                     mob.setHealth(0);
@@ -166,6 +169,8 @@ public final class GardensChecks extends JavaPlugin {
             check((Boolean)field(encounter,"bossStarted"),"boss only after five waves "+site.kind());
             var mobs=(Map<UUID,?>)field(encounter,"mobs");check(mobs.size()==1,"exactly one boss");
             var boss=(Mob)Bukkit.getEntity(mobs.keySet().iterator().next());
+            check(boss.getHealth()==1024,"buffed boss reaches supported health cap");
+            check(boss.getAttribute(Attribute.ATTACK_DAMAGE).getBaseValue()==27,"buffed boss attack");
             check(boss.getEquipment().getHelmet().getItemMeta().getCustomModelDataComponent().getStrings().getFirst().endsWith("_crown"),"boss crown equipped");
             if(boss instanceof PiglinAbstract piglin)check(piglin.isImmuneToZombification(),"chrono boss cannot transform and stall combat");
             int keys=Arrays.stream(actor.getInventory().getContents()).filter(voids.relics()::isVoidKey).mapToInt(ItemStack::getAmount).sum();

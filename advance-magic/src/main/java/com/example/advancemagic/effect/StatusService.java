@@ -28,6 +28,7 @@ public final class StatusService implements Listener {
     public boolean isShrouded(Player p){return shrouds.containsKey(p.getUniqueId());}
 
     private final Set<UUID> ambushProjectiles=new HashSet<>();
+    private final Map<EntityDamageByEntityEvent,Player> ambushHits=new IdentityHashMap<>();
 
     public void hideEquipment(Player p) {
         ItemStack air=new ItemStack(Material.AIR);
@@ -110,7 +111,7 @@ public final class StatusService implements Listener {
         frozen.values().removeIf(s->s.caster.equals(p)||s.target.equals(p));
         armor.remove(p.getUniqueId());
     }
-    public void close(){for(Status s:List.copyOf(shrouds.values()))reveal((Player)s.target);roots.clear();frozen.clear();armor.clear();ambushProjectiles.clear();}
+    public void close(){for(Status s:List.copyOf(shrouds.values()))reveal((Player)s.target);roots.clear();frozen.clear();armor.clear();ambushProjectiles.clear();ambushHits.clear();}
     @EventHandler(ignoreCancelled=true) public void move(PlayerMoveEvent e) {
         Status s=roots.get(e.getPlayer().getUniqueId());Location to=e.getTo();
         if(s==null||to==null||e instanceof PlayerTeleportEvent||to.getWorld()!=s.anchor.getWorld())return;
@@ -133,8 +134,14 @@ public final class StatusService implements Listener {
             loc.getWorld().playSound(loc,Sound.ENTITY_PHANTOM_BITE,1.2f,1.5f);
             plugin.context().particles(loc,Particle.CRIT,40,0.6);
             plugin.context().particles(loc,Particle.SQUID_INK,25,0.5);
+            ambushHits.put(e,attacker);
         }
         if(attacker!=null)reveal(attacker);
+    }
+    @EventHandler(priority=EventPriority.MONITOR) public void ambushFollowUp(EntityDamageByEntityEvent e) {
+        Player attacker=ambushHits.remove(e);
+        if(attacker!=null&&!e.isCancelled()&&e.getFinalDamage()>0)
+            plugin.context().echo(attacker,e.getEntity().getLocation(),com.example.advancemagic.spell.Spell.INVISIBILITY_SHROUD,14,3.5,20);
     }
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true) public void reflect(EntityDamageByEntityEvent e) {
         if(!(e.getEntity() instanceof Player p)||!armored(p)||!(e.getDamager() instanceof LivingEntity attacker))return;

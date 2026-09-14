@@ -49,12 +49,16 @@ public final class ProjectileSpells implements Listener {
             c.particles(at,Particle.HAPPY_VILLAGER,50,1.5);c.ring(at,4,Spell.POISON_SPORES);
             at.getWorld().playSound(at,Sound.BLOCK_SPORE_BLOSSOM_PLACE,1.2f,0.7f);
             for(var e:c.nearby(p,at,4,false))if(c.affect(p,e,Spell.POISON_SPORES)) {
+                c.damage(p,e,c.configuredDamage("damage.poison-impact",20),DamageType.MAGIC);
                 c.potion(e,PotionEffectType.POISON,140,1);c.potion(e,PotionEffectType.NAUSEA,140,0);
             }
+            // Direct magic damage keeps this wand useful against poison-immune guardians.
+            c.echo(p,at,Spell.POISON_SPORES,20,5,30);
             // Stage 2: 3 Cluster Sub-spores burst outwards
             for(int i=0;i<3;i++) {
                 double angle=i*(2*Math.PI/3);
                 Location clusterLoc=at.clone().add(Math.cos(angle)*2.2,0.2,Math.sin(angle)*2.2);
+                if(!c.plugin.effects().hasCapacity())break;
                 c.plugin.effects().start(p,12,(subEffect,subAge)->{
                     if(subAge==8&&c.loaded(clusterLoc)) {
                         c.particles(clusterLoc,Particle.HAPPY_VILLAGER,25,1.0);
@@ -93,6 +97,7 @@ public final class ProjectileSpells implements Listener {
                 c.ring(at,9,Spell.VOID_PULL);
                 c.particles(at,Particle.REVERSE_PORTAL,45,1.2);
                 c.particles(at,Particle.DRAGON_BREATH,25,0.8);
+                c.echo(p,at,Spell.VOID_PULL,14,6,20);
                 for(var e:c.nearby(p,at,5.5,false))if(c.affect(p,e,Spell.VOID_PULL)) {
                     c.damage(p,e,c.configuredDamage("damage.void-collapse",45),DamageType.MAGIC);
                     e.setVelocity(new Vector(0,1.1,0));
@@ -118,6 +123,7 @@ public final class ProjectileSpells implements Listener {
                     c.particles(at,Particle.EXPLOSION,finisher?3:1,finisher?0.5:0);
                     at.getWorld().playSound(at,Sound.ENTITY_GENERIC_EXPLODE,finisher?1.0f:0.5f,finisher?0.8f:1.4f);
                     double dmg=c.configuredDamage("damage.wither-skull",40)*(finisher?1.5:1.0);
+                    if(finisher)c.echo(p,at,Spell.WITHER_RAY,14,4.5,15);
                     for(var e:c.nearby(p,at,finisher?4.5:3.0,false))if(c.affect(p,e,Spell.WITHER_RAY)) {
                         c.damage(p,e,dmg,DamageType.EXPLOSION);
                         c.potion(e,PotionEffectType.WITHER,finisher?160:100,finisher?2:1);
@@ -152,8 +158,10 @@ public final class ProjectileSpells implements Listener {
         world.playSound(center,Sound.ENTITY_ENDER_DRAGON_GROWL,2.5f,0.6f);
 
         // 3. Stage 1: Gravitational Singularity & Dragon Death Ray Vortex (70 ticks = 3.5s)
-        var effect=c.plugin.effects().start(p,70,(eff,age)->{
+        c.plugin.effects().start(p,71,(eff,age)->{
             if(!c.loaded(center))return false;
+            // Combat happens only on natural completion, never during logout/death cleanup.
+            if(age==70){detonateSingularity(p,center);return false;}
 
             // Ascending Ender Dragon death rays straight up into the sky
             for(int h=0;h<36;h+=3) {
@@ -180,32 +188,23 @@ public final class ProjectileSpells implements Listener {
             if(age%15==0)world.playSound(center,Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE,1.5f,0.5f);
             if(age%20==0)world.playSound(center,Sound.ENTITY_WARDEN_HEARTBEAT,2.0f,1.3f);
 
-            // Mass gravitational pull: Sucks in all entities within 22 blocks
-            for(Entity e:world.getNearbyEntities(center,22,22,22)) {
-                if(e.equals(p))continue;
-                if(e instanceof LivingEntity||e instanceof Item||e instanceof Projectile) {
-                    Vector pull=center.toVector().subtract(e.getLocation().toVector());
-                    double dist=pull.length();
-                    if(dist>0.8) {
-                        e.setVelocity(pull.normalize().multiply(Math.min(1.1,0.35+dist*0.04)).setY(Math.min(0.7,(center.getY()-e.getLocation().getY())*0.2+0.15)));
-                    }
-                    if(e instanceof LivingEntity target && !(target instanceof ArmorStand) && c.enemy(p, target)) {
-                        if(c.affect(p,target,Spell.SHULKER_LEVITATION)) {
-                            if(!target.hasPotionEffect(PotionEffectType.LEVITATION)) {
-                                target.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION,40,1));
-                            }
-                            if(age%10==0) {
-                                c.damage(p,target,15,DamageType.MAGIC);
-                            }
-                        }
-                    }
-                }
+            // Pull only eligible enemies, through the same protection and target limits as damage.
+            for(var target:c.nearby(p,center,22,false))if(c.affect(p,target,Spell.SHULKER_LEVITATION)) {
+                Vector pull=center.toVector().subtract(target.getLocation().toVector());
+                double dist=pull.length();
+                if(dist>0.8)target.setVelocity(pull.normalize().multiply(Math.min(1.1,0.35+dist*0.04))
+                    .setY(Math.min(0.7,(center.getY()-target.getLocation().getY())*0.2+0.15)));
+                c.potion(target,PotionEffectType.LEVITATION,40,1);
+                if(age%10==0)c.damage(p,target,15,DamageType.MAGIC);
             }
             return true;
         });
 
-        // 4. Stage 2: Cataclysmic Detonation & Sculk Corruption (age 70 on close)
-        effect.onClose(()->{
+        return true;
+    }
+
+    private void detonateSingularity(Player p,Location center) {
+        World world=center.getWorld();
             if(!c.loaded(center))return;
             // Massive explosion and sonic boom
             world.spawnParticle(Particle.EXPLOSION_EMITTER,center,10,2.0,2.0,2.0,0.1);
@@ -227,10 +226,8 @@ public final class ProjectileSpells implements Listener {
             }
 
             // 5. Sculk Corruption Zone (radius 7 blocks on surface)
-            createSculkWitherZone(p,center);
-        });
-
-        return true;
+            if(c.plugin.effects().hasCapacity())createSculkWitherZone(p,center);
+            c.echo(p,center,Spell.SHULKER_LEVITATION,14,12,20);
     }
 
     private void createSculkWitherZone(Player p, Location center) {
@@ -316,6 +313,7 @@ public final class ProjectileSpells implements Listener {
         var effect=c.plugin.effects().start(p,120,(scope,age)->{
             AreaEffectCloud entity=cloud[0];if(entity==null||!entity.isValid()||!c.loaded(entity.getLocation()))return false;
             Location at=entity.getLocation();
+            if(age>=20)settled[0]=true;
             if(!settled[0]&&age<20) {
                 var hit=at.getWorld().rayTraceBlocks(at,dir,0.7,FluidCollisionMode.NEVER,true);
                 if(hit!=null)settled[0]=true;
@@ -334,6 +332,8 @@ public final class ProjectileSpells implements Listener {
                     c.potion(target,PotionEffectType.WITHER,60,1);
                 }
             }
+            // Wait beyond the last cloud hit's immunity window before the final burst.
+            if(age==119)c.echo(p,at,Spell.DRAGONS_BREATH,14,5,30);
             return true;
         });
         try {
@@ -384,6 +384,7 @@ public final class ProjectileSpells implements Listener {
         });return true;
     }
     private void meteorImpact(Player p,Location at) {
+        c.echo(p,at,Spell.METEOR_STRIKE,14,6,15);
         c.particles(at,Particle.EXPLOSION_EMITTER,1,0);c.ring(at,6,Spell.METEOR_STRIKE);
         at.getWorld().playSound(at,Sound.ENTITY_GENERIC_EXPLODE,1.5f,0.6f);
         for(var e:c.nearby(p,at,6,false))if(c.affect(p,e,Spell.METEOR_STRIKE)) {

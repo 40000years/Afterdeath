@@ -22,8 +22,9 @@ public final class ChannelSpells {
                 c.heal(p,drained);
             }
             // Stage 2: Soul Nova Burst upon successful channel completion
-            if(age==60) {
+            if(age==60||target.isDead()) {
                 Location at=target.getLocation();
+                c.echo(p,at,Spell.SOUL_DRAIN,14,5,20);
                 at.getWorld().playSound(at,Sound.BLOCK_SCULK_CATALYST_BLOOM,1.4f,1.2f);
                 c.ring(at,5,Spell.SOUL_DRAIN);
                 c.particles(at.clone().add(0,1,0),Particle.SOUL,35,1.2);
@@ -32,7 +33,8 @@ public final class ChannelSpells {
                     c.damage(p,e,c.configuredDamage("damage.soul-nova",35),DamageType.MAGIC);
                 }
                 c.heal(p,20.0);
-                for(var ally:c.nearby(p,at,5,true))if(ally instanceof Player pl)c.heal(pl,15.0);
+                for(var ally:c.nearby(p,at,5,true))if(ally instanceof Player pl&&c.affect(p,ally,Spell.SOUL_DRAIN))c.heal(pl,15.0);
+                return false;
             }
             return true;
         });return true;

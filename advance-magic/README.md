@@ -19,7 +19,7 @@ Ingot / Star | Magic Core   | Ingot / Star
 Ingot / Star | Ingot / Star | Ingot / Star
 ```
 
-Defeat five shrine waves (the Evergarden default) and the boss, collect an Evergarden Key, and open an Evergarden Vault once per player per shrine. Rewards: 30% Diamond Block, 30% Netherite Ingot, 20% armor trim, 10% special equipment, 10% random Magic Core. The 15 cores are equally likely within the core category (about 0.67% per specific core per vault). A vanilla Trial Key does not open this vault.
+Defeat five shrine waves and the boss, collect an Evergarden Key, and open an Evergarden Vault once per player per shrine. Rewards: 35% two Diamond Blocks, 35% two Netherite Ingots, 10% two matching armor trims, 15% special equipment, 4.9% normal Magic Core (14 types; 0.35% each), and 0.1% Mythic Core of Levitation. Total core chance is 5%, down from 10%. A vanilla Trial Key does not open this vault.
 
 [Thai infographic](dist/advance-magic-guide-th.png) · `/magic list` · `/evergarden guide`
 
@@ -27,25 +27,27 @@ Permissions: `advance-magic.cast` and `advance-magic.craft` default to everyone;
 
 ## Spells
 
-Damage numbers below are health points (two health points = one heart). Costs and cooldowns exactly match the requested definitions. Damage, cloud duration and unspecified ranges have explicit defaults here.
+Damage numbers are health points before armor, resistance and vanilla immunity frames (two health points = one heart). One right-click triggers the full sequence automatically, including the added final stage; it spends mana and records mastery only once. Existing wands gain the new effects without recrafting. Mana and cooldown costs are unchanged.
 
-| ID | Core | Mana / cooldown | Behavior |
-|---|---|---|---|
-| `lightning_strike` | Core of Lightning | 60 / 8s | Target block/entity within 30 blocks. Native lightning visual and 12 lightning damage in a 5-block sphere. No incidental vanilla lightning fire. |
-| `frost_nova` | Core of Frost | 50 / 12s | 7-block wave, Slowness IV for 6s, sustained visual freeze ticks below the freeze-damage threshold. |
-| `shadow_step` | Core of Shadows | 45 / 6s | Blink up to 12 blocks facing forward; may cross one thin wall. Stops before thick/second walls, checks body space, loaded chunks and world border. No pearl or teleport fall damage. Cannot cast while riding. |
-| `natures_bloom` | Core of Nature | 70 / 25s | Caster and allies within 5 blocks receive Regeneration II and Absorption II for 8s. |
-| `earth_wall` | Core of Earth | 40 / 10s | 5-wide, 3-high barrier 3 blocks ahead for 5s. Non-dropping FallingBlocks provide the image; server-side segment collision intercepts incoming/outgoing projectiles. Does not obstruct walking or replace terrain. Requires free space. |
-| `dragons_breath` | Core of Dragon | 75 / 18s | Launch a native purple AreaEffectCloud, radius 4. Travels up to 14 blocks then lingers; 6s total lifetime, 6 magic damage each second. |
-| `void_pull` | Core of the Void | 65 / 14s | Straight gravity orb; impact creates an 8-block pull field for 2s. Targets reaching the center or the final pull phase are rooted for 1.5s from the last application. |
-| `invisibility_shroud` | Core of Invisibility | 50 / 30s | Full player hide for other players, including armor/held items, plus invisibility and Speed II for 10s. Attacks, projectile launches or another successful spell reveal the caster. Existing mob targets are cleared and new targeting is blocked. |
-| `poison_spores` | Core of Poison | 45 / 10s | Straight projectile bursts in a 4-block sphere; Poison II and Nausea for 6s. |
-| `wither_ray` | Core of Wither | 85 / 12s | Three native Wither Skulls, 6 ticks apart; each impact has a 3-block splash, 8 explosion damage and Wither II for 5s. Vanilla damage immunity frames still apply. No block destruction. |
-| `shulker_levitation` | Core of Levitation | 55 / 15s | Target within 30 blocks; homing ShulkerBullet applies 4 magic impact damage and Levitation II for 4s to the actual enemy it hits. Normal falling damage remains. |
-| `meteor_strike` | Core of Meteor | 90 / 20s | Ground target within 30 blocks, 1.5s warning, native LargeFireball descends from 18 blocks above. Flame particles give it a large silhouette; explosion radius 6, damage 18, 4s entity ignition and terrain fire. Does not destroy blocks. |
-| `iron_armor` | Core of Iron | 60 / 35s | Resistance III and Slowness I for 8s. Reflects 30% of final, uncancelled incoming melee damage as thorns damage; cannot recursively reflect. |
-| `time_dilation` | Core of Time | 80 / 25s | Fixed 6-block dome for 4s. Projectiles inside move at 20% speed; overlapping domes do not multiply the reduction. Restores motion on exit/cleanup. Enemies inside receive Slowness VI and Mining Fatigue V, refreshed while inside. |
-| `soul_drain` | Core of Souls | 70 / 16s | Visible enemy within 20 blocks; 3s tether, one 8-health magic pulse each second. Heals only actual health removed, capped at maximum health. Breaks on blocked sight, range, death, disconnect or world change. |
+| ID | Mana / cooldown | Current behavior and added stage |
+|---|---|---|
+| `lightning_strike` | 60 / 8s | 60 lightning damage, then 30 in a wider ring; final 18-damage echo 0.7s after the second strike. |
+| `frost_nova` | 50 / 12s | Freeze/Slowness IV, 35 shatter damage at 1s; final 25-damage echo after another 0.7s. |
+| `shadow_step` | 45 / 6s | Blink up to 12 blocks through one thin wall, departure smoke and 25 arrival damage; 20-damage echo at the destination after 0.7s. |
+| `natures_bloom` | 70 / 25s | Cleanses/heals allies, regeneration and absorption; second bloom heals and roots enemies. New third bloom at 3s heals players for 6, adds Resistance I for 5s, and deals 15 thorn damage. |
+| `earth_wall` | 40 / 10s | 7×4×2 visual wall blocks projectiles for 5s, with 25 creation damage. New 25-damage pulse in front when its duration ends. Does not block walking. |
+| `dragons_breath` | 75 / 18s | Moving radius-4 cloud, 30 damage/sec for 6s; settled cloud applies Weakness/Wither. New radius-5 burst for 30 after the cloud expires, spaced beyond the last cloud hit. |
+| `void_pull` | 65 / 14s | Pull/root field, 45 collapse damage; 20-damage aftershock 0.7s later. |
+| `invisibility_shroud` | 50 / 30s | Hide equipment/player for up to 30s, speed and resistance; first ambush adds 50 damage. Successful ambush also triggers a 20-damage echo after 0.7s. Attacking or casting another spell reveals the caster. |
+| `poison_spores` | 45 / 10s | Poison cloud and three clusters; now 20 direct impact damage plus a 30-damage pulse after 1s, useful against poison-immune mobs. |
+| `wither_ray` | 85 / 12s | Six skulls, 40 each (last skull ×1.5), plus Wither; last skull adds a 15-damage echo after 0.7s. |
+| `shulker_levitation` | 95 / 35s | Singularity, 120 explosion damage, and 15s sculk zone; new 20-damage echo after explosion. Corrected damage cap so the configured 120 is no longer truncated to 100. Cancelling the singularity no longer detonates it. |
+| `meteor_strike` | 90 / 20s | Three meteors, 90 damage each; each impact adds a 15-damage aftershock 0.7s later. Terrain ignition remains configurable. |
+| `iron_armor` | 60 / 35s | 60s Resistance IV, absorption, strength, fire resistance and thorns; new radius-5 bastion pulse for 25 damage after 1s. |
+| `time_dilation` | 80 / 25s | 15s radius-6 dome slows projectiles to 10%, debuffs enemies and buffs allies; existing 2.5s pulses now also deal 12 damage each (five pulses). |
+| `soul_drain` | 70 / 16s | Three 40-damage drain pulses, then 35 nova damage; new 20-damage echo. Killing the target with a drain pulse now also releases the nova and echo immediately. |
+
+New damage is configurable under `follow-up.damage.<spell_id>` and `damage.poison-impact`. These keys are added to existing configs on startup, preserving customized base damage, PvP and resource-pack settings. Delayed echoes remain at their marked location and stop when the caster dies, leaves, changes worlds or the plugin shuts down. They respect the normal target limits and `MagicAffectEvent`; if the active-effect limit is full, an optional echo is skipped.
 
 Allies are the caster, their own tamed animals, and members of their **main scoreboard team**. Enemy effects exclude allies, armor stands and creative/spectator players. Player combat additionally respects `pvp` in this plugin's config and the world's PvP setting. Otherwise living mobs are valid enemies. AOE status spells can reach through walls; Soul Drain and initial targeted spells require sight.
 
@@ -99,3 +101,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File advance-magic/test.ps1
 The build uses the workspace's cached Maven dependencies, produces `advance-magic.jar` at the workspace root and the versioned JAR in `dist/`, and generates both packs. It does not copy anything to a running server. Maven can also compile the module with `mvn -pl advance-magic -am package`; then run `python advance-magic/tools/build_packs.py` to build packs.
 
 `tests/AccountingChecks.java` verifies mana, cooldown boundaries, persistence reconstruction, refunds and swept collision. `tests/check_packs.py` verifies every model, atlas entry, mapping, PNG, archive and hash. `tests/IntegrationChecks.java` is a separate **test-only Paper 26.2 plugin** using a server-backed test actor; `tests/build_integration.ps1` builds it from a local Paper test distribution. Install it only in a disposable test server: it edits the test world, exercises the spells and shuts that server down. The release JAR contains none of the test actor/NMS code.
+
+## Balance verification
+
+`evergarden/test.ps1` enumerates all 10,000 possible vault tickets. `tests/build_balance.ps1` builds `target/balance-checks.jar` against a cached Paper 26.2 server. Install the test JAR with Advance Magic only in a disposable server: it edits terrain, creates a server-backed player, tests all 15 automatic extra stages, single mana/mastery/cooldown accounting, protection cancellation and early Soul Drain kills, writes `balance-result.txt`, and shuts down. It is not included in release JARs.

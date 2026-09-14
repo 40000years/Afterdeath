@@ -78,7 +78,7 @@ public final class RelicService implements Listener {
                 ChatColor.DARK_PURPLE+""+ChatColor.MAGIC+"Forbidden Dragon Heart",
                 ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.BLACK+""+ChatColor.BOLD+"Shulker Levitation Wand",
                 ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
-                ChatColor.RED+"✦ อัตราดรอปต่ำสุดใน Evergarden Vault (เรทตำนาน 0.2%)"
+                ChatColor.RED+"✦ อัตราดรอปต่ำสุดใน Evergarden Vault (เรทตำนาน 0.1%)"
             ));
         } else {
             meta.setDisplayName(ChatColor.GOLD+"✦ "+core.title());
@@ -151,35 +151,21 @@ public final class RelicService implements Listener {
         return create(Relic.VOID_KEY,1);
     }
     public ItemStack rollVaultReward() {
-        Random r=new Random();
-        double roll=r.nextDouble();
-        // 30% Diamond Block
-        if(roll<0.30) {
-            return new ItemStack(Material.DIAMOND_BLOCK,1);
-        }
-        // 30% Netherite Ingot
-        if(roll<0.60) {
-            return new ItemStack(Material.NETHERITE_INGOT,1);
-        }
-        // 20% Random Armor Trim
-        if(roll<0.80) {
-            Material trimMat=ARMOR_TRIMS[r.nextInt(ARMOR_TRIMS.length)];
-            return new ItemStack(trimMat,1);
-        }
-        // 10% Special Tool
-        if(roll<0.90) {
-            Relic[] tools={Relic.RIFT_PICKAXE,Relic.SMELTER_PICKAXE,Relic.STORM_BOW};
-            return create(tools[r.nextInt(tools.length)],1);
-        }
-        // 10% สุ่มแกนเวทมนตร์ Core of ... (แกนระดับตำนาน Core of Levitation มีเรทดรอปต่ำสุด 2% ของแกน หรือ 0.2% ของกล่องทั้งหมด)
-        MagicCore core;
-        if(r.nextDouble()<0.02) {
-            core=MAGIC_CORES.stream().filter(c->c.id().equals("shulker_levitation")).findFirst().orElse(MAGIC_CORES.get(0));
-        } else {
-            List<MagicCore> normalCores=MAGIC_CORES.stream().filter(c->!c.id().equals("shulker_levitation")).toList();
-            core=normalCores.get(r.nextInt(normalCores.size()));
-        }
-        return createMagicCore(core);
+        var random=java.util.concurrent.ThreadLocalRandom.current();
+        return switch(VaultLootTable.reward(random.nextInt(10000))) {
+            case DIAMONDS -> new ItemStack(Material.DIAMOND_BLOCK,2);
+            case NETHERITE -> new ItemStack(Material.NETHERITE_INGOT,2);
+            case TRIM -> new ItemStack(ARMOR_TRIMS[random.nextInt(ARMOR_TRIMS.length)],2);
+            case EQUIPMENT -> {
+                Relic[] equipment={Relic.RIFT_PICKAXE,Relic.SMELTER_PICKAXE,Relic.STORM_BOW};
+                yield create(equipment[random.nextInt(equipment.length)],1);
+            }
+            case CORE -> {
+                List<MagicCore> cores=MAGIC_CORES.stream().filter(c->!c.id().equals("shulker_levitation")).toList();
+                yield createMagicCore(cores.get(random.nextInt(cores.size())));
+            }
+            case MYTHIC_CORE -> createMagicCore("shulker_levitation");
+        };
     }
     public ItemStack createGuideBook() {
         ItemStack book=new ItemStack(Material.WRITTEN_BOOK);
@@ -191,9 +177,9 @@ public final class RelicService implements Listener {
             Component.text("§1§lการสร้างประตูมิติ\n§01. สร้างกรอบคล้าย Nether Portal ด้วย §5Crying Obsidian§0 ขนาดเริ่มต้น 4x5 (ช่องใน 2x3 หรือใหญ่กว่า)\n\n§02. จุดไฟด้วย §6Flint & Steel§0, §cFire Charge§0 หรือ §bEye of Ender§0 ในกรอบ\n\n§03. ประตูสีม่วงจะเปิดออกทันที!"),
             Component.text("§1§lสำรวจสวนลอยฟ้า\n§0เดินตามทางแสงไปวิหาร หรือใช้ §5Elytra§0 สำรวจต่อ สร้างบ้านบนทุ่งนอกเขตวิหารได้\n\n§0วิหารโบราณทั้ง 3 ธาตุมีอยู่ §c§lไม่จำกัดทั่วทั้งมิติ§r§0 (เกิดซ้ำเรื่อยๆ ทุกๆ ~280 บล็อก)\n\n§0วิหารใกล้จุดเกิดที่สุด:\n§51. วิหารความมืด§0 (มุ่งหน้าทิศเหนือ Z = -250)\n§92. วิหารดวงดาว§0 (ทิศ ต.อ.เฉียงใต้ X = 220, Z = 130)\n§63. วิหารกาลเวลา§0 (ทิศ ต.ต.เฉียงใต้ X = -220, Z = 130)\n\n§8พิมพ์ /evergarden locate เพื่อดูพิกัดวิหารใกล้ตัวคุณ"),
             Component.text("§1§lกฎการท้าทาย\n§0"+plugin.integer("combat.waves",5,2,12)+" เวฟ แล้วตามด้วยบอส\n- คลิกที่แท่น §5Lodestone§0 กลางวิหารเพื่อเรียกผู้พิทักษ์\n\n§0⚠ §c§lคำเตือน:§r§0 ห้ามนำเรือหรือรถรางมาขังมอนสเตอร์เด็ดขาด! พลังวิหารจะขับไล่ยานพาหนะทันที"),
-            Component.text("§1§lรางวัล & Evergarden Vault\n§0- เมื่อชนะการต่อสู้ §dEvergarden Key§0 จะเด้งเข้าตัวผู้เล่นทันที\n- นำไปเปิด §5Evergarden Vault§0\n- §cเปิดได้คนละ 1 ครั้งต่อกล่อง!§0\n\n§0§lโอกาสดรอป:\n§b• 30%§0 Diamond Block\n§8• 30%§0 Netherite Ingot\n§e• 20%§0 Armor Trim สุ่ม\n§d• 10%§0 อุปกรณ์พิเศษ\n§5• 9.8%§0 แกนเวทมนตร์ทั่วไป\n§4• 0.2%§0 §0§l§kUnknown Ancient Core§r"),
+            Component.text("§1§lรางวัล & Evergarden Vault\n§0- ชนะวิหารเพื่อรับ §dEvergarden Key§0\n- ใช้เปิด §5Evergarden Vault§0\n- §cเปิดได้คนละ 1 ครั้งต่อวิหาร§0\n\n§0§lโอกาสดรอป:\n§b• 35%§0 Diamond Block ×2\n§8• 35%§0 Netherite Ingot ×2\n§e• 10%§0 Armor Trim สุ่ม ×2\n§d• 15%§0 อุปกรณ์พิเศษ\n§5• 4.9%§0 แกนเวทมนตร์ทั่วไป\n§4• 0.1%§0 แกนระดับตำนาน"),
             Component.text("§1§lแกนเวทย์ & อุปกรณ์\n§0• §6แกน Core of ...§0: นำไปล้อมด้วย Netherite Ingot หรือ Nether Star รวม 8 ชิ้น ที่โต๊ะคราฟต์เพื่อสร้างคทาเวทมนตร์ Advance Magic!\n\n§0• §bที่ขุด 3x3§0: ขุดพื้นที่ 3x3 บล็อกพร้อมกัน\n• §6ที่ขุดหลอมอัตโนมัติ§0: ขุดทรายได้กระจก ขุดแร่ได้แท่งโลหะ\n• §dธนูสายฟ้า§0: ยิงธนูผ่าสายฟ้าต่อเนื่อง"),
-            Component.text("§0§l✦ §kUnknown Mythic Wand§r§0 ✦\n§8[ตำนานมหาคทาต้องห้าม]\n\n§0บันทึกลับโบราณกล่าวถึงคทาหายนะที่สาบสูญ:\n§5§kABXQWZLKMNVOPTRSYJ\n§8§kENDER DRAGON SINGULARITY\n§4§kCATACLYSMIC CALAMITY\n§0§kVOID SCULK WITHER DOMAIN\n\n§c§lอัตราการค้นพบ:\n§4§l• เรทดรอป: 0.2% §8(เรทต่ำสุดในวิหาร)\n\n§0ผู้ใดครอบครองจะสามารถเปลี่ยนฟ้าดินเป็นพายุคลั่ง เรียกมังกรจุติ หลุมดำกลืนมิติ และแผ่ดินแดน Sculk Wither III")
+            Component.text("§0§l✦ §kUnknown Mythic Wand§r§0 ✦\n§8[ตำนานมหาคทาต้องห้าม]\n\n§0บันทึกลับโบราณกล่าวถึงคทาหายนะที่สาบสูญ:\n§5§kABXQWZLKMNVOPTRSYJ\n§8§kENDER DRAGON SINGULARITY\n§4§kCATACLYSMIC CALAMITY\n§0§kVOID SCULK WITHER DOMAIN\n\n§c§lอัตราการค้นพบ:\n§4§l• เรทดรอป: 0.1% §8(เรทต่ำสุดในวิหาร)\n\n§0ผู้ใดครอบครองจะสามารถเปลี่ยนฟ้าดินเป็นพายุคลั่ง เรียกมังกรจุติ หลุมดำกลืนมิติ และแผ่ดินแดน Sculk Wither III")
         ));
         book.setItemMeta(meta);
         return book;

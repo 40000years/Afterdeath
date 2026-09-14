@@ -55,7 +55,7 @@ public final class WandService implements Listener {
                 ChatColor.DARK_PURPLE+""+ChatColor.MAGIC+"Forbidden Dragon Heart",
                 ChatColor.DARK_GRAY+"Used to craft: "+ChatColor.BLACK+""+ChatColor.BOLD+"Shulker Levitation Wand",
                 ChatColor.YELLOW+"Recipe: 8 Netherite Ingots / Nether Stars + this Core",
-                ChatColor.RED+"✦ อัตราดรอปต่ำสุดใน Evergarden Vault (เรทตำนาน 0.2%)"
+                ChatColor.RED+"✦ อัตราดรอปต่ำสุดใน Evergarden Vault (เรทตำนาน 0.1%)"
             ));
         } else {
             meta.setDisplayName(ChatColor.GOLD+"✦ Core of "+coreTitle(spell));
@@ -102,6 +102,9 @@ public final class WandService implements Listener {
             meta.setDisplayName(ChatColor.LIGHT_PURPLE+spell.title+" Wand");
             meta.setLore(List.of(ChatColor.GRAY+"Right-click to cast",ChatColor.AQUA+"Mana: "+spell.mana+" / Cooldown: "+spell.cooldown+"s"));
         }
+        var lore=new ArrayList<>(meta.getLore());
+        lore.add(ChatColor.GREEN+"เอฟเฟกต์ต่อเนื่องอัตโนมัติ · ไม่เสียมานาเพิ่ม");
+        meta.setLore(lore);
         meta.setUnbreakable(true);
         meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
         // The vanilla model is a safe fallback when a client has no resource pack.
@@ -150,6 +153,9 @@ public final class WandService implements Listener {
                 ChatColor.LIGHT_PURPLE+"Mastery: "+ChatColor.WHITE+count+" casts"+(reduction>0?ChatColor.YELLOW+" [-"+String.format(Locale.ROOT,"%.0f",reduction)+"s CD]":"")
             ));
         }
+        var lore=new ArrayList<>(meta.getLore());
+        lore.add(ChatColor.GREEN+"เอฟเฟกต์ต่อเนื่องอัตโนมัติ · ไม่เสียมานาเพิ่ม");
+        meta.setLore(lore);
         item.setItemMeta(meta);
         return count;
     }

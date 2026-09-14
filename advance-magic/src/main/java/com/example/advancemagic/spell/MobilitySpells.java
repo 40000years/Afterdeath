@@ -47,6 +47,7 @@ public final class MobilitySpells {
         }
         c.potion(p,PotionEffectType.SPEED,50,1);
         c.potion(p,PotionEffectType.INVISIBILITY,40,0);
+        c.echo(p,last,Spell.SHADOW_STEP,14,4,20);
         return true;
     }
     public boolean shroud(Player p){c.plugin.statuses().shroud(p);return true;}
@@ -65,6 +66,7 @@ public final class MobilitySpells {
             Vector push=e.getLocation().toVector().subtract(p.getLocation().toVector()).setY(0);
             if(push.lengthSquared()>0.01)e.setVelocity(push.normalize().multiply(0.7).setY(0.3));
         }
+        c.echo(p,p.getLocation(),Spell.IRON_ARMOR,20,5,25);
         return true;
     }
     public boolean bloom(Player p) {
@@ -85,7 +87,8 @@ public final class MobilitySpells {
                 ally.setHealth(Math.min(ally.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue(),ally.getHealth()+12.0));
             c.particles(ally.getLocation().add(0,1,0),Particle.HAPPY_VILLAGER,25,0.6);
         }
-        c.plugin.effects().start(p,35,(effect,age)->{
+        c.plugin.effects().start(p,61,(effect,age)->{
+            if(!c.loaded(center))return false;
             if(age%3==0)c.ring(center,Math.min(8,age/3.0+0.5),Spell.NATURES_BLOOM);
             // Stage 2: Second Bloom (Overgrowth & Entangling Roots) at tick 30
             if(age==30) {
@@ -101,6 +104,16 @@ public final class MobilitySpells {
                     c.damage(p,enemy,c.configuredDamage("damage.natures-bloom-thorns",20),DamageType.MAGIC);
                     c.plugin.statuses().root(p,enemy);
                 }
+            }
+            // Third bloom: one final heal and thorn pulse, without spending more mana.
+            if(age==60) {
+                c.ring(center,8.5,Spell.NATURES_BLOOM);
+                for(var ally:c.nearby(p,center,8.5,true))if(c.affect(p,ally,Spell.NATURES_BLOOM)) {
+                    if(ally instanceof Player pl)c.heal(pl,6);
+                    c.potion(ally,PotionEffectType.RESISTANCE,100,0);
+                }
+                for(var enemy:c.nearby(p,center,8.5,false))if(c.affect(p,enemy,Spell.NATURES_BLOOM))
+                    c.damage(p,enemy,c.configuredDamage("follow-up.damage.natures_bloom",15),DamageType.MAGIC);
             }
             return true;
         });

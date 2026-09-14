@@ -170,9 +170,9 @@ public final class DungeonManager implements Listener {
 
         // Roll reward from 100% loot table
         ItemStack reward=plugin.relics().rollVaultReward();
-        var leftover=p.getInventory().addItem(reward);
+        var leftover=p.getInventory().addItem(reward.clone());
         if(!leftover.isEmpty()) {
-            p.getWorld().dropItemNaturally(block.getLocation().add(0.5,1.2,0.5),reward);
+            leftover.values().forEach(item->p.getWorld().dropItemNaturally(block.getLocation().add(0.5,1.2,0.5),item));
         }
 
         // Vault fanfare
@@ -184,7 +184,7 @@ public final class DungeonManager implements Listener {
         String rewardName=reward.getItemMeta()!=null&&reward.getItemMeta().hasDisplayName()?
             net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(reward.getItemMeta().displayName()):
             reward.getType().name();
-        plugin.message(p,"✦ ปลดล็อก Evergarden Vault สำเร็จ! คุณได้รับ "+rewardName);
+        plugin.message(p,"✦ ปลดล็อก Evergarden Vault สำเร็จ! คุณได้รับ "+rewardName+" ×"+reward.getAmount());
     }
 
     private void startWave(Encounter enc,int waveNum) {
@@ -245,12 +245,15 @@ public final class DungeonManager implements Listener {
         Mob mob=plugin.world().spawn(where,type,m->{
             m.getPersistentDataContainer().set(mobKey,PersistentDataType.STRING,enc.site.id());
             m.getPersistentDataContainer().set(runKey,PersistentDataType.STRING,runId);
-            double health=species==Species.BOSS?950:species==Species.MINION?120:70;
+            double health=species==Species.BOSS?plugin.integer("combat.boss-health",1024,100,2000)
+                :species==Species.MINION?plugin.integer("combat.guardian-health",135,20,1000)
+                :plugin.integer("combat.specialist-health",80,20,1000);
             health=Math.min(2000,health*(1+Math.max(0,Math.min(teamSize,4)-1)*0.25));
             m.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);
             m.setHealth(m.getAttribute(Attribute.MAX_HEALTH).getValue());
             if(m.getAttribute(Attribute.ATTACK_DAMAGE)!=null)
-                m.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(species==Species.BOSS?24:14);
+                m.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(species==Species.BOSS?plugin.integer("combat.boss-attack",27,1,100)
+                    :plugin.integer("combat.guardian-attack",16,1,100));
             if(m.getAttribute(Attribute.SCALE)!=null)
                 m.getAttribute(Attribute.SCALE).setBaseValue(species==Species.BOSS?2.0:1.1);
             if(m.getAttribute(Attribute.KNOCKBACK_RESISTANCE)!=null)
@@ -425,7 +428,7 @@ public final class DungeonManager implements Listener {
                 // Caster ranged debuff & cobweb curse
                 if(entry.getValue()==Species.CASTER&&target!=null) {
                     long lastCast=enc.casterCooldowns.getOrDefault(entry.getKey(),0L);
-                    if(now-lastCast>7500&&mob.getLocation().distanceSquared(target.getLocation())<=256) {
+                    if(now-lastCast>plugin.integer("combat.caster-interval-ms",7000,3000,30000)&&mob.getLocation().distanceSquared(target.getLocation())<=256) {
                         enc.casterCooldowns.put(entry.getKey(),now);
                         Location targetLoc=target.getLocation();
                         target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,160,1));
@@ -444,7 +447,7 @@ public final class DungeonManager implements Listener {
                     if(enc.bar!=null) {
                         enc.bar.setProgress(Math.max(0,Math.min(1,mob.getHealth()/mob.getAttribute(Attribute.MAX_HEALTH).getValue())));
                     }
-                    if(enc.warningAt==0&&now-enc.lastSkill>6000) {
+                    if(enc.warningAt==0&&now-enc.lastSkill>plugin.integer("combat.boss-skill-interval-ms",5500,3000,30000)) {
                         enc.warning=target.getLocation();enc.warningAt=now+2200;enc.lastSkill=now;
                         for(Player p:team){plugin.message(p,"⚠ คำสาปมิติ · รีบออกจากวงเวท!");p.playSound(enc.warning,Sound.BLOCK_RESPAWN_ANCHOR_CHARGE,0.6f,0.6f);}
                     }
@@ -456,7 +459,8 @@ public final class DungeonManager implements Listener {
                         if(now>=enc.warningAt) {
                             enc.warningAt=0;
                             for(Player p:team)if(p.getWorld()==enc.warning.getWorld()&&p.getLocation().distanceSquared(enc.warning)<=16) {
-                                p.damage(plugin.integer("combat.boss-skill-damage",35,10,160),mob);
+                                p.damage(plugin.integer("combat.boss-skill-damage",35,10,160)
+                                    *plugin.integer("combat.boss-skill-power-percent",110,50,200)/100.0,mob);
                                 p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,200,1));
                                 p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,120,1));
                                 placeTemporaryWeb(p.getLocation().getBlock(),8000L);

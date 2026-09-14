@@ -105,7 +105,25 @@ public final class MagicContext {
         for(int i=0;i<=n;i++)particles(from.clone().add(delta.clone().multiply((double)i/n)),type,1,0);
     }
     public double configuredDamage(String key,double fallback) {
-        double n=plugin.getConfig().getDouble(key,fallback);return Double.isFinite(n)?Math.max(0,Math.min(100,n)):fallback;
+        double n=plugin.getConfig().getDouble(key,fallback);return Double.isFinite(n)?Math.max(0,Math.min(200,n)):Math.max(0,Math.min(200,fallback));
+    }
+    /** Automatic final pulse, owned by the original caster and cancelled with their effects. */
+    public void echo(Player p,Location center,Spell spell,int delay,double radius,double baseDamage) {
+        if(!plugin.effects().hasCapacity()||!loaded(center))return;
+        Location at=center.clone();
+        plugin.effects().start(p,delay+1,(effect,age)->{
+            if(!loaded(at))return false;
+            if(age==delay) {
+                ring(at,radius,spell);
+                particles(at.clone().add(0,0.5,0),Particle.ENCHANT,24,radius/3);
+                at.getWorld().playSound(at,Sound.BLOCK_AMETHYST_BLOCK_RESONATE,0.8f,1.2f);
+                for(var enemy:nearby(p,at,radius,false))if(affect(p,enemy,spell)) {
+                    damage(p,enemy,configuredDamage("follow-up.damage."+spell.id(),baseDamage),DamageType.MAGIC);
+                    potion(enemy,PotionEffectType.SLOWNESS,40,1);
+                }
+            }
+            return true;
+        });
     }
     public boolean safeBody(Location at) {
         if(!loaded(at)||!loaded(at.clone().add(0,1.8,0)))return false;

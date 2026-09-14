@@ -42,6 +42,7 @@ public final class AreaSpells implements Listener {
                 at.getWorld().playSound(at,Sound.ENTITY_LIGHTNING_BOLT_IMPACT,1.3f,1.8f);
                 c.ring(at,7,Spell.LIGHTNING_STRIKE);
                 c.particles(at.clone().add(0,0.5,0),Particle.ELECTRIC_SPARK,45,2.2);
+                c.echo(p,at,Spell.LIGHTNING_STRIKE,14,7,18);
                 for(var e:c.nearby(p,at,7,false))if(c.affect(p,e,Spell.LIGHTNING_STRIKE)) {
                     c.damage(p,e,c.configuredDamage("damage.lightning-secondary",30),DamageType.LIGHTNING_BOLT);
                     c.potion(e,PotionEffectType.BLINDNESS,40,0);
@@ -67,6 +68,7 @@ public final class AreaSpells implements Listener {
                 center.getWorld().playSound(center,Sound.ENTITY_PLAYER_HURT_FREEZE,1.2f,0.9f);
                 c.ring(center,7.5,Spell.FROST_NOVA);
                 c.particles(center.clone().add(0,0.5,0),Particle.SNOWFLAKE,40,2.5);
+                c.echo(p,center,Spell.FROST_NOVA,14,7.5,25);
                 for(var e:c.nearby(p,center,7.5,false))if(c.affect(p,e,Spell.FROST_NOVA)) {
                     c.damage(p,e,c.configuredDamage("damage.frost-shatter",35),DamageType.FREEZE);
                     Vector push=e.getLocation().toVector().subtract(center.toVector()).setY(0);
@@ -143,6 +145,7 @@ public final class AreaSpells implements Listener {
                 if(knock.lengthSquared()<0.01)knock=facing.clone();
                 e.setVelocity(knock.normalize().multiply(0.8).setY(0.35));
             }
+            c.echo(p,ruptureCenter,Spell.EARTH_WALL,100,5,25);
         }catch(RuntimeException ex){effect.close();throw ex;}
         return true;
     }
@@ -164,6 +167,7 @@ public final class AreaSpells implements Listener {
                     c.potion(e,PotionEffectType.WEAKNESS,10,2);
                 }
                 for(var ally:c.nearby(p,center,6,true)) {
+                    if(!c.affect(p,ally,Spell.TIME_DILATION))continue;
                     c.potion(ally,PotionEffectType.SPEED,10,1);
                     c.potion(ally,PotionEffectType.HASTE,10,1);
                 }
@@ -173,10 +177,12 @@ public final class AreaSpells implements Listener {
                 center.getWorld().playSound(center,Sound.BLOCK_BEACON_POWER_SELECT,1.0f,1.5f);
                 c.particles(center.clone().add(0,1,0),Particle.ENCHANT,30,2.5);
                 for(var e:c.nearby(p,center,6,false))if(c.affect(p,e,Spell.TIME_DILATION)) {
+                    c.damage(p,e,c.configuredDamage("follow-up.damage.time_dilation",12),DamageType.MAGIC);
                     Vector push=e.getLocation().toVector().subtract(center.toVector()).setY(0);
                     if(push.lengthSquared()>0.01)e.setVelocity(push.normalize().multiply(0.6).setY(0.2));
                 }
                 for(var ally:c.nearby(p,center,6,true)) {
+                    if(!c.affect(p,ally,Spell.TIME_DILATION))continue;
                     c.potion(ally,PotionEffectType.ABSORPTION,60,1);
                 }
             }
