@@ -3,6 +3,7 @@ package com.example.advancemagic.item;
 import com.example.advancemagic.spell.Spell;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.*;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.entity.*;
@@ -212,7 +213,7 @@ public final class WandService implements Listener {
             recipes.put(key,s);
         }
     }
-    public void discover(Player p) { if(p.hasPermission("advance-magic.craft"))p.discoverRecipes(recipes.keySet()); }
+    public void discover(Player p) { if(canCraft(p))p.discoverRecipes(recipes.keySet()); }
     public boolean migrate(ItemStack item) {
         Spell spell=spell(item);
         if(spell!=null) {
@@ -256,39 +257,27 @@ public final class WandService implements Listener {
         return false;
     }
 
+    public boolean canCraft(HumanEntity player) {
+        if(player==null) return true;
+        if(player.isOp()) return true;
+        return !player.isPermissionSet("advance-magic.craft") || player.hasPermission("advance-magic.craft");
+    }
+
     public Spell craftingSpell(ItemStack[] matrix) {
         if(matrix==null||matrix.length!=9)return null;
 
-        // 1. Standard shaped 3x3 check (slot 4 center)
+        // Strict 3x3 shaped: Core MUST be in the exact center (Slot 4)
         Spell center=coreSpell(matrix[4]);
-        if(center!=null) {
-            boolean valid=true;
-            for(int i=0;i<9;i++)if(i!=4) {
-                ItemStack ing=matrix[i];
-                if(ing==null||ing.getAmount()<1||(ing.getType()!=Material.NETHERITE_INGOT&&ing.getType()!=Material.NETHER_STAR)){valid=false;break;}
-            }
-            if(valid) return center;
-        }
+        if(center==null) return null;
 
-        // 2. Shapeless in 3x3 crafting grid (1 core + 8 netherite/stars in any arrangement)
-        int netheriteCount=0;
-        Spell foundCore=null;
-        for(ItemStack ing:matrix) {
-            if(ing==null||ing.getType().isAir()) continue;
-            Spell s=coreSpell(ing);
-            if(s!=null) {
-                if(foundCore!=null) return null; // More than 1 core
-                foundCore=s;
-            } else if(ing.getType()==Material.NETHERITE_INGOT||ing.getType()==Material.NETHER_STAR) {
-                netheriteCount++;
-            } else {
-                return null; // Unknown ingredient
+        for(int i=0;i<9;i++) {
+            if(i==4) continue;
+            ItemStack ing=matrix[i];
+            if(ing==null||ing.getAmount()<1||(ing.getType()!=Material.NETHERITE_INGOT&&ing.getType()!=Material.NETHER_STAR)){
+                return null;
             }
         }
-        if(foundCore!=null&&netheriteCount==8) {
-            return foundCore;
-        }
-        return null;
+        return center;
     }
 
     @EventHandler(priority=EventPriority.HIGHEST)
@@ -297,7 +286,7 @@ public final class WandService implements Listener {
         ItemStack[] matrix=inv.getMatrix();
         Spell s=craftingSpell(matrix);
         if(s!=null) {
-            if(e.getView().getPlayer().hasPermission("advance-magic.craft")) {
+            if(canCraft(e.getView().getPlayer())) {
                 inv.setResult(create(s));
             } else {
                 inv.setResult(null);
@@ -321,7 +310,7 @@ public final class WandService implements Listener {
         if(clickedSpell==null) clickedSpell=spell(result);
         if(clickedSpell==null&&!ours(e.getRecipe())) return;
 
-        if(!e.getWhoClicked().hasPermission("advance-magic.craft")) {
+        if(!canCraft(e.getWhoClicked())) {
             e.setCancelled(true);
             return;
         }
@@ -352,7 +341,7 @@ public final class WandService implements Listener {
         Spell s=spell(result);
         if(s==null) return;
 
-        if(!p.hasPermission("advance-magic.craft")) {
+        if(!canCraft(p)) {
             e.setCancelled(true);
             return;
         }
@@ -363,81 +352,6 @@ public final class WandService implements Listener {
             return;
         }
         Bukkit.getScheduler().runTask(plugin, p::updateInventory);
-    }
-
-    @EventHandler(priority=EventPriority.HIGH)
-    public void onCoreInteract(PlayerInteractEvent e) {
-        if(e.getAction()!=Action.RIGHT_CLICK_AIR&&e.getAction()!=Action.RIGHT_CLICK_BLOCK) return;
-        Player p=e.getPlayer();
-        ItemStack handItem=e.getItem();
-        if(handItem==null||handItem.getType()!=CORE_BASE) return;
-        Spell spell=coreSpell(handItem);
-        if(spell==null) return;
-
-        if(!p.hasPermission("advance-magic.craft")) {
-            p.sendMessage(ChatColor.RED+"คุณไม่มีสิทธิ์ในการสร้างคทาเวทมนตร์");
-            return;
-        }
-
-        // Count Netherite Ingots and Nether Stars in inventory
-        int netheriteCount=0;
-        for(ItemStack it : p.getInventory().getContents()) {
-            if(it!=null&&(it.getType()==Material.NETHERITE_INGOT||it.getType()==Material.NETHER_STAR)) {
-                netheriteCount+=it.getAmount();
-            }
-        }
-
-        if(netheriteCount<8) {
-            p.sendActionBar(net.kyori.adventure.text.Component.text(
-                "✦ ต้องการ Netherite Ingot หรือ Nether Star 8 ชิ้น (มี: "+netheriteCount+"/8)",
-                net.kyori.adventure.text.format.NamedTextColor.YELLOW
-            ));
-            return;
-        }
-
-        // Consume 8 Netherite / Nether Stars
-        int remainingToConsume=8;
-        ItemStack[] contents=p.getInventory().getContents();
-        for(int i=0;i<contents.length;i++) {
-            ItemStack it=contents[i];
-            if(it!=null&&(it.getType()==Material.NETHERITE_INGOT||it.getType()==Material.NETHER_STAR)) {
-                if(it.getAmount()<=remainingToConsume) {
-                    remainingToConsume-=it.getAmount();
-                    contents[i]=null;
-                } else {
-                    it.setAmount(it.getAmount()-remainingToConsume);
-                    remainingToConsume=0;
-                    break;
-                }
-            }
-        }
-        p.getInventory().setContents(contents);
-
-        // Consume 1 Core from hand
-        if(handItem.getAmount()>1) {
-            handItem.setAmount(handItem.getAmount()-1);
-        } else {
-            if(e.getHand()==EquipmentSlot.HAND) p.getInventory().setItemInMainHand(null);
-            else p.getInventory().setItemInOffHand(null);
-        }
-
-        // Give wand
-        ItemStack wand=create(spell);
-        var leftover=p.getInventory().addItem(wand);
-        if(!leftover.isEmpty()) {
-            leftover.values().forEach(drop -> p.getWorld().dropItemNaturally(p.getLocation(),drop));
-        }
-
-        p.playSound(p.getLocation(),Sound.BLOCK_BEACON_POWER_SELECT,1.0f,1.2f);
-        p.playSound(p.getLocation(),Sound.UI_TOAST_CHALLENGE_COMPLETE,0.8f,1.3f);
-        p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,p.getLocation().add(0,1.2,0),30,0.4,0.4,0.4,0.1);
-        p.sendActionBar(net.kyori.adventure.text.Component.text(
-            "✦ หลอมรวมแกนเวทมนตร์สำเร็จ! ได้รับ " + spell.title + " Wand",
-            net.kyori.adventure.text.format.NamedTextColor.GOLD
-        ));
-        p.sendMessage(ChatColor.GOLD+"✦ [Advance Magic] หลอมรวมแกนเวทมนตร์ด้วย Netherite 8 ชิ้น สำเร็จ! ได้รับ "+ChatColor.LIGHT_PURPLE+spell.title+" Wand");
-        p.updateInventory();
-        e.setCancelled(true);
     }
 
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)

@@ -55,9 +55,14 @@ public final class CastListener implements Listener {
             :plugin.wands().spell(p.getInventory().getItemInOffHand())==spell?p.getInventory().getItemInOffHand():null;
         return cast(p,spell,item);
     }
+    public boolean canCast(Player player) {
+        if(player==null) return true;
+        if(player.isOp()) return true;
+        return !player.isPermissionSet("advance-magic.cast") || player.hasPermission("advance-magic.cast");
+    }
     public boolean cast(Player p,Spell spell,ItemStack wandItem) {
         long now=System.currentTimeMillis();UUID id=p.getUniqueId();
-        if(!p.hasPermission("advance-magic.cast")){actionbar(p,"You cannot cast spells.");return false;}
+        if(!canCast(p)){actionbar(p,"You cannot cast spells.");return false;}
         if(!p.isOnline()||p.isDead()||p.getGameMode()==GameMode.SPECTATOR)return false;
         if(casting.contains(id)||now-lastInput.getOrDefault(id,0L)<150)return false;
         lastInput.put(id,now);casting.add(id);
