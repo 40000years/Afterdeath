@@ -214,7 +214,7 @@ public final class WandService implements Listener {
             ShapedRecipe recipeNiCenter=new ShapedRecipe(keyNiCenter,create(s));
             recipeNiCenter.shape("NNN","NCN","NNN");
             recipeNiCenter.setIngredient('N',Material.NETHERITE_INGOT);
-            recipeNiCenter.setIngredient('C',CORE_BASE);
+            recipeNiCenter.setIngredient('C',RecipeChoice.predicateChoice(item -> coreSpell(item)==s,createCore(s)));
             Bukkit.addRecipe(recipeNiCenter);
             recipes.put(keyNiCenter,s);
 
@@ -223,7 +223,7 @@ public final class WandService implements Listener {
             ShapedRecipe recipeNiBottom=new ShapedRecipe(keyNiBottom,create(s));
             recipeNiBottom.shape("NNN","NNN","NCN");
             recipeNiBottom.setIngredient('N',Material.NETHERITE_INGOT);
-            recipeNiBottom.setIngredient('C',CORE_BASE);
+            recipeNiBottom.setIngredient('C',RecipeChoice.predicateChoice(item -> coreSpell(item)==s,createCore(s)));
             Bukkit.addRecipe(recipeNiBottom);
             recipes.put(keyNiBottom,s);
 
@@ -232,7 +232,7 @@ public final class WandService implements Listener {
             ShapedRecipe recipeNsCenter=new ShapedRecipe(keyNsCenter,create(s));
             recipeNsCenter.shape("NNN","NCN","NNN");
             recipeNsCenter.setIngredient('N',Material.NETHER_STAR);
-            recipeNsCenter.setIngredient('C',CORE_BASE);
+            recipeNsCenter.setIngredient('C',RecipeChoice.predicateChoice(item -> coreSpell(item)==s,createCore(s)));
             Bukkit.addRecipe(recipeNsCenter);
             recipes.put(keyNsCenter,s);
 
@@ -241,11 +241,49 @@ public final class WandService implements Listener {
             ShapedRecipe recipeNsBottom=new ShapedRecipe(keyNsBottom,create(s));
             recipeNsBottom.shape("NNN","NNN","NCN");
             recipeNsBottom.setIngredient('N',Material.NETHER_STAR);
-            recipeNsBottom.setIngredient('C',CORE_BASE);
+            recipeNsBottom.setIngredient('C',RecipeChoice.predicateChoice(item -> coreSpell(item)==s,createCore(s)));
             Bukkit.addRecipe(recipeNsBottom);
             recipes.put(keyNsBottom,s);
         }
-        plugin.getLogger().info("[advance-magic] Registered " + recipes.size() + " wand crafting recipes.");
+
+        // 5. Generic CORE_BASE fallbacks (matches plain vanilla Heart of the Sea on Bedrock/Java)
+        NamespacedKey gNiC = new NamespacedKey(plugin, "wand_gen_ni_c");
+        Bukkit.removeRecipe(gNiC);
+        ShapedRecipe rGNiC = new ShapedRecipe(gNiC, create(Spell.LIGHTNING_STRIKE));
+        rGNiC.shape("NNN", "NCN", "NNN");
+        rGNiC.setIngredient('N', Material.NETHERITE_INGOT);
+        rGNiC.setIngredient('C', CORE_BASE);
+        Bukkit.addRecipe(rGNiC);
+        recipes.put(gNiC, Spell.LIGHTNING_STRIKE);
+
+        NamespacedKey gNiB = new NamespacedKey(plugin, "wand_gen_ni_b");
+        Bukkit.removeRecipe(gNiB);
+        ShapedRecipe rGNiB = new ShapedRecipe(gNiB, create(Spell.LIGHTNING_STRIKE));
+        rGNiB.shape("NNN", "NNN", "NCN");
+        rGNiB.setIngredient('N', Material.NETHERITE_INGOT);
+        rGNiB.setIngredient('C', CORE_BASE);
+        Bukkit.addRecipe(rGNiB);
+        recipes.put(gNiB, Spell.LIGHTNING_STRIKE);
+
+        NamespacedKey gNsC = new NamespacedKey(plugin, "wand_gen_ns_c");
+        Bukkit.removeRecipe(gNsC);
+        ShapedRecipe rGNsC = new ShapedRecipe(gNsC, create(Spell.LIGHTNING_STRIKE));
+        rGNsC.shape("NNN", "NCN", "NNN");
+        rGNsC.setIngredient('N', Material.NETHER_STAR);
+        rGNsC.setIngredient('C', CORE_BASE);
+        Bukkit.addRecipe(rGNsC);
+        recipes.put(gNsC, Spell.LIGHTNING_STRIKE);
+
+        NamespacedKey gNsB = new NamespacedKey(plugin, "wand_gen_ns_b");
+        Bukkit.removeRecipe(gNsB);
+        ShapedRecipe rGNsB = new ShapedRecipe(gNsB, create(Spell.LIGHTNING_STRIKE));
+        rGNsB.shape("NNN", "NNN", "NCN");
+        rGNsB.setIngredient('N', Material.NETHER_STAR);
+        rGNsB.setIngredient('C', CORE_BASE);
+        Bukkit.addRecipe(rGNsB);
+        recipes.put(gNsB, Spell.LIGHTNING_STRIKE);
+
+        plugin.getLogger().info("[advance-magic] Registered " + recipes.size() + " wand crafting recipes (both custom core and vanilla base).");
     }
     public void discover(Player p) { if(canCraft(p))p.discoverRecipes(recipes.keySet()); }
     public boolean migrate(ItemStack item) {
@@ -418,13 +456,70 @@ public final class WandService implements Listener {
         Bukkit.getScheduler().runTask(plugin, p::updateInventory);
     }
 
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void onCoreClickInGrid(InventoryClickEvent e) {
+        if(e instanceof CraftItemEvent) return;
+        if(!(e.getWhoClicked() instanceof Player p)) return;
+        if(!(e.getInventory() instanceof CraftingInventory inv)) return;
+
+        ItemStack clicked = e.getCurrentItem();
+        Spell coreClicked = coreSpell(clicked);
+        if(coreClicked == null) return;
+
+        Spell expected = craftingSpell(inv.getMatrix());
+        if(expected == null) return;
+
+        if(!canCraft(p)) {
+            e.setCancelled(true);
+            p.sendMessage(ChatColor.RED+"คุณไม่มีสิทธิ์ในการสร้างคทาเวทมนตร์");
+            return;
+        }
+
+        e.setCancelled(true);
+
+        // Consume 1 item from each slot in the 3x3 crafting matrix
+        ItemStack[] matrix = inv.getMatrix();
+        for(int i = 0; i < matrix.length; i++) {
+            if(matrix[i] != null) {
+                if(matrix[i].getAmount() <= 1) {
+                    matrix[i] = null;
+                } else {
+                    matrix[i].setAmount(matrix[i].getAmount() - 1);
+                }
+            }
+        }
+        inv.setMatrix(matrix);
+        inv.setResult(null);
+
+        // Give the wand
+        ItemStack wand = create(expected);
+        var leftover = p.getInventory().addItem(wand);
+        if(!leftover.isEmpty()) {
+            leftover.values().forEach(drop -> p.getWorld().dropItemNaturally(p.getLocation(), drop));
+        }
+
+        p.playSound(p.getLocation(),Sound.BLOCK_BEACON_POWER_SELECT,1.0f,1.2f);
+        p.playSound(p.getLocation(),Sound.UI_TOAST_CHALLENGE_COMPLETE,0.7f,1.4f);
+        p.spawnParticle(Particle.TOTEM_OF_UNDYING,p.getLocation().add(0,1.2,0),30,0.4,0.4,0.4,0.1);
+        p.sendMessage(ChatColor.GOLD+"✦ ประกอบ "+ChatColor.LIGHT_PURPLE+expected.title+" Wand"+ChatColor.GOLD+" สำเร็จ!");
+        p.sendActionBar(net.kyori.adventure.text.Component.text("✦ ประกอบ "+expected.title+" Wand สำเร็จ!", net.kyori.adventure.text.format.NamedTextColor.GOLD));
+        plugin.getLogger().info("[CoreGridClick-Success] " + p.getName() + " assembled " + expected.title + " Wand by clicking the core in the crafting grid!");
+        p.updateInventory();
+    }
+
     @EventHandler(priority=EventPriority.HIGH)
     public void onCraftingTableInteract(PlayerInteractEvent e) {
         if(e.getAction()!=Action.RIGHT_CLICK_BLOCK) return;
         if(e.getClickedBlock()==null||e.getClickedBlock().getType()!=Material.CRAFTING_TABLE) return;
         Player p=e.getPlayer();
-        ItemStack hand=p.getInventory().getItemInMainHand();
-        Spell coreSpell=coreSpell(hand);
+        ItemStack mainHand=p.getInventory().getItemInMainHand();
+        ItemStack offHand=p.getInventory().getItemInOffHand();
+        Spell coreSpell=coreSpell(mainHand);
+        boolean isOffhand=false;
+        if(coreSpell==null) {
+            coreSpell=coreSpell(offHand);
+            isOffhand=true;
+        }
         if(coreSpell==null) return;
 
         if(!canCraft(p)) {
@@ -450,7 +545,8 @@ public final class WandService implements Listener {
         }
 
         if(chosenMaterial==null) {
-            p.sendMessage(ChatColor.RED+"ต้องการ Netherite Ingot หรือ Nether Star อย่างน้อย 8 อันในการประกอบคทา");
+            e.setCancelled(true);
+            p.sendMessage(ChatColor.RED+"ต้องการ Netherite Ingot หรือ Nether Star อย่างน้อย 8 อันในการประกอบคทา (ปัจจุบันมี: Netherite " + netheriteCount + ", Nether Star " + netherStarCount + ")");
             return;
         }
 
@@ -475,9 +571,14 @@ public final class WandService implements Listener {
         }
         p.getInventory().setStorageContents(storage);
 
-        // Consume 1 core from main hand
-        hand.setAmount(hand.getAmount()-1);
-        p.getInventory().setItemInMainHand(hand.getAmount()>0?hand:null);
+        // Consume 1 core
+        if(isOffhand) {
+            offHand.setAmount(offHand.getAmount()-1);
+            p.getInventory().setItemInOffHand(offHand.getAmount()>0?offHand:null);
+        } else {
+            mainHand.setAmount(mainHand.getAmount()-1);
+            p.getInventory().setItemInMainHand(mainHand.getAmount()>0?mainHand:null);
+        }
 
         // Create and give wand
         ItemStack wand=create(coreSpell);
