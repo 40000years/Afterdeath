@@ -10,3 +10,11 @@ commands:
     usage: /nv [on|off|toggle|status|reload]
     aliases: [nightvision]
     permission: nightvision.use
+
+permissions:
+  nightvision.use:
+    description: อนุญาตให้ผู้เล่นเปิดหรือปิดการมองเห็นในความมืดของตัวเอง
+    default: true
+  nightvision.admin:
+    description: สิทธิ์แอดมินสำหรับรีโหลดหรือเปิดปิด Night Vision ให้ผู้เล่นอื่น
+    default: op
