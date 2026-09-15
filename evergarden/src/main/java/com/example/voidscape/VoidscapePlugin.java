@@ -84,10 +84,22 @@ public final class VoidscapePlugin extends JavaPlugin {
             voidWorld.getWorldBorder().setSize(integer("dimension.border-size",24000,4096,60000));
             relics=new RelicService(this);dungeons=new DungeonManager(this);travel=new TravelListener(this);
             var pm=getServer().getPluginManager();pm.registerEvents(relics,this);pm.registerEvents(dungeons,this);pm.registerEvents(travel,this);
+            pm.registerEvents(new com.example.voidscape.guide.ChestGuideGui(this),this);
             pm.registerEvents(new com.example.voidscape.enchant.EnchantApplyListener(this,relics),this);
             pm.registerEvents(new com.example.voidscape.enchant.UniqueAbilityListener(this),this);
             testGui=new com.example.voidscape.gui.AdminTestGui(this);pm.registerEvents(testGui,this);
             packs.start();pm.registerEvents(packs,this);
+            try {
+                org.bukkit.block.Block lecternBlock = voidWorld.getBlockAt(0, 97, 4);
+                if (lecternBlock.getType() == Material.LECTERN && lecternBlock.getState() instanceof org.bukkit.block.Lectern lectern) {
+                    if (lectern.getInventory() instanceof org.bukkit.inventory.LecternInventory lecternInv) {
+                        if (lecternInv.getBook() == null) {
+                            lecternInv.setBook(relics.createGuideBook());
+                            lectern.update(true, false);
+                        }
+                    }
+                }
+            } catch (Throwable ignored) {}
             getServer().getOnlinePlayers().forEach(p->{relics.migrate(p.getInventory());relics.migrate(p.getEnderChest());packs.offer(p);});
             getServer().getWorlds().forEach(w->w.getEntities().forEach(relics::migrateEntity));
             VoidCommand command=new VoidCommand(this);

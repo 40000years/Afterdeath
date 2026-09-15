@@ -42,13 +42,23 @@ public final class TravelListener implements Listener {
         // Spawn Lectern Guide Book interaction
         if(clicked.getWorld()==plugin.world()&&clicked.getType()==Material.LECTERN&&clicked.getX()==0&&clicked.getZ()==4) {
             e.setCancelled(true);
-            p.openBook(plugin.relics().createGuideBook());
-            p.playSound(p.getLocation(),Sound.ITEM_BOOK_PAGE_TURN,0.8f,1.0f);
+            if(e.getHand()==org.bukkit.inventory.EquipmentSlot.HAND) {
+                com.example.voidscape.guide.BedrockGuideService.openGuide(plugin, p, 0);
+            }
             return;
         }
 
         ItemStack hand=p.getInventory().getItem(e.getHand());
         if(hand==null)return;
+
+        // Bedrock player right-clicking held guide book
+        if(hand.getType()==Material.WRITTEN_BOOK&&isGuideBook(hand)&&com.example.voidscape.guide.BedrockGuideService.isBedrock(p)) {
+            e.setCancelled(true);
+            if(e.getHand()==org.bukkit.inventory.EquipmentSlot.HAND) {
+                com.example.voidscape.guide.BedrockGuideService.openGuide(plugin, p, 0);
+            }
+            return;
+        }
 
         // Anti-Boat Cheese: prevent placing boats/minecarts near shrines in the void
         if(clicked.getWorld()==plugin.world()&&isVehicleItem(hand.getType())) {
@@ -275,9 +285,32 @@ public final class TravelListener implements Listener {
         }
     }
 
-    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
-    public void breakFrame(BlockBreakEvent e) {
-        handlePortalBreak(e.getBlock());
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void breakLecternOrFrame(BlockBreakEvent e) {
+        Block b=e.getBlock();
+        if(b.getWorld()==plugin.world()&&b.getX()==0&&b.getY()==97&&b.getZ()==4) {
+            if(e.getPlayer().getGameMode()!=GameMode.CREATIVE||!e.getPlayer().hasPermission("voidscape.admin")) {
+                e.setCancelled(true);
+                return;
+            }
+        }
+        handlePortalBreak(b);
+    }
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void takeLecternBook(PlayerTakeLecternBookEvent e) {
+        if(e.getLectern().getWorld()==plugin.world()&&e.getLectern().getX()==0&&e.getLectern().getZ()==4) {
+            e.setCancelled(true);
+        }
+    }
+
+    private boolean isGuideBook(ItemStack item) {
+        if(item==null||!item.hasItemMeta())return false;
+        if(item.getItemMeta().getPersistentDataContainer().has(plugin.key("guide_book"),PersistentDataType.BYTE))return true;
+        if(item.getItemMeta() instanceof org.bukkit.inventory.meta.BookMeta bm) {
+            return "คู่มือมิติ Evergarden".equals(bm.getTitle());
+        }
+        return false;
     }
 
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)

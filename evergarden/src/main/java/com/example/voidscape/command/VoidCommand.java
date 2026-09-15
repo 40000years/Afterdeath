@@ -34,8 +34,7 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             }
             case "guide" -> {
                 if(p!=null) {
-                    p.openBook(plugin.relics().createGuideBook());
-                    p.playSound(p.getLocation(),Sound.ITEM_BOOK_PAGE_TURN,0.8f,1.0f);
+                    com.example.voidscape.guide.BedrockGuideService.openGuide(plugin, p, 0);
                 }
             }
             case "enter" -> {if(p!=null&&canEnter(p)){if(p.getWorld()==plugin.world())plugin.travel().leave(p,false);else plugin.travel().enter(p);}}

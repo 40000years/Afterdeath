@@ -13,6 +13,16 @@
     <artifactId>evergarden</artifactId>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <!-- Floodgate API -->
+        <dependency>
+            <groupId>org.geysermc.floodgate</groupId>
+            <artifactId>api</artifactId>
+            <version>2.2.5-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
     <build>
         <finalName>evergarden</finalName>
         <plugins>
