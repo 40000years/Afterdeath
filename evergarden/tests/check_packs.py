@@ -11,12 +11,14 @@ other = json.loads((root.parent / 'advance-magic/dist/geyser-mappings.json').rea
 definitions = [d for group in mapping['items'].values() for d in group]
 identifiers = {d['bedrock_identifier'] for d in definitions}
 other_ids = {d['bedrock_identifier'] for group in other['items'].values() for d in group}
-expected = {"voidscape:" + name for name in (
+relic_expected = {"voidscape:" + name for name in (
     "void_key", "rift_pickaxe", "smelter_pickaxe", "storm_bow", "nova_bow", "rift_blade", "eternal_aegis",
     "scroll_eternity", "scroll_limit_break", "scroll_unique", "astral_dust", "key_shard", "repair_stone", "void_elixir",
     "thorn_mask", "thorn_crown", "astral_mask", "astral_crown", "chrono_mask", "chrono_crown"
 )}
-assert len(definitions) == len(identifiers) and identifiers == expected
+assert len(definitions) == len(identifiers)
+assert relic_expected.issubset(identifiers), f"Missing relics: {relic_expected - identifiers}"
+assert len(identifiers) == 170, f"Expected 170 identifiers (20 relics + 30 seeds + 30 foods + 90 plant stages), got {len(identifiers)}"
 assert not identifiers & other_ids, 'Duplicate Geyser custom item IDs across plugins'
 hashes = json.loads((dist / 'pack-hashes.json').read_text())
 for filename, digest in hashes.items():

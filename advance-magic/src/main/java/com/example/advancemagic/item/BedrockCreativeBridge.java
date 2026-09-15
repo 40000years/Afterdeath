@@ -210,7 +210,7 @@ public final class BedrockCreativeBridge implements Listener {
     }
 
     private void spawnItemDirectly(Player player, String identifier) {
-        if (!player.isOnline()) return;
+        if (!player.isOnline() || player.getGameMode() != org.bukkit.GameMode.CREATIVE) return;
         ItemStack item = resolveCustomItem(identifier);
         if (item == null) return;
 
@@ -258,6 +258,29 @@ public final class BedrockCreativeBridge implements Listener {
                         return (ItemStack) createCoreMethod.invoke(relicService, coreId);
                     }
 
+                    // Check if it is an Evergarden crop or seed
+                    if (relicId.startsWith("seed_") || relicId.startsWith("crop_")) {
+                        boolean isSeed = relicId.startsWith("seed_");
+                        String cropRawId = relicId.substring(isSeed ? "seed_".length() : "crop_".length());
+                        Method cropsMethod = evergarden.getClass().getMethod("crops");
+                        Object cropService = cropsMethod.invoke(evergarden);
+                        Method factoryMethod = cropService.getClass().getMethod("factory");
+                        Object cropFactory = factoryMethod.invoke(cropService);
+
+                        Class<?> cropTypeClass = Class.forName("com.example.voidscape.crop.CropType");
+                        Method fromIdMethod = cropTypeClass.getMethod("fromId", String.class);
+                        Object cropType = fromIdMethod.invoke(null, cropRawId);
+                        if (cropType != null) {
+                            if (isSeed) {
+                                Method createSeed = cropFactory.getClass().getMethod("createSeed", cropTypeClass, int.class);
+                                return (ItemStack) createSeed.invoke(cropFactory, cropType, 16);
+                            } else {
+                                Method createFood = cropFactory.getClass().getMethod("createFood", cropTypeClass, int.class);
+                                return (ItemStack) createFood.invoke(cropFactory, cropType, 16);
+                            }
+                        }
+                    }
+
                     // Check if it's a relic
                     Class<?> relicEnum = Class.forName("com.example.voidscape.item.RelicService$Relic");
                     for (Object enumConstant : relicEnum.getEnumConstants()) {
@@ -290,33 +313,4 @@ public final class BedrockCreativeBridge implements Listener {
         lastSpawnTime.keySet().removeIf(k -> k.startsWith(uuid.toString()));
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onCreative(InventoryCreativeEvent event) {
-        // Fallback for creative drag/drop if triggered
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-        ItemStack cursor = event.getCursor();
-        if (cursor != null && (cursor.getType() == Material.CARROT_ON_A_STICK || cursor.getType() == Material.HEART_OF_THE_SEA)) {
-            if (!cursor.hasItemMeta() || (!cursor.getItemMeta().hasDisplayName() && !cursor.getItemMeta().hasCustomModelData())) {
-                // Vanilla base item in creative event - cancel to prevent plain item overwrites
-                event.setCancelled(true);
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack inHand = event.getItem();
-        if (inHand == null) return;
-        if (inHand.getType() == Material.CARROT_ON_A_STICK || inHand.getType() == Material.HEART_OF_THE_SEA) {
-            boolean isPlain = !inHand.hasItemMeta() ||
-                (!inHand.getItemMeta().hasDisplayName() && !inHand.getItemMeta().hasCustomModelData());
-            if (isPlain) {
-                // If player is holding a plain vanilla item from previous stripped drags, open magic items menu
-                player.sendMessage(ChatColor.YELLOW + "✦ กำลังเปิดเมนูเลือกคทา/แกนเวทมนตร์...");
-                plugin.itemMenu().open(player, true);
-                event.setCancelled(true);
-            }
-        }
-    }
 }

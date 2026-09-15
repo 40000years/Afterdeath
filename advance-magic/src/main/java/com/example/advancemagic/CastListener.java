@@ -67,14 +67,34 @@ public final class CastListener implements Listener {
         if(casting.contains(id)||now-lastInput.getOrDefault(id,0L)<150)return false;
         lastInput.put(id,now);casting.add(id);
         try {
+            MagicCastEvent event=new MagicCastEvent(p,spell);Bukkit.getPluginManager().callEvent(event);
+            if(event.isCancelled()){actionbar(p,"Magic is blocked here.");return false;}
+
             var account=plugin.mana().account(p);
             long remaining=account.remaining(spell.id(),now);
             if(remaining>0){actionbar(p,spell.title+": "+String.format(Locale.ROOT,"%.1fs",remaining/1000.0));return false;}
-            if(account.mana()<spell.mana){actionbar(p,"Need "+spell.mana+" mana.");return false;}
+
+            if(account.mana()<spell.mana) {
+                if(event.isBloodCast()) {
+                    double missing = spell.mana - account.mana();
+                    double hpCost = Math.max(1.0, missing * 0.1);
+                    if(p.getHealth() > hpCost) {
+                        p.setHealth(p.getHealth() - hpCost);
+                        p.getWorld().playSound(p.getLocation(), Sound.ENTITY_PLAYER_HURT, 0.8f, 1.4f);
+                        p.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, p.getLocation().add(0, 1, 0), 4, 0.2, 0.2, 0.2, 0.05);
+                        account.setMana(spell.mana);
+                    } else {
+                        actionbar(p, "Need " + spell.mana + " mana (insufficient HP for Blood Cast).");
+                        return false;
+                    }
+                } else {
+                    actionbar(p,"Need "+spell.mana+" mana.");return false;
+                }
+            }
             if(!plugin.effects().hasCapacity()){actionbar(p,"Too many active spells. Try again shortly.");return false;}
-            MagicCastEvent event=new MagicCastEvent(p,spell);Bukkit.getPluginManager().callEvent(event);
-            if(event.isCancelled()){actionbar(p,"Magic is blocked here.");return false;}
+
             double effectiveCd=wandItem!=null?plugin.wands().getEffectiveCooldown(wandItem,spell):spell.cooldown;
+            effectiveCd=Math.max(0.1, effectiveCd * event.getCooldownMultiplier());
             if(!account.reserve(spell.id(),spell.mana,effectiveCd,now))return false;
             boolean success=false;
             try { success=plugin.spells().cast(p,spell); }
@@ -85,6 +105,19 @@ public final class CastListener implements Listener {
                 int casts=wandItem!=null?plugin.wands().recordCast(wandItem,spell):0;
                 String cdStr=String.format(Locale.ROOT,"%.1f",effectiveCd);
                 actionbar(p,spell.title+" | CD "+cdStr+"s"+(casts>0?" ("+casts+" casts)":""));
+
+                int extra = event.getExtraCasts();
+                if(extra > 0 && p.isOnline()) {
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        if(p.isOnline() && !p.isDead()) {
+                            try {
+                                plugin.spells().cast(p, spell);
+                                p.getWorld().playSound(p.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.8f, 1.6f);
+                                p.getWorld().spawnParticle(Particle.WITCH, p.getLocation().add(0, 1, 0), 15, 0.3, 0.4, 0.3, 0.05);
+                            } catch (Throwable ignored) {}
+                        }
+                    }, 5L);
+                }
             }
             plugin.mana().save(p);return success;
         } finally {casting.remove(id);}

@@ -84,11 +84,12 @@ public final class ProjectileSpells implements Listener {
             if(!c.loaded(at))return false;
             if(age%5==0)c.ring(at,8,Spell.VOID_PULL);
             c.particles(at,Particle.REVERSE_PORTAL,12,0.4);
-            if(age%2==0)for(var e:c.nearby(p,at,8,false))if(c.affect(p,e,Spell.VOID_PULL)) {
+            if(age%6==0)for(var e:c.nearby(p,at,8,false))if(c.affect(p,e,Spell.VOID_PULL)) {
                 if(age>=30||e.getLocation().distanceSquared(at)<2.25)c.plugin.statuses().root(p,e);
                 else {
                     Vector velocity=at.clone().add(0,0.5,0).toVector().subtract(e.getLocation().toVector());
-                    if(velocity.lengthSquared()>0.01)e.setVelocity(velocity.normalize().multiply(0.65));
+                    if(velocity.lengthSquared()>0.01)c.velocity(e,velocity.normalize().multiply(0.65));
+                    if(e instanceof Player player) c.potion(player, PotionEffectType.SLOWNESS, 20, 2);
                 }
             }
             // Stage 2: Event Horizon Collapse at age 38
@@ -100,7 +101,7 @@ public final class ProjectileSpells implements Listener {
                 c.echo(p,at,Spell.VOID_PULL,14,6,20);
                 for(var e:c.nearby(p,at,5.5,false))if(c.affect(p,e,Spell.VOID_PULL)) {
                     c.damage(p,e,c.configuredDamage("damage.void-collapse",45),DamageType.MAGIC);
-                    e.setVelocity(new Vector(0,1.1,0));
+                    c.velocity(e,new Vector(0,1.1,0));
                 }
             }
             return true;
@@ -189,13 +190,19 @@ public final class ProjectileSpells implements Listener {
             if(age%20==0)world.playSound(center,Sound.ENTITY_WARDEN_HEARTBEAT,2.0f,1.3f);
 
             // Pull only eligible enemies, through the same protection and target limits as damage.
-            for(var target:c.nearby(p,center,22,false))if(c.affect(p,target,Spell.SHULKER_LEVITATION)) {
-                Vector pull=center.toVector().subtract(target.getLocation().toVector());
-                double dist=pull.length();
-                if(dist>0.8)target.setVelocity(pull.normalize().multiply(Math.min(1.1,0.35+dist*0.04))
-                    .setY(Math.min(0.7,(center.getY()-target.getLocation().getY())*0.2+0.15)));
-                c.potion(target,PotionEffectType.LEVITATION,40,1);
-                if(age%10==0)c.damage(p,target,15,DamageType.MAGIC);
+            if(age%5==0) {
+                for(var target:c.nearby(p,center,22,false))if(c.affect(p,target,Spell.SHULKER_LEVITATION)) {
+                    Vector pull=center.toVector().subtract(target.getLocation().toVector());
+                    double dist=pull.length();
+                    if(dist>0.8)c.velocity(target,pull.normalize().multiply(Math.min(1.1,0.35+dist*0.04))
+                        .setY(Math.min(0.7,(center.getY()-target.getLocation().getY())*0.2+0.15)));
+                    c.potion(target,PotionEffectType.LEVITATION,40,1);
+                }
+            }
+            if(age%10==0) {
+                for(var target:c.nearby(p,center,22,false))if(c.affect(p,target,Spell.SHULKER_LEVITATION)) {
+                    c.damage(p,target,15,DamageType.MAGIC);
+                }
             }
             return true;
         });
@@ -220,7 +227,7 @@ public final class ProjectileSpells implements Listener {
                     if(c.affect(p,living,Spell.SHULKER_LEVITATION)) {
                         c.damage(p,living,c.configuredDamage("damage.shulker-singularity-burst",120),DamageType.EXPLOSION);
                         Vector knock=living.getLocation().toVector().subtract(center.toVector()).normalize().multiply(1.8).setY(0.7);
-                        living.setVelocity(knock);
+                        c.velocity(living,knock);
                     }
                 }
             }

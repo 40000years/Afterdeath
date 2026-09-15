@@ -22,7 +22,12 @@ public final class StatusService implements Listener {
     public StatusService(AdvanceMagicPlugin plugin){this.plugin=plugin;}
     private Status status(Player p,LivingEntity e,int ticks){return new Status(p,e,e.getLocation(),tick+ticks);}
     public void freeze(Player p,LivingEntity e){frozen.put(e.getUniqueId(),status(p,e,120));}
-    public void root(Player p,LivingEntity e){roots.put(e.getUniqueId(),status(p,e,30));plugin.context().potion(e,PotionEffectType.SLOWNESS,30,127);}
+    public void root(Player p,LivingEntity e){
+        if(e instanceof Player&&!plugin.getConfig().getBoolean("compatibility.hard-player-roots",false)) {
+            plugin.context().potion(e,PotionEffectType.SLOWNESS,30,4);return;
+        }
+        roots.put(e.getUniqueId(),status(p,e,30));plugin.context().potion(e,PotionEffectType.SLOWNESS,30,127);
+    }
     public void armor(Player p){armor.put(p.getUniqueId(),status(p,p,1200));}
     public boolean armored(Player p){return armor.containsKey(p.getUniqueId());}
     public boolean isShrouded(Player p){return shrouds.containsKey(p.getUniqueId());}
@@ -93,7 +98,14 @@ public final class StatusService implements Listener {
     public void tick() {
         tick++;
         roots.values().removeIf(this::expired);
-        for(Status s:roots.values())s.target.setVelocity(new Vector());
+        for(Status s:roots.values()) {
+            if(!(s.target instanceof Player)) {
+                s.target.setVelocity(new Vector());
+            } else if(!s.target.isOnGround()) {
+                Vector v = s.target.getVelocity();
+                if(Math.hypot(v.getX(), v.getZ()) > 0.05) s.target.setVelocity(new Vector(0, v.getY(), 0));
+            }
+        }
         frozen.values().removeIf(this::expired);
         for(Status s:frozen.values())s.target.setFreezeTicks(Math.max(0,s.target.getMaxFreezeTicks()-1));
         armor.values().removeIf(this::expired);
@@ -110,12 +122,13 @@ public final class StatusService implements Listener {
         roots.values().removeIf(s->s.caster.equals(p)||s.target.equals(p));
         frozen.values().removeIf(s->s.caster.equals(p)||s.target.equals(p));
         armor.remove(p.getUniqueId());
+        plugin.context().clearPlayerVelocity(p.getUniqueId());
     }
     public void close(){for(Status s:List.copyOf(shrouds.values()))reveal((Player)s.target);roots.clear();frozen.clear();armor.clear();ambushProjectiles.clear();ambushHits.clear();}
     @EventHandler(ignoreCancelled=true) public void move(PlayerMoveEvent e) {
         Status s=roots.get(e.getPlayer().getUniqueId());Location to=e.getTo();
         if(s==null||to==null||e instanceof PlayerTeleportEvent||to.getWorld()!=s.anchor.getWorld())return;
-        if(to.getX()!=s.anchor.getX()||to.getY()!=s.anchor.getY()||to.getZ()!=s.anchor.getZ()) {
+        if(to.distanceSquared(s.anchor) > 0.04) {
             Location fixed=s.anchor.clone();fixed.setYaw(to.getYaw());fixed.setPitch(to.getPitch());e.setTo(fixed);
         }
     }
@@ -153,7 +166,7 @@ public final class StatusService implements Listener {
                 plugin.context().damage(p,attacker,amount,DamageType.THORNS);
                 attacker.getWorld().playSound(attacker.getLocation(),Sound.BLOCK_ANVIL_LAND,0.8f,1.5f);
                 Vector push=attacker.getLocation().toVector().subtract(p.getLocation().toVector()).setY(0);
-                if(push.lengthSquared()>0.01)attacker.setVelocity(push.normalize().multiply(0.6).setY(0.2));
+                if(push.lengthSquared()>0.01)plugin.context().velocity(attacker,push.normalize().multiply(0.6).setY(0.2));
             }
         });
     }

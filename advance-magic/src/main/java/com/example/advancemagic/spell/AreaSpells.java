@@ -72,7 +72,7 @@ public final class AreaSpells implements Listener {
                 for(var e:c.nearby(p,center,7.5,false))if(c.affect(p,e,Spell.FROST_NOVA)) {
                     c.damage(p,e,c.configuredDamage("damage.frost-shatter",35),DamageType.FREEZE);
                     Vector push=e.getLocation().toVector().subtract(center.toVector()).setY(0);
-                    if(push.lengthSquared()>0.01)e.setVelocity(push.normalize().multiply(0.6).setY(0.25));
+                    if(push.lengthSquared()>0.01)c.velocity(e,push.normalize().multiply(0.6).setY(0.25));
                 }
             }
             return true;
@@ -122,7 +122,7 @@ public final class AreaSpells implements Listener {
                 c.particles(center.clone().add(0,1.5,0),Particle.CAMPFIRE_COSY_SMOKE,30,2.0);
                 for(var e:c.nearby(p,center,4.5,false))if(c.affect(p,e,Spell.EARTH_WALL)) {
                     Vector push=e.getLocation().toVector().subtract(center.toVector()).setY(0);
-                    if(push.lengthSquared()>0.01)e.setVelocity(push.normalize().multiply(0.5).setY(0.2));
+                    if(push.lengthSquared()>0.01)c.velocity(e,push.normalize().multiply(0.5).setY(0.2));
                 }
             }
         });
@@ -143,7 +143,7 @@ public final class AreaSpells implements Listener {
                 c.potion(e,PotionEffectType.SLOWNESS,60,3);
                 Vector knock=e.getLocation().toVector().subtract(center.toVector()).setY(0);
                 if(knock.lengthSquared()<0.01)knock=facing.clone();
-                e.setVelocity(knock.normalize().multiply(0.8).setY(0.35));
+                c.velocity(e,knock.normalize().multiply(0.8).setY(0.35));
             }
             c.echo(p,ruptureCenter,Spell.EARTH_WALL,100,5,25);
         }catch(RuntimeException ex){effect.close();throw ex;}
@@ -179,7 +179,7 @@ public final class AreaSpells implements Listener {
                 for(var e:c.nearby(p,center,6,false))if(c.affect(p,e,Spell.TIME_DILATION)) {
                     c.damage(p,e,c.configuredDamage("follow-up.damage.time_dilation",12),DamageType.MAGIC);
                     Vector push=e.getLocation().toVector().subtract(center.toVector()).setY(0);
-                    if(push.lengthSquared()>0.01)e.setVelocity(push.normalize().multiply(0.6).setY(0.2));
+                    if(push.lengthSquared()>0.01)c.velocity(e,push.normalize().multiply(0.6).setY(0.2));
                 }
                 for(var ally:c.nearby(p,center,6,true)) {
                     if(!c.affect(p,ally,Spell.TIME_DILATION))continue;

@@ -297,32 +297,28 @@ public final class RelicService implements Listener {
         if(item==null||item.getType()!=Material.PRISMARINE_SHARD||!item.hasItemMeta()) return false;
         var pdc = item.getItemMeta().getPersistentDataContainer();
         return pdc.has(plugin.key("key_shard"),PersistentDataType.BYTE)
-            || type(item)==Relic.KEY_SHARD
-            || (item.getItemMeta().hasDisplayName() && net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()).contains("Key Shard"));
+            || type(item)==Relic.KEY_SHARD;
     }
 
     public boolean isRepairStone(ItemStack item) {
         if(item==null||item.getType()!=Material.FLINT||!item.hasItemMeta()) return false;
         var pdc = item.getItemMeta().getPersistentDataContainer();
         return pdc.has(plugin.key("repair_stone"),PersistentDataType.BYTE)
-            || type(item)==Relic.REPAIR_STONE
-            || (item.getItemMeta().hasDisplayName() && net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()).contains("Repair Stone"));
+            || type(item)==Relic.REPAIR_STONE;
     }
 
     public boolean isVoidElixir(ItemStack item) {
         if(item==null||item.getType()!=Material.HONEY_BOTTLE||!item.hasItemMeta()) return false;
         var pdc = item.getItemMeta().getPersistentDataContainer();
         return pdc.has(plugin.key("void_elixir"),PersistentDataType.BYTE)
-            || type(item)==Relic.VOID_ELIXIR
-            || (item.getItemMeta().hasDisplayName() && net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()).contains("Void Walker Elixir"));
+            || type(item)==Relic.VOID_ELIXIR;
     }
 
     public boolean isAstralDust(ItemStack item) {
         if(item==null||item.getType()!=Material.SUGAR||!item.hasItemMeta()) return false;
         var pdc = item.getItemMeta().getPersistentDataContainer();
         return pdc.has(plugin.key("astral_dust"),PersistentDataType.BYTE)
-            || type(item)==Relic.ASTRAL_DUST
-            || (item.getItemMeta().hasDisplayName() && net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()).contains("Astral Dust"));
+            || type(item)==Relic.ASTRAL_DUST;
     }
 
     public static String toRoman(int n) {
@@ -449,12 +445,14 @@ public final class RelicService implements Listener {
                 yield create(equipment[random.nextInt(equipment.length)],1);
             }
             case CONSUMABLE -> {
-                int sub=random.nextInt(4);
+                int sub = random.nextInt(6);
                 yield switch(sub) {
-                    case 0 -> createKeyShard(2);
-                    case 1 -> createAstralDust(4);
-                    case 2 -> createRepairStone(2);
-                    default -> createVoidElixir(2);
+                    case 0 -> createKeyShard(random.nextInt(2) + 1);
+                    case 1 -> createAstralDust(random.nextInt(3) + 2);
+                    case 2 -> createRepairStone(1);
+                    case 3 -> createVoidElixir(1);
+                    case 4 -> new ItemStack(Material.ECHO_SHARD, random.nextInt(2) + 1);
+                    default -> new ItemStack(Material.AMETHYST_SHARD, random.nextInt(4) + 2);
                 };
             }
         };
@@ -634,6 +632,8 @@ public final class RelicService implements Listener {
         if(p.getGameMode()==GameMode.SPECTATOR||!ready(p,Relic.RIFT_BLADE)||immune(p))return;
         Location start=p.getLocation(),target=null;
         Vector direction=start.getDirection();
+        if(direction.getY() < -0.2) direction.setY(-0.05); // prevent diving into floor on slight look-down
+        direction.normalize();
         double distance=plugin.integer("relics.blink.distance",8,2,12);
         for(double d=0.5;d<=distance;d+=0.5) {
             Location next=start.clone().add(direction.clone().multiply(d));
@@ -652,6 +652,9 @@ public final class RelicService implements Listener {
             p.setFallDistance(0);p.playSound(target,Sound.ENTITY_ENDERMAN_TELEPORT,0.7f,0.7f);
             p.spawnParticle(Particle.REVERSE_PORTAL,target.clone().add(0,1,0),12,0.3,0.5,0.3,0.03);
             p.sendActionBar(Component.text("✦ กรีดมิติวาร์ปพริบตา!", NamedTextColor.AQUA));
+        } else {
+            p.playSound(p.getLocation(), Sound.BLOCK_DISPENSER_FAIL, 0.7f, 1.4f);
+            p.sendActionBar(Component.text("⚠ ทางข้างหน้าไม่เปิดโล่ง ไม่สามารถวาร์ปได้", NamedTextColor.YELLOW));
         }
     }
 
@@ -775,7 +778,7 @@ public final class RelicService implements Listener {
         if(!(e.getEntity() instanceof Player p))return;
         if(immune(p)){e.setCancelled(true);return;}
         Relic r=type(e.getBow());
-        if((r!=Relic.NOVA_BOW&&r!=Relic.STORM_BOW)||e.getForce()<0.95)return;
+        if((r!=Relic.NOVA_BOW&&r!=Relic.STORM_BOW)||e.getForce()<0.85)return;
         if(!ready(p,r)||arrows.size()>=plugin.integer("performance.max-special-projectiles",64,1,256)) {e.setCancelled(true);return;}
         Entity arrow=e.getProjectile();
         arrow.getPersistentDataContainer().set(shot,PersistentDataType.STRING,r.name());
@@ -817,8 +820,20 @@ public final class RelicService implements Listener {
         if(p.isSneaking()||p.getGameMode()!=GameMode.SURVIVAL||mining.contains(p.getUniqueId())||type(p.getInventory().getItemInMainHand())!=Relic.RIFT_PICKAXE)return;
         Block origin=e.getBlock();if(!Tag.MINEABLE_PICKAXE.isTagged(origin.getType()))return;
         RayTraceResult ray=p.rayTraceBlocks(6);
-        org.bukkit.block.BlockFace face=ray==null?org.bukkit.block.BlockFace.UP:ray.getHitBlockFace();
-        if(face==null)return;
+        org.bukkit.block.BlockFace face=ray==null?null:ray.getHitBlockFace();
+        if(face==null) {
+            float pitch=p.getLocation().getPitch();
+            if(pitch>45)face=org.bukkit.block.BlockFace.UP;
+            else if(pitch<-45)face=org.bukkit.block.BlockFace.DOWN;
+            else {
+                float yaw=(p.getLocation().getYaw()%360+360)%360;
+                if(yaw>=45&&yaw<135)face=org.bukkit.block.BlockFace.WEST;
+                else if(yaw>=135&&yaw<225)face=org.bukkit.block.BlockFace.NORTH;
+                else if(yaw>=225&&yaw<315)face=org.bukkit.block.BlockFace.EAST;
+                else face=org.bukkit.block.BlockFace.SOUTH;
+            }
+        }
+        final org.bukkit.block.BlockFace finalFace=face;
         UUID id=p.getUniqueId();ItemStack held=p.getInventory().getItemInMainHand();
         Bukkit.getScheduler().runTask(plugin,()->{
             if(!p.isOnline()||p.getWorld()!=origin.getWorld()||type(p.getInventory().getItemInMainHand())!=Relic.RIFT_PICKAXE)return;
@@ -827,7 +842,7 @@ public final class RelicService implements Listener {
             try {
                 for(int a=-1;a<=1;a++)for(int b=-1;b<=1;b++) {
                     if(a==0&&b==0)continue;
-                    Block block=face.getModY()!=0?origin.getRelative(a,0,b):face.getModX()!=0?origin.getRelative(0,a,b):origin.getRelative(a,b,0);
+                    Block block=finalFace.getModY()!=0?origin.getRelative(a,0,b):finalFace.getModX()!=0?origin.getRelative(0,a,b):origin.getRelative(a,b,0);
                     if(!block.getWorld().isChunkLoaded(block.getX()>>4,block.getZ()>>4)||p.getLocation().distanceSquared(block.getLocation())>64)continue;
                     if(!Tag.MINEABLE_PICKAXE.isTagged(block.getType())||block.getType().getHardness()<0||block.getState() instanceof org.bukkit.inventory.InventoryHolder)continue;
                     if(type(p.getInventory().getItemInMainHand())!=Relic.RIFT_PICKAXE)break;
@@ -845,6 +860,13 @@ public final class RelicService implements Listener {
         Block block=e.getBlock();
         ItemStack smelted=smeltResult(block.getType());
         if(smelted==null)return;
+
+        int fortune=held.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.FORTUNE);
+        if(fortune>0&&isFortuneOre(block.getType())) {
+            int roll=java.util.concurrent.ThreadLocalRandom.current().nextInt(fortune+2);
+            smelted.setAmount(smelted.getAmount()*Math.max(1,roll));
+        }
+
         e.setDropItems(false);
         e.setExpToDrop(Math.max(e.getExpToDrop(),1));
         Location loc=block.getLocation().add(0.5,0.5,0.5);
@@ -852,6 +874,15 @@ public final class RelicService implements Listener {
         block.getWorld().spawnParticle(Particle.FLAME,loc,6,0.2,0.2,0.2,0.02);
         block.getWorld().spawnParticle(Particle.SMOKE,loc,3,0.1,0.1,0.1,0.01);
         p.playSound(loc,Sound.BLOCK_FURNACE_FIRE_CRACKLE,0.6f,1.2f);
+    }
+    private boolean isFortuneOre(Material m) {
+        return switch(m) {
+            case IRON_ORE, DEEPSLATE_IRON_ORE,
+                 GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE,
+                 COPPER_ORE, DEEPSLATE_COPPER_ORE,
+                 ANCIENT_DEBRIS -> true;
+            default -> false;
+        };
     }
     private ItemStack smeltResult(Material m) {
         return switch(m) {

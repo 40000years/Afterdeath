@@ -14,7 +14,34 @@ import java.util.*;
 
 public final class MagicContext {
     public final AdvanceMagicPlugin plugin;
+    private final Map<UUID, Long> playerVelocityCooldown = new java.util.concurrent.ConcurrentHashMap<>();
+
     public MagicContext(AdvanceMagicPlugin plugin){this.plugin=plugin;}
+    /** Server-issued impulse. Owners can disable player displacement without disabling damage. */
+    public void velocity(Entity target,Vector velocity){
+        velocity.checkFinite();
+        if(target instanceof Player player){
+            if(!plugin.getConfig().getBoolean("compatibility.player-spell-velocity",true)||player.isInsideVehicle()
+                ||player.getGameMode()==GameMode.CREATIVE||player.getGameMode()==GameMode.SPECTATOR)return;
+
+            long now = System.currentTimeMillis();
+            Long next = playerVelocityCooldown.get(player.getUniqueId());
+            if(next != null && now < next) return;
+            playerVelocityCooldown.put(player.getUniqueId(), now + 300L);
+
+            velocity=velocity.clone();
+            double maxH = plugin.getConfig().getDouble("compatibility.max-player-horizontal-velocity", 1.1);
+            double maxV = plugin.getConfig().getDouble("compatibility.max-player-vertical-velocity", 0.9);
+            double horizontal=Math.hypot(velocity.getX(),velocity.getZ());
+            if(horizontal>maxH){velocity.setX(velocity.getX()*maxH/horizontal);velocity.setZ(velocity.getZ()*maxH/horizontal);}
+            velocity.setY(Math.max(-maxV,Math.min(maxV,velocity.getY())));
+        }
+        velocity.checkFinite();target.setVelocity(velocity);
+    }
+
+    public void clearPlayerVelocity(UUID uuid) {
+        playerVelocityCooldown.remove(uuid);
+    }
     public boolean loaded(Location at) {
         World w=at.getWorld();
         return w!=null&&at.getY()>=w.getMinHeight()&&at.getY()<w.getMaxHeight()
@@ -38,6 +65,7 @@ public final class MagicContext {
     }
     public boolean affect(Player p,LivingEntity target,Spell spell) {
         if(!target.isValid()||target.isDead()||target.getWorld()!=p.getWorld())return false;
+        if(target instanceof Player player && !enemy(p, player)) return false;
         MagicAffectEvent event=new MagicAffectEvent(p,target,spell);
         Bukkit.getPluginManager().callEvent(event);return !event.isCancelled();
     }

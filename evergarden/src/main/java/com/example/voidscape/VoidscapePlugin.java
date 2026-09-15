@@ -24,6 +24,10 @@ public final class VoidscapePlugin extends JavaPlugin {
 
     private com.example.voidscape.pack.ResourcePackService packs;
     private com.example.voidscape.gui.AdminTestGui testGui;
+    private com.example.voidscape.crop.CropService crops;
+    private com.example.voidscape.crop.CropBuffListener cropBuffs;
+    private com.example.voidscape.crop.CropShowcaseGui cropGui;
+    private com.example.voidscape.crop.BotanistNpc botanist;
     private boolean loadFailed;
     @Override public void onLoad() {
         try {
@@ -89,6 +93,15 @@ public final class VoidscapePlugin extends JavaPlugin {
             pm.registerEvents(new com.example.voidscape.enchant.UniqueAbilityListener(this),this);
             testGui=new com.example.voidscape.gui.AdminTestGui(this);pm.registerEvents(testGui,this);
             packs.start();pm.registerEvents(packs,this);
+            crops=new com.example.voidscape.crop.CropService(this);
+            cropBuffs=new com.example.voidscape.crop.CropBuffListener(this,crops);
+            cropGui=new com.example.voidscape.crop.CropShowcaseGui(this,crops);
+            pm.registerEvents(crops,this);
+            pm.registerEvents(cropBuffs,this);
+            pm.registerEvents(cropGui,this);
+            botanist=new com.example.voidscape.crop.BotanistNpc(this);
+            pm.registerEvents(botanist,this);
+            botanist.init();
             try {
                 org.bukkit.block.Block lecternBlock = voidWorld.getBlockAt(0, 97, 4);
                 if (lecternBlock.getType() == Material.LECTERN && lecternBlock.getState() instanceof org.bukkit.block.Lectern lectern) {
@@ -104,14 +117,14 @@ public final class VoidscapePlugin extends JavaPlugin {
             getServer().getWorlds().forEach(w->w.getEntities().forEach(relics::migrateEntity));
             VoidCommand command=new VoidCommand(this);
             getCommand("evergarden").setExecutor(command);getCommand("evergarden").setTabCompleter(command);
-            getServer().getScheduler().runTaskTimer(this,()->{dungeons.tick();travel.tick();relics.tick();},20,10);
+            getServer().getScheduler().runTaskTimer(this,()->{dungeons.tick();travel.tick();relics.tick();crops.tick();cropBuffs.tick();botanist.tick();},20,10);
             getLogger().info("Evergarden 3.0 enabled in "+worldName);
         } catch(Exception e) {
             getLogger().log(java.util.logging.Level.SEVERE,"Evergarden failed to start safely",e);
             getServer().getPluginManager().disablePlugin(this);
         }
     }
-    @Override public void onDisable(){if(packs!=null)packs.close();if(dungeons!=null)dungeons.close();if(relics!=null)relics.close();}
+    @Override public void onDisable(){if(packs!=null)packs.close();if(dungeons!=null)dungeons.close();if(relics!=null)relics.close();if(crops!=null)crops.close();if(cropBuffs!=null)cropBuffs.close();if(botanist!=null)botanist.close();}
     public NamespacedKey key(String value){return new NamespacedKey("voidscape",value);}
     public int integer(String path,int value,int min,int max){return Math.max(min,Math.min(max,getConfig().getInt(path,value)));}
     public void message(CommandSender sender,String text){sender.sendMessage(Component.text("✦ "+text,NamedTextColor.AQUA));}
@@ -119,4 +132,8 @@ public final class VoidscapePlugin extends JavaPlugin {
     public World world(){return voidWorld;} public DungeonLayout layout(){return layout;}
     public RelicService relics(){return relics;} public DungeonManager dungeons(){return dungeons;} public TravelListener travel(){return travel;}
     public com.example.voidscape.gui.AdminTestGui testGui(){return testGui;}
+    public com.example.voidscape.crop.CropService crops(){return crops;}
+    public com.example.voidscape.crop.CropBuffListener cropBuffs(){return cropBuffs;}
+    public com.example.voidscape.crop.CropShowcaseGui cropGui(){return cropGui;}
+    public com.example.voidscape.crop.BotanistNpc botanist(){return botanist;}
 }

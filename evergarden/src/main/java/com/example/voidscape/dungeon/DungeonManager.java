@@ -20,6 +20,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.*;
 import org.bukkit.util.Vector;
+import com.example.voidscape.crop.CropType;
+import com.example.voidscape.crop.CropTier;
+import java.util.concurrent.ThreadLocalRandom;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
@@ -202,6 +205,29 @@ public final class DungeonManager implements Listener {
             leftover.values().forEach(item->p.getWorld().dropItemNaturally(block.getLocation().add(0.5,1.2,0.5),item));
         }
 
+        // 2 Astral Dust from Vault
+        ItemStack vaultDust = plugin.relics().createAstralDust(2);
+        var dustLeft = p.getInventory().addItem(vaultDust);
+        if (!dustLeft.isEmpty()) {
+            dustLeft.values().forEach(item -> p.getWorld().dropItemNaturally(block.getLocation().add(0.5, 1.2, 0.5), item));
+        }
+
+        // 25% chance for Tier 3 or Tier 4 crop seed from Vault
+        if (ThreadLocalRandom.current().nextDouble() < 0.25 && plugin.crops() != null && plugin.crops().factory() != null) {
+            List<CropType> tier3and4 = Arrays.stream(CropType.values())
+                .filter(c -> c.tier == CropTier.TIER_3 || c.tier == CropTier.TIER_4)
+                .toList();
+            if (!tier3and4.isEmpty()) {
+                CropType picked = tier3and4.get(ThreadLocalRandom.current().nextInt(tier3and4.size()));
+                ItemStack seed = plugin.crops().factory().createSeed(picked, 1);
+                var sLeft = p.getInventory().addItem(seed);
+                if (!sLeft.isEmpty()) {
+                    sLeft.values().forEach(it -> p.getWorld().dropItemNaturally(block.getLocation().add(0.5, 1.2, 0.5), it));
+                }
+                plugin.message(p, "§b✦ ค้นพบเมล็ดพันธุ์ล้ำค่า: " + picked.thaiName + " (" + picked.tier.title + ") จากใน Vault!");
+            }
+        }
+
         // Vault fanfare
         p.playSound(block.getLocation(),Sound.BLOCK_VAULT_OPEN_SHUTTER,1.0f,1.0f);
         p.playSound(block.getLocation(),Sound.UI_TOAST_CHALLENGE_COMPLETE,0.8f,1.2f);
@@ -336,6 +362,8 @@ public final class DungeonManager implements Listener {
 
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void creature(CreatureSpawnEvent e) {
+        if(e.getEntity() instanceof Villager) return;
+        if(e.getEntity().getPersistentDataContainer().has(plugin.key("botanist_npc"), PersistentDataType.BYTE)) return;
         if(e.getLocation().getWorld()==plugin.world()&&!runId.equals(e.getEntity().getPersistentDataContainer().get(runKey,PersistentDataType.STRING)))e.setCancelled(true);
     }
 
@@ -398,6 +426,31 @@ public final class DungeonManager implements Listener {
         e.getDrops().clear();e.setDroppedExp(0);
         if(!runId.equals(e.getEntity().getPersistentDataContainer().get(runKey,PersistentDataType.STRING)))return;
 
+        Location deathLoc = e.getEntity().getLocation();
+        // 35% chance to drop 1-2 Astral Dust from wave mobs
+        if (ThreadLocalRandom.current().nextDouble() < 0.35 && plugin.relics() != null) {
+            int dustCount = ThreadLocalRandom.current().nextDouble() < 0.30 ? 2 : 1;
+            deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.relics().createAstralDust(dustCount));
+            deathLoc.getWorld().spawnParticle(Particle.FIREWORK, deathLoc.clone().add(0, 0.5, 0), 6, 0.2, 0.2, 0.2, 0.05);
+        }
+
+        // 3% chance to drop 1 Key Shard from wave mobs (low rate, anti-looting 10 abuse, strictly 1 item)
+        if (ThreadLocalRandom.current().nextDouble() < 0.03 && plugin.relics() != null) {
+            deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.relics().createKeyShard(1));
+            deathLoc.getWorld().spawnParticle(Particle.ENCHANT, deathLoc.clone().add(0, 0.5, 0), 10, 0.3, 0.3, 0.3, 0.05);
+        }
+
+        // 15% chance to drop Tier 2 crop seed corresponding to Sanctum element
+        if (ThreadLocalRandom.current().nextDouble() < 0.15 && plugin.crops() != null && plugin.crops().factory() != null) {
+            CropType seedType = switch (enc.site.kind()) {
+                case SANCTUM_DARK -> ThreadLocalRandom.current().nextBoolean() ? CropType.BLOOD_THORN_TOMATO : CropType.REAPERS_GARLIC;
+                case SANCTUM_ASTRAL -> ThreadLocalRandom.current().nextBoolean() ? CropType.THUNDER_KERNEL_CORN : CropType.FROSTBITE_RADISH;
+                case SANCTUM_TIME -> ThreadLocalRandom.current().nextBoolean() ? CropType.TITAN_PUMPKIN : CropType.KINETIC_PEA_POD;
+            };
+            deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.crops().factory().createSeed(seedType, 1));
+            deathLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, deathLoc.clone().add(0, 0.5, 0), 10, 0.3, 0.3, 0.3, 0.05);
+        }
+
         if(species==Species.BOSS) {
             finish(enc);
             return;
@@ -424,7 +477,30 @@ public final class DungeonManager implements Listener {
                 ItemStack key=plugin.relics().createVoidKey();
                 var leftover=p.getInventory().addItem(key);
                 if(!leftover.isEmpty()) p.getWorld().dropItemNaturally(p.getLocation(),key);
-                plugin.message(p,"✦ พิชิตวิหารสำเร็จ! ได้รับ Evergarden Key เข้ากระเป๋าแล้ว · นำไปไข Evergarden Vault");
+
+                // Guaranteed 6 Astral Dust as victory reward
+                if (plugin.relics() != null) {
+                    ItemStack dust = plugin.relics().createAstralDust(6);
+                    var dustLeft = p.getInventory().addItem(dust);
+                    if (!dustLeft.isEmpty()) p.getWorld().dropItemNaturally(p.getLocation(), dust);
+                }
+
+                // Exactly 50% chance to drop Tier 5 Mythic Crop Seed from the Boss
+                boolean gotMythic = false;
+                if (ThreadLocalRandom.current().nextDouble() < 0.50 && plugin.crops() != null && plugin.crops().factory() != null) {
+                    CropType mythicCrop = switch (enc.site.kind()) {
+                        case SANCTUM_DARK -> ThreadLocalRandom.current().nextBoolean() ? CropType.ANCIENT_ASTRAL_ROOT : CropType.VOID_OVERCHARGE_FIG;
+                        case SANCTUM_ASTRAL -> ThreadLocalRandom.current().nextBoolean() ? CropType.ETHEREAL_MINT : CropType.BLOODBURN_CHILI;
+                        case SANCTUM_TIME -> ThreadLocalRandom.current().nextBoolean() ? CropType.YGGDRASIL_SPROUT : CropType.OMNI_POMEGRANATE;
+                    };
+                    ItemStack mythicSeed = plugin.crops().factory().createSeed(mythicCrop, 1);
+                    var sLeft = p.getInventory().addItem(mythicSeed);
+                    if (!sLeft.isEmpty()) p.getWorld().dropItemNaturally(p.getLocation(), mythicSeed);
+                    plugin.message(p, "§d✦ โชคหล่นทับ! บอสวิหารสลัด 'เมล็ดพันธุ์บรรพกาล' (" + mythicCrop.thaiName + ") เข้ากระเป๋าของคุณ! (โอกาส 50%)");
+                    gotMythic = true;
+                }
+
+                plugin.message(p,"✦ พิชิตวิหารสำเร็จ! ได้รับ Evergarden Key และ Astral Dust ×6" + (gotMythic ? " + เมล็ดพันธุ์บรรพกาล [Mythic]!" : ""));
                 p.playSound(p.getLocation(),Sound.UI_TOAST_CHALLENGE_COMPLETE,0.8f,1.0f);
             }
         }

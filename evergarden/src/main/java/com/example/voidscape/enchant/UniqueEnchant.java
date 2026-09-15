@@ -14,7 +14,7 @@ public enum UniqueEnchant {
     // Mining & Tools
     SEISMIC_SLAM("Seismic Slam", "ขุดทลาย 3x3", "ขุด 1 ครั้งระเบิดเปิดโพรง 3×3×1 ทันที", ItemCategory.PICKAXE),
     VEIN_SMELTER("Vein Smelter", "หลอมสายแร่คู่", "ขุดทั้งสายแร่ + เผาเป็นแท่งโลหะ + โบนัสแร่ทันที", ItemCategory.PICKAXE),
-    BEDROCK_RESONANCE("Bedrock Resonance", "เรดาร์ส่องแร่", "โซนาร์เรดาร์เรืองแสงส่องแร่หายากในกำแพง 12 บล็อก", ItemCategory.PICKAXE),
+    BEDROCK_RESONANCE("Bedrock Resonance", "เรดาร์ส่องแร่", "คลิกขวาปล่อยคลื่นโซนาร์ส่องตรวจจับและชี้ทิศทางแร่หายากในระยะ 16 บล็อก", ItemCategory.PICKAXE),
     DEMETER_SCYTHE("Demeter's Scythe", "เคียวเทพกสิกรรม", "เก็บเกี่ยวและปลูกคืนพืช 9×9 บล็อกอัตโนมัติ", ItemCategory.HOE),
     TIMBER_TITAN("Timber Titan", "โค่นทั้งป่า", "ฟันโคนไม้ต้นไม้ทั้งต้นและใบไม้ล้มลงมาเป็นไอเทม", ItemCategory.AXE),
     TELEPATHY("Telepathy", "จิตสื่อสาร", "แร่และของที่ขุดได้ทุกชิ้นวาร์ปเข้าตัวผู้เล่น 100%", ItemCategory.TOOL),
@@ -22,7 +22,7 @@ public enum UniqueEnchant {
     // Melee Combat
     GUILLOTINE("Guillotine", "กิโยตินปลิดชีพ", "ฟันสังหารมอนสเตอร์เลือดต่ำกว่า 15% ทันที (Execute)", ItemCategory.MELEE),
     ECHO_STRIKE("Echo Strike", "เงาดาบซ้ำสอง", "โอกาส 35% เงาฟันซ้ำดาเมจเดิม 100% ภายใน 0.2 วิ", ItemCategory.SWORD),
-    BLADE_VORTEX("Blade Vortex", "คลื่นดาบสุญญากาศ", "ฟัน Sweeping ปล่อยคลื่นพลังพุ่งไปข้างหน้า 7 บล็อก", ItemCategory.SWORD),
+    BLADE_VORTEX("Blade Vortex", "คลื่นดาบสุญญากาศ", "ฟันโจมตีปล่อยคลื่นดาบตัดอากาศทะลวงศัตรูด้านหน้า 7 บล็อก", ItemCategory.SWORD),
     SOUL_HARVEST("Soul Harvest", "เกี่ยววิญญาณ", "สะสมวิญญาณรอบตัวเพิ่มเดินไว +10% และดูดเลือด 5%", ItemCategory.MELEE),
     THUNDERLORD("Thunderlord", "สายฟ้าทัณฑ์สวรรค์", "ฟันเป้าหมายเดิมครบ 3 ครั้ง ผ่าสายฟ้า True Damage", ItemCategory.MELEE),
     VAMPIRIC("Vampiric", "สูบโลหิต", "แปลง 15% ของดาเมจที่ทำได้กลับมาฟื้นฟูเลือดผู้เล่น", ItemCategory.MELEE),

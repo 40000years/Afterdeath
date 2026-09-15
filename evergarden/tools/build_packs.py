@@ -2,6 +2,7 @@
 """Build original, tiny pixel-art relic assets and Java/Bedrock packs. Standard library only."""
 import hashlib, json, struct, zlib, zipfile, tempfile
 from pathlib import Path
+import crop_assets
 
 ROOT = Path(__file__).resolve().parents[1]
 (ROOT / 'target').mkdir(exist_ok=True)
@@ -209,6 +210,7 @@ def main():
     'predicate':{'type':'match','property':'custom_model_data','index':0,'value':'voidscape:'+name},
     'bedrock_identifier':'voidscape:'+name,'display_name':title,
     'bedrock_options':{'icon':'voidscape.'+name,'allow_offhand':True,'display_handheld':base in ('netherite_pickaxe','netherite_sword','bow'),'creative_category':cat}})
+ crop_assets.register_crop_assets(java, bedrock, textures, mappings, selectors, write_json, png)
  for base,cases in selectors.items():
   fallback={'type':'minecraft:model','model':'minecraft:item/'+base}
   if base=='bow':

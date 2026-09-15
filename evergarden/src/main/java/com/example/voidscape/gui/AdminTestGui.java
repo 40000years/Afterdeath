@@ -107,7 +107,8 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         inv.setItem(37, plugin.relics().createScrollUnique(UniqueEnchant.SHADOW_STEP));
         inv.setItem(38, plugin.relics().createScrollUnique(UniqueEnchant.TITAN_STANCE));
         inv.setItem(39, plugin.relics().createScrollUnique(UniqueEnchant.SOULBOUND));
-        inv.setItem(40, createSeparator(Material.BLACK_STAINED_GLASS_PANE));
+        inv.setItem(40, createActionItem(Material.WHEAT, "§a§l🌿 คลังพืชผล Evergarden 30 ชนิด",
+            List.of("§7เปิดคลังเมล็ดพันธุ์และผลผลิตอาหาร 30 ชนิด", "§7พร้อมระบบเพาะปลูกและบัฟเวทมนตร์", "§eคลิกเพื่อเปิดเมนู Crop Showcase ทันที")));
         inv.setItem(41, createGodSword());
         inv.setItem(42, createGodBow());
         inv.setItem(43, createGodPickaxe());
@@ -164,7 +165,7 @@ public final class AdminTestGui implements InventoryHolder, Listener {
                     : reward.getType().name();
                 plugin.message(player, "สุ่มเปิด Vault ได้รับ: " + name + " ×" + reward.getAmount());
             }
-            case 40 -> { /* Separator, do nothing */ }
+            case 40 -> plugin.cropGui().open(player);
             case 16 -> { // Limit Break All x5
                 for (LimitBreakType lb : LimitBreakType.values()) {
                     ItemStack scroll = plugin.relics().createScrollLimitBreak(lb);
@@ -378,6 +379,7 @@ public final class AdminTestGui implements InventoryHolder, Listener {
 
         attachUnique(meta, UniqueEnchant.SEISMIC_SLAM);
         attachUnique(meta, UniqueEnchant.VEIN_SMELTER);
+        attachUnique(meta, UniqueEnchant.BEDROCK_RESONANCE);
         attachUnique(meta, UniqueEnchant.TELEPATHY);
 
         meta.lore(List.of(
@@ -388,6 +390,8 @@ public final class AdminTestGui implements InventoryHolder, Listener {
             Component.text("   §7ขุด 1 ครั้งระเบิดเปิดโพรง 3×3×1 ทันที").decoration(TextDecoration.ITALIC, false),
             Component.text("✦ Vein Smelter · หลอมสายแร่คู่", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
             Component.text("   §7ขุดทั้งสายแร่ + เผาเป็นแท่งโลหะ + โบนัสแร่ทันที").decoration(TextDecoration.ITALIC, false),
+            Component.text("✦ Bedrock Resonance · เรดาร์ส่องแร่", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
+            Component.text("   §7คลิกขวาปล่อยคลื่นโซนาร์ส่องตรวจจับและชี้ทิศทางแร่หายาก").decoration(TextDecoration.ITALIC, false),
             Component.text("✦ Telepathy · จิตสื่อสาร", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
             Component.text("   §7แร่และของที่ขุดได้ทุกชิ้นวาร์ปเข้าตัวผู้เล่น 100%").decoration(TextDecoration.ITALIC, false)
         ));

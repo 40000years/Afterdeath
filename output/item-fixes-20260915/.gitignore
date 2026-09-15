@@ -1,0 +1,8 @@
+server/
+backups/
+advance-magic/
+evergarden/
+test-classes/
+unit-classes/
+dependency-classpath.txt
+*.jar

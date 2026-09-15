@@ -22,11 +22,15 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
     @Override public boolean onCommand(CommandSender sender,Command command,String label,String[] args) {
         String sub=args.length==0?"help":args[0].toLowerCase(Locale.ROOT);
         Player p=sender instanceof Player player?player:null;
-        if(Set.of("give","pregen","reload","status","pack","test","dev","kit").contains(sub)&&!isAdmin(sender)){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
+        if(Set.of("give","pregen","reload","status","pack","test","dev","kit","crops","farm","crop","seeds").contains(sub)&&!isAdmin(sender)){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
         switch(sub) {
             case "test", "dev", "kit" -> {
                 if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
                 plugin.testGui().open(p);
+            }
+            case "crops", "farm", "crop", "seeds" -> {
+                if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
+                plugin.cropGui().open(p);
             }
             case "pack" -> {
                 if(args.length>1&&args[1].equalsIgnoreCase("resend")&&p!=null)plugin.packs().offer(p);
@@ -354,6 +358,26 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             }
         }
 
+        // 11. Crops and Seeds
+        if (clean.startsWith("seed_") || clean.startsWith("seeds_")) {
+            String cName = clean.replace("seeds_", "").replace("seed_", "");
+            var type = com.example.voidscape.crop.CropType.fromId(cName);
+            if (type != null) {
+                return plugin.crops().factory().createSeed(type, count);
+            }
+        }
+        if (clean.startsWith("crop_") || clean.startsWith("crops_")) {
+            String cName = clean.replace("crops_", "").replace("crop_", "");
+            var type = com.example.voidscape.crop.CropType.fromId(cName);
+            if (type != null) {
+                return plugin.crops().factory().createFood(type, count);
+            }
+        }
+        var cropType = com.example.voidscape.crop.CropType.fromId(clean);
+        if (cropType != null) {
+            return plugin.crops().factory().createFood(cropType, count);
+        }
+
         return null;
     }
 
@@ -374,7 +398,7 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
 
     @Override public List<String> onTabComplete(CommandSender sender,Command command,String alias,String[] args) {
         List<String> c=new ArrayList<>();
-        if(args.length==1){c.addAll(List.of("help","guide","enter","leave"));if(isAdmin(sender))c.addAll(List.of("test","tp","give","status","reload","pregen","pack"));}
+        if(args.length==1){c.addAll(List.of("help","guide","enter","leave","crops"));if(isAdmin(sender))c.addAll(List.of("test","tp","give","status","reload","pregen","pack"));}
         if(args.length==2&&args[0].equalsIgnoreCase("tp")&&isAdmin(sender))c.addAll(List.of("dark","astral","time","spawn"));
         if(args.length==2&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
             // Relics & Equipment
@@ -396,8 +420,14 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
                 c.add(core.id()+"_wand");
                 c.add("wand_"+core.id());
             }
+            // Crops & Seeds
+            for(var crop : com.example.voidscape.crop.CropType.values()) {
+                c.add(crop.id);
+                c.add("seed_"+crop.id);
+                c.add("crop_"+crop.id);
+            }
             // Shortcuts
-            c.addAll(List.of("eternity","key","shard","dust","repair","elixir","storm","nova","blade","aegis","shulker_levitation","shulker","wand"));
+            c.addAll(List.of("eternity","key","shard","dust","repair","elixir","storm","nova","blade","aegis","shulker_levitation","shulker","wand","crops","seeds"));
         }
         if(args.length==3&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
             c.addAll(List.of("@a","@p","@s","1","2","4","8","16","32","64"));

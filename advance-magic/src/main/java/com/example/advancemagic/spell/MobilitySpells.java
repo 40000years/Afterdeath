@@ -64,7 +64,7 @@ public final class MobilitySpells {
         // Stage 1: Bastion Shockwave Repel
         for(var e:c.nearby(p,p.getLocation(),4.0,false))if(c.affect(p,e,Spell.IRON_ARMOR)) {
             Vector push=e.getLocation().toVector().subtract(p.getLocation().toVector()).setY(0);
-            if(push.lengthSquared()>0.01)e.setVelocity(push.normalize().multiply(0.7).setY(0.3));
+            if(push.lengthSquared()>0.01)c.velocity(e,push.normalize().multiply(0.7).setY(0.3));
         }
         c.echo(p,p.getLocation(),Spell.IRON_ARMOR,20,5,25);
         return true;
