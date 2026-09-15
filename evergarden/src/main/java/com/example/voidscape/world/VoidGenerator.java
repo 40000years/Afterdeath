@@ -105,7 +105,7 @@ public final class VoidGenerator extends ChunkGenerator {
             if(r>10&&Math.abs(x)>3&&Math.abs(z)>3&&Math.floorMod(x+z,7)==0)put(data,cx,cz,x,97,z,Material.SEA_LANTERN);
         }
         put(data,cx,cz,0,96,0,Material.SEA_LANTERN);put(data,cx,cz,0,97,4,Material.LECTERN);
-        for(int x=-1;x<=2;x++)for(int y=96;y<=100;y++)put(data,cx,cz,x,y,-5,(x==-1||x==2||y==96||y==100)?Material.CRYING_OBSIDIAN:Material.NETHER_PORTAL);
+        for(int x=-1;x<=2;x++)for(int y=96;y<=100;y++)put(data,cx,cz,x,y,-5,(x==-1||x==2||y==96||y==100)?Material.QUARTZ_BLOCK:Material.STRUCTURE_VOID);
         for(var site:sites)if(site.contains(cx*16+8,cz*16+8,12))sanctums[site.kind().ordinal()].render(data,cx,cz,site);
     }
     private static void put(ChunkData data,int cx,int cz,int x,int y,int z,Material m) {

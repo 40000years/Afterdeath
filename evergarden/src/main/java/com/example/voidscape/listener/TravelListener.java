@@ -24,7 +24,26 @@ import java.util.*;
 public final class TravelListener implements Listener {
     private final VoidscapePlugin plugin;
     private final Map<UUID,Long> standing=new HashMap<>(),pending=new HashMap<>(),fallGrace=new HashMap<>();
-    public TravelListener(VoidscapePlugin plugin){this.plugin=plugin;}
+    private final PortalVisuals visuals;
+    public TravelListener(VoidscapePlugin plugin){
+        this.plugin=plugin;visuals=new PortalVisuals(plugin);
+        // Upgrade the built-in return gate only when its expected frame exists.
+        World w=plugin.world();
+        boolean intact=true;
+        for(int x=-1;x<=2;x++)for(int y=96;y<=100;y++) {
+            if(x!=-1&&x!=2&&y!=96&&y!=100)continue;
+            Material m=w.getBlockAt(x,y,-5).getType();
+            if(m!=Material.CRYING_OBSIDIAN&&m!=Material.QUARTZ_BLOCK)intact=false;
+        }
+        if(intact) {
+            for(int x=-1;x<=2;x++)for(int y=96;y<=100;y++) {
+                Block b=w.getBlockAt(x,y,-5);
+                if(x==-1||x==2||y==96||y==100)b.setType(Material.QUARTZ_BLOCK,false);
+                else visuals.add(b,Axis.X);
+            }
+            visuals.save();
+        }
+    }
 
     private boolean allowedEntryWorld(Player p){
         List<String> list=plugin.getConfig().getStringList("portal.entry-worlds");
@@ -73,7 +92,7 @@ public final class TravelListener implements Listener {
         // Crying Obsidian Portal ignition with Fire Charge, Eye of Ender, or Flint and Steel
         if(hand.getType()==Material.FIRE_CHARGE||hand.getType()==Material.ENDER_EYE||hand.getType()==Material.FLINT_AND_STEEL) {
             if(!allowedEntryWorld(p)||p.getWorld()==plugin.world())return;
-            Block target=clicked.getType()==Material.CRYING_OBSIDIAN?clicked.getRelative(e.getBlockFace()):clicked;
+            Block target=clicked.getType()==Material.QUARTZ_BLOCK?clicked.getRelative(e.getBlockFace()):clicked;
             if(tryIgnitePortal(target,p)) {
                 e.setCancelled(true);
                 if(p.getGameMode()!=GameMode.CREATIVE) {
@@ -130,7 +149,7 @@ public final class TravelListener implements Listener {
         Location loc=b.getLocation().add(0.5,0.5,0.5);
         p.getWorld().playSound(loc,Sound.BLOCK_RESPAWN_ANCHOR_SET_SPAWN,1.0f,0.8f);
         p.getWorld().playSound(loc,Sound.BLOCK_END_PORTAL_SPAWN,0.8f,1.2f);
-        p.getWorld().spawnParticle(Particle.PORTAL,loc,40,1.0,1.5,1.0,0.1);
+        p.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME,loc,40,1.0,1.5,1.0,0.01);
         p.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME,loc,20,0.5,1.0,0.5,0.03);
         plugin.message(p,"ประตูมิติความว่างเปล่า (Evergarden Portal) เปิดออกแล้ว!");
     }
@@ -139,14 +158,14 @@ public final class TravelListener implements Listener {
         World w=start.getWorld();
         int y=start.getY(),x=start.getX(),z=start.getZ();
         // Find bottom inner Y
-        while(y>w.getMinHeight()+1&&isInnerBlock(w.getBlockAt(x,y-1,z))) y--;
+        while(y>start.getY()-21&&y>w.getMinHeight()+1&&isInnerBlock(w.getBlockAt(x,y-1,z))) y--;
         int minY=y;
-        if(w.getBlockAt(x,minY-1,z).getType()!=Material.CRYING_OBSIDIAN)return false;
+        if(w.getBlockAt(x,minY-1,z).getType()!=Material.QUARTZ_BLOCK)return false;
 
         // Find min and max along axis
         int minD=axis==Axis.X?x:z,maxD=minD;
-        while(isInnerBlock(axis==Axis.X?w.getBlockAt(minD-1,minY,z):w.getBlockAt(x,minY,minD-1))) minD--;
-        while(isInnerBlock(axis==Axis.X?w.getBlockAt(maxD+1,minY,z):w.getBlockAt(x,minY,maxD+1))) maxD++;
+        while(minD>(axis==Axis.X?x:z)-21&&isInnerBlock(axis==Axis.X?w.getBlockAt(minD-1,minY,z):w.getBlockAt(x,minY,minD-1))) minD--;
+        while(maxD<(axis==Axis.X?x:z)+21&&isInnerBlock(axis==Axis.X?w.getBlockAt(maxD+1,minY,z):w.getBlockAt(x,minY,maxD+1))) maxD++;
 
         int width=maxD-minD+1;
         if(width<2||width>21)return false;
@@ -154,7 +173,7 @@ public final class TravelListener implements Listener {
         // Check bottom border
         for(int d=minD;d<=maxD;d++) {
             Block b=axis==Axis.X?w.getBlockAt(d,minY-1,z):w.getBlockAt(x,minY-1,d);
-            if(b.getType()!=Material.CRYING_OBSIDIAN)return false;
+            if(b.getType()!=Material.QUARTZ_BLOCK)return false;
         }
 
         // Find height
@@ -169,7 +188,7 @@ public final class TravelListener implements Listener {
             // Check side frames
             Block left=axis==Axis.X?w.getBlockAt(minD-1,curY,z):w.getBlockAt(x,curY,minD-1);
             Block right=axis==Axis.X?w.getBlockAt(maxD+1,curY,z):w.getBlockAt(x,curY,maxD+1);
-            if(left.getType()!=Material.CRYING_OBSIDIAN||right.getType()!=Material.CRYING_OBSIDIAN)return false;
+            if(left.getType()!=Material.QUARTZ_BLOCK||right.getType()!=Material.QUARTZ_BLOCK)return false;
             curY++;
         }
         int maxY=curY-1;
@@ -179,30 +198,31 @@ public final class TravelListener implements Listener {
         // Check top border
         for(int d=minD;d<=maxD;d++) {
             Block b=axis==Axis.X?w.getBlockAt(d,maxY+1,z):w.getBlockAt(x,maxY+1,d);
-            if(b.getType()!=Material.CRYING_OBSIDIAN)return false;
+            if(b.getType()!=Material.QUARTZ_BLOCK)return false;
         }
 
         // Fill inner with NETHER_PORTAL
         for(int h=minY;h<=maxY;h++) {
             for(int d=minD;d<=maxD;d++) {
                 Block b=axis==Axis.X?w.getBlockAt(d,h,z):w.getBlockAt(x,h,d);
-                b.setType(Material.NETHER_PORTAL,false);
+                visuals.add(b,axis);
                 if(b.getBlockData() instanceof Orientable orient) {
                     orient.setAxis(axis);
                     b.setBlockData(orient,false);
                 }
             }
         }
+        visuals.save();visuals.tick();
         return true;
     }
 
     private boolean isInnerBlock(Block b) {
         Material m=b.getType();
-        return m==Material.AIR||m==Material.CAVE_AIR||m==Material.FIRE||m==Material.SOUL_FIRE||m==Material.NETHER_PORTAL;
+        return m==Material.AIR||m==Material.CAVE_AIR||m==Material.FIRE||m==Material.SOUL_FIRE||m==Material.STRUCTURE_VOID;
     }
 
-    public boolean isCryingObsidianPortal(Block portalBlock) {
-        if(portalBlock==null||portalBlock.getType()!=Material.NETHER_PORTAL)return false;
+    public boolean isQuartzPortal(Block portalBlock) {
+        if(portalBlock==null||!visuals.contains(portalBlock))return false;
         Queue<Block> queue=new ArrayDeque<>();
         Set<Block> visited=new HashSet<>();
         queue.add(portalBlock);
@@ -211,8 +231,8 @@ public final class TravelListener implements Listener {
             Block curr=queue.poll();
             for(BlockFace face:new BlockFace[]{BlockFace.NORTH,BlockFace.SOUTH,BlockFace.EAST,BlockFace.WEST,BlockFace.UP,BlockFace.DOWN}) {
                 Block adj=curr.getRelative(face);
-                if(adj.getType()==Material.CRYING_OBSIDIAN)return true;
-                if(adj.getType()==Material.NETHER_PORTAL&&visited.add(adj)) {
+                if(adj.getType()==Material.QUARTZ_BLOCK)return true;
+                if(adj.getType()==Material.STRUCTURE_VOID&&visited.add(adj)) {
                     queue.add(adj);
                 }
             }
@@ -220,21 +240,21 @@ public final class TravelListener implements Listener {
         return false;
     }
 
-    private Block findCryingPortalBlock(Player p, Location from) {
-        if(from!=null&&from.getWorld()==p.getWorld()&&from.getBlock().getType()==Material.NETHER_PORTAL) {
-            if(isCryingObsidianPortal(from.getBlock())) return from.getBlock();
+    private Block findQuartzPortalBlock(Player p, Location from) {
+        if(from!=null&&from.getWorld()==p.getWorld()&&from.getBlock().getType()==Material.STRUCTURE_VOID) {
+            if(isQuartzPortal(from.getBlock())) return from.getBlock();
         }
         Block feet=p.getLocation().getBlock();
-        if(feet.getType()==Material.NETHER_PORTAL&&isCryingObsidianPortal(feet)) return feet;
+        if(feet.getType()==Material.STRUCTURE_VOID&&isQuartzPortal(feet)) return feet;
         Block eye=p.getEyeLocation().getBlock();
-        if(eye.getType()==Material.NETHER_PORTAL&&isCryingObsidianPortal(eye)) return eye;
+        if(eye.getType()==Material.STRUCTURE_VOID&&isQuartzPortal(eye)) return eye;
         Location loc=p.getLocation();
         int px=loc.getBlockX(),py=loc.getBlockY(),pz=loc.getBlockZ();
         for(int dx=-1;dx<=1;dx++) {
             for(int dy=-1;dy<=2;dy++) {
                 for(int dz=-1;dz<=1;dz++) {
                     Block b=loc.getWorld().getBlockAt(px+dx,py+dy,pz+dz);
-                    if(b.getType()==Material.NETHER_PORTAL&&isCryingObsidianPortal(b)) {
+                    if(b.getType()==Material.STRUCTURE_VOID&&isQuartzPortal(b)) {
                         return b;
                     }
                 }
@@ -245,8 +265,8 @@ public final class TravelListener implements Listener {
 
     @EventHandler(priority=EventPriority.NORMAL,ignoreCancelled=true)
     public void blockPhysics(BlockPhysicsEvent e) {
-        if(e.getBlock().getType()==Material.NETHER_PORTAL) {
-            if(isCryingObsidianPortal(e.getBlock())) {
+        if(e.getBlock().getType()==Material.STRUCTURE_VOID) {
+            if(isQuartzPortal(e.getBlock())) {
                 e.setCancelled(true);
             }
         }
@@ -255,12 +275,12 @@ public final class TravelListener implements Listener {
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void portalEvent(PlayerPortalEvent e) {
         Player p=e.getPlayer();
-        if(p.getWorld()==plugin.world()) {
+        if(p.getWorld()==plugin.world()&&visuals.contains(e.getFrom().getBlock())) {
             e.setCancelled(true);
             leave(p,false);
             return;
         }
-        Block block=findCryingPortalBlock(p,e.getFrom());
+        Block block=findQuartzPortalBlock(p,e.getFrom());
         if(block!=null) {
             e.setCancelled(true);
             enter(p);
@@ -272,14 +292,14 @@ public final class TravelListener implements Listener {
         if(!e.hasChangedBlock())return;
         Player p=e.getPlayer();
         Block b=p.getLocation().getBlock();
-        if(b.getType()!=Material.NETHER_PORTAL)return;
+        if(!visuals.contains(b))return;
         if(p.getWorld()==plugin.world()) {
             // Return portal at spawn island
             if(Math.abs(b.getX())<=3&&b.getZ()<=-4&&b.getZ()>=-6) {
                 leave(p,false);
             }
-        } else if(p.getGameMode()==GameMode.CREATIVE) {
-            if(findCryingPortalBlock(p,b.getLocation())!=null) {
+        } else if(allowedEntryWorld(p)) {
+            if(findQuartzPortalBlock(p,b.getLocation())!=null) {
                 enter(p);
             }
         }
@@ -319,17 +339,19 @@ public final class TravelListener implements Listener {
     }
 
     private void handlePortalBreak(Block broken) {
-        if(broken.getType()!=Material.CRYING_OBSIDIAN&&broken.getType()!=Material.NETHER_PORTAL)return;
+        if(broken.getType()!=Material.QUARTZ_BLOCK&&broken.getType()!=Material.STRUCTURE_VOID)return;
         for(BlockFace face:new BlockFace[]{BlockFace.NORTH,BlockFace.SOUTH,BlockFace.EAST,BlockFace.WEST,BlockFace.UP,BlockFace.DOWN}) {
             Block adj=broken.getRelative(face);
-            if(adj.getType()==Material.NETHER_PORTAL) {
+            if(adj.getType()==Material.STRUCTURE_VOID) {
                 clearPortal(adj,new HashSet<>());
             }
         }
+        visuals.save();
     }
 
     private void clearPortal(Block b,Set<Block> seen) {
-        if(b.getType()!=Material.NETHER_PORTAL||!seen.add(b)||seen.size()>500)return;
+        if(!visuals.contains(b)||!seen.add(b)||seen.size()>500)return;
+        visuals.remove(b);
         b.setType(Material.AIR);
         for(BlockFace face:new BlockFace[]{BlockFace.NORTH,BlockFace.SOUTH,BlockFace.EAST,BlockFace.WEST,BlockFace.UP,BlockFace.DOWN}) {
             clearPortal(b.getRelative(face),seen);
@@ -337,6 +359,7 @@ public final class TravelListener implements Listener {
     }
 
     public void enter(Player p) {
+        if(standing.getOrDefault(p.getUniqueId(),0L)>System.currentTimeMillis())return;
         if(p.getWorld()==plugin.world()||pending.containsKey(p.getUniqueId()))return;
         Location from=p.getLocation();
         teleport(p,new Location(plugin.world(),0.5,97.0,0.5),()->{
@@ -357,6 +380,7 @@ public final class TravelListener implements Listener {
     }
 
     public void leave(Player p,boolean rescued) {
+        if(!rescued&&standing.getOrDefault(p.getUniqueId(),0L)>System.currentTimeMillis())return;
         if(pending.containsKey(p.getUniqueId()))return;
         if(!rescued&&plugin.dungeons().inCombat(p)){plugin.message(p,"ยังอยู่ระหว่างต่อสู้ · ออกจากเขตดันแล้วรอ 10 วินาที");return;}
         Location to=returnLocation(p);
@@ -385,7 +409,7 @@ public final class TravelListener implements Listener {
         p.teleportAsync(destination).whenComplete((success,error)->Bukkit.getScheduler().runTask(plugin,()->{
             pending.remove(id);
             if(!p.isOnline())return;
-            if(error==null&&Boolean.TRUE.equals(success)) {p.setFallDistance(0);p.setVelocity(new Vector());fallGrace.put(id,System.currentTimeMillis()+5000);done.run();}
+            if(error==null&&Boolean.TRUE.equals(success)) {standing.put(id,System.currentTimeMillis()+3000);p.setFallDistance(0);p.setVelocity(new Vector());fallGrace.put(id,System.currentTimeMillis()+5000);done.run();}
             else plugin.message(p,"วาร์ปไม่สำเร็จหรือถูกระบบอื่นปฏิเสธ");
         }));
     }
@@ -407,6 +431,7 @@ public final class TravelListener implements Listener {
     @EventHandler public void quit(PlayerQuitEvent e){UUID id=e.getPlayer().getUniqueId();standing.remove(id);pending.remove(id);fallGrace.remove(id);}
 
     public void tick() {
+        visuals.tick();
         long now=System.currentTimeMillis();
         pending.values().removeIf(end->end<now);
         fallGrace.values().removeIf(end->end<now);

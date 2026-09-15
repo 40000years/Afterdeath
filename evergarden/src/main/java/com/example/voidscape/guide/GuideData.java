@@ -8,7 +8,7 @@ public final class GuideData {
     public static final List<GuidePage> PAGES = List.of(
         new GuidePage(
             "มิติ Evergarden",
-            "§9--- มิติ Evergarden ---\n§7สวนลอยฟ้าแห่งความว่างเปล่า§r\n\nวิธีสร้างประตูมิติ:\nสร้างกรอบ Crying Obsidian ขนาด 4x5 บล็อก (ช่องใน 2x3 เหมือนประตูเนเธอร์)\n\nจุดไฟในกรอบด้วย Flint & Steel, Fire Charge หรือ Eye of Ender เพื่อเปิดประตู\n\nคำสั่งช่วยเล่น:\n• /evergarden leave (กลับโลกเดิม)\n• /evergarden guide (เปิดคู่มือเล่มนี้)"
+            "§9--- มิติ Evergarden ---\n§7สวนลอยฟ้าแห่งความว่างเปล่า§r\n\nวิธีสร้างประตูมิติ:\nสร้างกรอบ Block of Quartz ขนาด 4x5 บล็อก (ช่องใน 2x3 เหมือนประตูเนเธอร์)\n\nจุดไฟในกรอบด้วย Flint & Steel, Fire Charge หรือ Eye of Ender เพื่อเปิดประตู\n\nคำสั่งช่วยเล่น:\n• /evergarden leave (กลับโลกเดิม)\n• /evergarden guide (เปิดคู่มือเล่มนี้)"
         ),
         new GuidePage(
             "3 มหาวิหารธาตุ",

@@ -105,7 +105,9 @@ public final class CropItemFactory {
     }
 
     public ItemStack createPlantDisplay(CropType type, int stage) {
-        ItemStack item = new ItemStack(Material.CARROT, 1);
+        // Geyser derives minecraft:wearable from the base item's EQUIPPABLE
+        // component. A carrot in HEAD has no wearable slot on Bedrock.
+        ItemStack item = new ItemStack(Material.IRON_HELMET, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 

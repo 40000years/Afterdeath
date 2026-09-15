@@ -184,7 +184,7 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             case "status" -> plugin.message(sender,"Evergarden 3.0 · "+plugin.world().getName()+" · การต่อสู้ "+plugin.dungeons().activeCount()+" · มอน "+plugin.dungeons().mobCount()+" · pregen "+generated+"/"+total);
             default -> {
                 plugin.message(sender,"Evergarden 3.0 (Advance Magic Expansion) · /evergarden guide · /evergarden leave");
-                plugin.message(sender,"สร้างประตู Crying Obsidian แล้วจุดด้วย Fire Charge หรือ Eye of Ender เพื่อเดินทาง");
+                plugin.message(sender,"สร้างประตู Block of Quartz แล้วจุดด้วย Fire Charge หรือ Eye of Ender เพื่อเดินทาง");
                 if(isAdmin(sender))plugin.message(sender,"แอดมิน: test (เมนูทดสอบ) · tp [dark|astral|time|spawn] · give · status · pregen · reload");
             }
         }

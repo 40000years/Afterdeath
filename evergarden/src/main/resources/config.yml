@@ -17,7 +17,7 @@ performance:
   max-special-projectiles: 64
   idle-reset-seconds: 60
 portal:
-  # Create a Nether Portal shape out of Crying Obsidian and ignite with Fire Charge or Eye of Ender.
+  # Create a Nether Portal shape out of Block of Quartz and ignite with Fire Charge or Eye of Ender.
   entry-worlds: [world]
 combat:
   # Five guardian waves, followed by one boss. Range 2-12.

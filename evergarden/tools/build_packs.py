@@ -3,6 +3,7 @@
 import hashlib, json, struct, zlib, zipfile, tempfile
 from pathlib import Path
 import crop_assets
+import portal_assets
 
 ROOT = Path(__file__).resolve().parents[1]
 (ROOT / 'target').mkdir(exist_ok=True)
@@ -150,7 +151,7 @@ def archive(folder,path):
 def main():
  java=BUILD/'java';bedrock=BUILD/'bedrock';DIST.mkdir(parents=True,exist_ok=True)
  write_json(java/'pack.mcmeta',{'pack':{'description':'Evergarden | Ancient Relics','min_format':[88,0],'max_format':[88,0]}})
- write_json(bedrock/'manifest.json',{'format_version':2,'header':{'name':'Evergarden','description':'Evergarden relics and sanctuary guardians','uuid':'df4aee6d-9e8e-4ec8-9df1-7974c6bea203','version':[3,1,0],'min_engine_version':[1,21,0]},'modules':[{'type':'resources','uuid':'ef4aee6d-9e8e-4ec8-9df1-7974c6bea204','version':[3,1,0]}]})
+ write_json(bedrock/'manifest.json',{'format_version':2,'header':{'name':'Evergarden','description':'Evergarden relics, crops and loose seeds','uuid':'df4aee6d-9e8e-4ec8-9df1-7974c6bea203','version':[3,3,0],'min_engine_version':[1,21,0]},'modules':[{'type':'resources','uuid':'ef4aee6d-9e8e-4ec8-9df1-7974c6bea204','version':[3,3,0]}]})
  textures={};mappings={'format_version':2,'items':{}};selectors={}
  write_json(bedrock/'render_controllers/evergarden_mask.json',{'format_version':'1.8.0','render_controllers':{'controller.render.evergarden_mask':{'geometry':'Geometry.default','materials':[{'*':'Material.default'}],'textures':['Texture.default']}}})
  for name,(base,title) in ITEMS.items():
@@ -211,6 +212,7 @@ def main():
     'bedrock_identifier':'voidscape:'+name,'display_name':title,
     'bedrock_options':{'icon':'voidscape.'+name,'allow_offhand':True,'display_handheld':base in ('netherite_pickaxe','netherite_sword','bow'),'creative_category':cat}})
  crop_assets.register_crop_assets(java, bedrock, textures, mappings, selectors, write_json, png)
+ portal_assets.register(java, bedrock, textures, mappings, selectors, write_json)
  for base,cases in selectors.items():
   fallback={'type':'minecraft:model','model':'minecraft:item/'+base}
   if base=='bow':

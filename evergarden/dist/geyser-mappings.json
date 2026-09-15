@@ -567,10 +567,10 @@
         }
       }
     ],
-    "minecraft:carrot": [
+    "minecraft:iron_helmet": [
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -588,7 +588,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -606,7 +606,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -624,7 +624,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -642,7 +642,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -660,7 +660,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -678,7 +678,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -696,7 +696,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -714,7 +714,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -732,7 +732,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -750,7 +750,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -768,7 +768,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -786,25 +786,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_mountain_walker_bamboo"
-        },
-        "bedrock_identifier": "voidscape:crop_mountain_walker_bamboo",
-        "display_name": "Mountain Walker Bamboo",
-        "bedrock_options": {
-          "icon": "voidscape.crop_mountain_walker_bamboo",
-          "allow_offhand": true,
-          "display_handheld": false,
-          "creative_category": "items"
-        }
-      },
-      {
-        "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -822,7 +804,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -840,7 +822,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -858,7 +840,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -876,7 +858,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -894,7 +876,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -912,7 +894,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -930,7 +912,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -948,7 +930,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -966,25 +948,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_frostbite_radish"
-        },
-        "bedrock_identifier": "voidscape:crop_frostbite_radish",
-        "display_name": "Frostbite Radish",
-        "bedrock_options": {
-          "icon": "voidscape.crop_frostbite_radish",
-          "allow_offhand": true,
-          "display_handheld": false,
-          "creative_category": "items"
-        }
-      },
-      {
-        "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1002,7 +966,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1020,7 +984,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1038,7 +1002,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1056,7 +1020,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1074,7 +1038,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1092,7 +1056,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1110,7 +1074,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1128,7 +1092,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1146,7 +1110,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1164,7 +1128,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1182,7 +1146,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1200,7 +1164,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1218,7 +1182,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1236,7 +1200,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1254,7 +1218,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1272,7 +1236,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1290,7 +1254,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1308,7 +1272,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1326,7 +1290,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1344,7 +1308,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1362,7 +1326,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1380,7 +1344,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1398,7 +1362,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1416,7 +1380,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1434,7 +1398,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1452,7 +1416,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1470,7 +1434,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1488,7 +1452,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1506,7 +1470,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1524,7 +1488,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1542,7 +1506,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1560,7 +1524,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1578,25 +1542,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_fortune_beet"
-        },
-        "bedrock_identifier": "voidscape:crop_fortune_beet",
-        "display_name": "Fortune Beet",
-        "bedrock_options": {
-          "icon": "voidscape.crop_fortune_beet",
-          "allow_offhand": true,
-          "display_handheld": false,
-          "creative_category": "items"
-        }
-      },
-      {
-        "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1614,7 +1560,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1632,7 +1578,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1650,7 +1596,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1668,7 +1614,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1686,7 +1632,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1704,7 +1650,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1722,7 +1668,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1740,7 +1686,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1758,7 +1704,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1776,7 +1722,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1794,7 +1740,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1812,7 +1758,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1830,7 +1776,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1848,7 +1794,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1866,7 +1812,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1884,7 +1830,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1902,7 +1848,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1920,7 +1866,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1938,7 +1884,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1956,7 +1902,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1974,7 +1920,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -1992,7 +1938,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2010,7 +1956,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2028,7 +1974,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2046,7 +1992,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2064,7 +2010,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2082,7 +2028,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2100,7 +2046,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2118,7 +2064,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2136,7 +2082,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2154,7 +2100,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2172,7 +2118,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2190,7 +2136,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2208,7 +2154,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2226,7 +2172,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
+        "model": "minecraft:iron_helmet",
         "predicate": {
           "type": "match",
           "property": "custom_model_data",
@@ -2240,6 +2186,23 @@
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:iron_helmet",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:azure_portal"
+        },
+        "bedrock_identifier": "voidscape:azure_portal",
+        "display_name": "Evergarden Azure Portal",
+        "bedrock_options": {
+          "icon": "voidscape.azure_portal",
+          "allow_offhand": false,
+          "display_handheld": false
         }
       }
     ],
@@ -2607,6 +2570,62 @@
         "display_name": "Titan Pumpkin",
         "bedrock_options": {
           "icon": "voidscape.crop_titan_pumpkin",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      }
+    ],
+    "minecraft:carrot": [
+      {
+        "type": "definition",
+        "model": "minecraft:carrot",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:crop_mountain_walker_bamboo"
+        },
+        "bedrock_identifier": "voidscape:crop_mountain_walker_bamboo",
+        "display_name": "Mountain Walker Bamboo",
+        "bedrock_options": {
+          "icon": "voidscape.crop_mountain_walker_bamboo",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:carrot",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:crop_frostbite_radish"
+        },
+        "bedrock_identifier": "voidscape:crop_frostbite_radish",
+        "display_name": "Frostbite Radish",
+        "bedrock_options": {
+          "icon": "voidscape.crop_frostbite_radish",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:carrot",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:crop_fortune_beet"
+        },
+        "bedrock_identifier": "voidscape:crop_fortune_beet",
+        "display_name": "Fortune Beet",
+        "bedrock_options": {
+          "icon": "voidscape.crop_fortune_beet",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"

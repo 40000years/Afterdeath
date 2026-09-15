@@ -88,60 +88,27 @@ def shade(color, factor):
 def new_canvas(size=32):
     return [[(0, 0, 0, 0) for _ in range(size)] for _ in range(size)]
 
+
 def draw_seed(info):
-    """Draws a 32x32 mystic seed packet / enchanted seed bulb."""
+    """Three loose seeds with a visible seam and crop-specific shell colours."""
     p = new_canvas()
-    pri, sec, acc = info['pri'], info['sec'], info['acc']
-    border = (25, 20, 35, 255)
-    pouch_base = (200, 180, 140, 255) if info['tier'] <= 2 else blend((100, 80, 120, 255), pri, 0.3)
-
-    # Seed pouch silhouette
-    for y in range(8, 26):
-        w = 7 if 12 <= y <= 21 else (5 if y in (10, 11, 22, 23) else 3)
-        for x in range(16 - w, 16 + w + 1):
-            dist_x = abs(x - 16) / max(1, w)
-            dist_y = abs(y - 17) / 9.0
-            factor = 1.15 - (dist_x * 0.4 + dist_y * 0.3)
-            p[y][x] = shade(pouch_base, factor)
-
-    # Outline
-    for y in range(7, 27):
-        for x in range(8, 25):
-            if p[y][x][3] > 0:
-                for dy, dx in ((-1,0),(1,0),(0,-1),(0,1)):
-                    ny, nx = y + dy, x + dx
-                    if 0 <= ny < 32 and 0 <= nx < 32 and p[ny][nx][3] == 0:
-                        p[ny][nx] = border
-
-    # Glowing seed gem in center of pouch
-    for y in range(13, 20):
-        for x in range(13, 20):
-            d = (x - 16)**2 + (y - 16.5)**2
-            if d <= 9:
-                p[y][x] = acc if d <= 2 else pri
-            elif d <= 14:
-                p[y][x] = sec
-
-    # Pouch neck ribbon and seal
-    for x in range(13, 20):
-        p[10][x] = acc
-        p[11][x] = shade(acc, 0.8)
-
-    # Top seed sprout tips
-    for dy in range(4, 9):
-        p[dy][16] = pri
-        if dy <= 6:
-            p[dy][15] = sec
-            p[dy][17] = sec
-    p[4][14] = acc
-    p[4][18] = acc
-
-    # Sparkles for higher tiers
-    if info['tier'] >= 3:
-        p[7][11] = acc
-        p[6][21] = acc
-        p[24][11] = acc
-        p[23][21] = acc
+    shell = blend((174, 119, 61, 255), info['pri'], 0.48)
+    edge = shade(shell, 0.40)
+    # Separate silhouettes, pointed ends, and a hilum: no bag/ribbon/label.
+    for cx, cy, angle, radius in ((11, 11, -0.55, 6), (22, 17, 0.60, 5), (10, 25, 0.85, 4)):
+        co, si = math.cos(angle), math.sin(angle)
+        for y in range(32):
+            for x in range(32):
+                dx, dy = x - cx, y - cy
+                u, v = dx * co + dy * si, -dx * si + dy * co
+                width = radius * 0.58 * (1 - 0.22 * v / radius)
+                d = (u / width) ** 2 + (v / radius) ** 2
+                if d <= 1:
+                    p[y][x] = edge if d > 0.72 else shade(shell, 1.18 - u / radius * 0.35)
+                    if abs(u + 0.5) < 0.6 and abs(v) < radius * 0.65:
+                        p[y][x] = shade(info['sec'], 0.8)
+                    if -2 < u < -0.5 and -radius * 0.55 < v < -radius * 0.2:
+                        p[y][x] = blend(shell, info['acc'], 0.65)
     return p
 
 def draw_food(info):
@@ -402,11 +369,21 @@ def draw_crop_stage(info, stage):
             p[y][x] = (95, 60, 35, 255) if (x + y) % 2 == 0 else (75, 45, 25, 255)
 
     if stage == 0:
-        for y in range(23, 29):
+        # Keep the first stage visibly smaller than stage 1, but large enough to
+        # survive Bedrock's armor-stand/attachable scaling at normal view range.
+        for y in range(17, 29):
+            p[y][15] = (70, 150, 50, 255)
             p[y][16] = (90, 185, 65, 255)
-        p[22][15] = (80, 200, 70, 255); p[21][14] = (80, 200, 70, 255); p[20][13] = (100, 225, 80, 255)
-        p[22][17] = (80, 200, 70, 255); p[21][18] = (80, 200, 70, 255); p[20][19] = (100, 225, 80, 255)
-        p[20][16] = pri; p[19][16] = acc
+            p[y][17] = (105, 205, 75, 255)
+        for d in range(1, 7):
+            leaf_y = 23 - d // 2
+            p[leaf_y][16 - d] = (75, 185, 60, 255)
+            p[leaf_y][16 + d] = (85, 200, 70, 255)
+            if d >= 4:
+                p[leaf_y - 1][16 - d] = (100, 225, 80, 255)
+                p[leaf_y - 1][16 + d] = (100, 225, 80, 255)
+        p[18][14] = pri; p[17][15] = pri; p[16][16] = acc
+        p[18][18] = sec; p[17][17] = sec
 
     elif stage == 1:
         for y in range(14, 29):
@@ -539,7 +516,7 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
             'bedrock_options': {'icon': 'voidscape.' + food_name, 'allow_offhand': True, 'display_handheld': False, 'creative_category': 'items'}
         })
 
-        # 3. Growth Stages 0, 1, 2 (using CARROT base item for plant display)
+        # 3. Growth stages use a head-equippable base so Bedrock registers wearable.
         for stage in (0, 1, 2):
             stage_name = f'crop_{cid}_stage_{stage}'
             stage_pixels = draw_crop_stage(crop, stage)
@@ -552,19 +529,57 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
             stage_model = {
                 'parent': 'minecraft:block/cross',
                 'textures': {'cross': 'voidscape:block/' + stage_name},
-                'display': cross_display
+                'display': {**cross_display, 'head': {
+                    'rotation': [0, 0, 0], 'translation': [0, -4.5, 0], 'scale': [1.35, 1.35, 1.35]
+                }}
             }
             write_json(java / f'assets/voidscape/models/item/{stage_name}.json', stage_model)
             write_json(java / f'assets/voidscape/items/{stage_name}.json', {
                 'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + stage_name}
             })
-            selectors.setdefault('carrot', []).append({
+            selectors.setdefault('iron_helmet', []).append({
                 'when': 'voidscape:' + stage_name,
                 'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + stage_name}
             })
-            mappings['items'].setdefault('minecraft:carrot', []).append({
+            # A crop is worn by an invisible armor stand. Geyser translates
+            # armor stands and resolves this attachable, unlike Java ItemDisplay.
+            geometry_id = 'geometry.voidscape.' + stage_name
+            write_json(bedrock / f'models/entity/{stage_name}.geo.json', {
+                'format_version': '1.16.0',
+                'minecraft:geometry': [{
+                    'description': {
+                        'identifier': geometry_id, 'texture_width': 32, 'texture_height': 32,
+                        'visible_bounds_width': 2, 'visible_bounds_height': 2,
+                        'visible_bounds_offset': [0, 1.75, 0]
+                    },
+                    'bones': [{
+                        # Armor geometry uses entity-space coordinates, as in
+                        # vanilla helmets: the head pivot is Y=24, not Y=0.
+                        # Y=0 put the entire small-stand crop below farmland.
+                        'name': 'head',
+                        'pivot': [0, 24, 0],
+                        'cubes': [
+                            {'origin': [-8, 24, -0.25], 'size': [16, 16, 0.5],
+                             'uv': {face: {'uv': [0, 0], 'uv_size': [32, 32]} for face in ('north', 'south')}},
+                            {'origin': [-0.25, 24, -8], 'size': [0.5, 16, 16],
+                             'uv': {face: {'uv': [0, 0], 'uv_size': [32, 32]} for face in ('east', 'west')}}
+                        ]
+                    }]
+                }]
+            })
+            write_json(bedrock / f'attachables/{stage_name}.json', {
+                'format_version': '1.10.0',
+                'minecraft:attachable': {'description': {
+                    'identifier': 'voidscape:' + stage_name,
+                    'materials': {'default': 'entity_alphatest'},
+                    'textures': {'default': 'textures/items/' + stage_name},
+                    'geometry': {'default': geometry_id},
+                    'render_controllers': ['controller.render.evergarden_mask']
+                }}
+            })
+            mappings['items'].setdefault('minecraft:iron_helmet', []).append({
                 'type': 'definition',
-                'model': 'minecraft:carrot',
+                'model': 'minecraft:iron_helmet',
                 'predicate': {'type': 'match', 'property': 'custom_model_data', 'index': 0, 'value': 'voidscape:' + stage_name},
                 'bedrock_identifier': 'voidscape:' + stage_name,
                 'display_name': f'{title} (Stage {stage})',

@@ -65,6 +65,15 @@ function Invoke-BuildPlugin {
     }
 }
 
+if ($Module -eq "all" -or $Module -eq "advance-magic") {
+    & (Join-Path $root "advance-magic/build.ps1")
+    if (!$?) { throw 'advance-magic build failed.' }
+    if (Test-Path $testServerPlugins) {
+        Copy-Item (Join-Path $root "advance-magic.jar") (Join-Path $testServerPlugins "advance-magic.jar") -Force
+        Write-Host "  [DEPLOYED] Copied advance-magic.jar to TestServer" -ForegroundColor Magenta
+    }
+}
+
 if ($Module -eq "all" -or $Module -eq "evergarden") {
     & (Join-Path $root "evergarden/build.ps1")
     if (!$?) { throw 'evergarden build failed.' }
@@ -101,15 +110,6 @@ if ($Module -eq "all" -or $Module -eq "nightvision-toggle") {
 
 if ($Module -eq "all" -or $Module -eq "anti-freecam") {
     Invoke-BuildPlugin -Name "anti-freecam"
-}
-
-if ($Module -eq "all" -or $Module -eq "advance-magic") {
-    & (Join-Path $root "advance-magic/build.ps1")
-    if (!$?) { throw 'advance-magic build failed.' }
-    if (Test-Path $testServerPlugins) {
-        Copy-Item (Join-Path $root "advance-magic.jar") (Join-Path $testServerPlugins "advance-magic.jar") -Force
-        Write-Host "  [DEPLOYED] Copied advance-magic.jar to TestServer" -ForegroundColor Magenta
-    }
 }
 
 Write-Host ""

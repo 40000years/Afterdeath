@@ -362,6 +362,12 @@ public final class DungeonManager implements Listener {
 
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void creature(CreatureSpawnEvent e) {
+        if(e.getEntity() instanceof ArmorStand && e.getEntity().getPersistentDataContainer()
+                .has(plugin.key("portal_visual"), PersistentDataType.STRING)) return;
+        // CropService tags its stand in the pre-spawn consumer. Without this
+        // exception our dimension mob filter cancels every planted crop visual.
+        if(e.getEntity() instanceof ArmorStand && e.getEntity().getPersistentDataContainer()
+                .has(new NamespacedKey("voidscape", "crop_entity"), PersistentDataType.STRING)) return;
         if(e.getEntity() instanceof Villager) return;
         if(e.getEntity().getPersistentDataContainer().has(plugin.key("botanist_npc"), PersistentDataType.BYTE)) return;
         if(e.getLocation().getWorld()==plugin.world()&&!runId.equals(e.getEntity().getPersistentDataContainer().get(runKey,PersistentDataType.STRING)))e.setCancelled(true);

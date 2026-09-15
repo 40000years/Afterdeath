@@ -21,9 +21,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.Transformation;
-import org.joml.AxisAngle4f;
-import org.joml.Vector3f;
 
 import java.io.File;
 import java.util.*;
@@ -31,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class CropService implements Listener, AutoCloseable {
+    // Head height: 24/16 * .5; farmland top: -1/16.
+    private static final double CROP_STAND_Y = -0.8125;
     private final VoidscapePlugin plugin;
     private final CropItemFactory factory;
     private final Map<String, PlantedCrop> plantedCrops = new ConcurrentHashMap<>();
@@ -94,8 +93,8 @@ public final class CropService implements Listener, AutoCloseable {
                 continue;
             }
 
-            // Ensure ItemDisplay and Interaction are present
-            ItemDisplay display = getOrSpawnDisplay(crop);
+            // Armor stands are translated by Geyser; Java display entities are not.
+            ArmorStand display = getOrSpawnDisplay(crop);
             getOrSpawnInteraction(crop);
             if (display == null) continue;
 
@@ -125,10 +124,10 @@ public final class CropService implements Listener, AutoCloseable {
         }
     }
 
-    private void advanceStage(PlantedCrop crop, int newStage, ItemDisplay display) {
+    private void advanceStage(PlantedCrop crop, int newStage, ArmorStand display) {
         crop.setStage(newStage);
         if (display != null && display.isValid()) {
-            display.setItemStack(factory.createPlantDisplay(crop.getType(), newStage));
+            display.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), newStage), true);
         }
 
         Location loc = crop.getLocation().add(0.5, 0.5, 0.5);
@@ -184,39 +183,71 @@ public final class CropService implements Listener, AutoCloseable {
         }
     }
 
-    private ItemDisplay getOrSpawnDisplay(PlantedCrop crop) {
+    private ArmorStand getOrSpawnDisplay(PlantedCrop crop) {
         Location loc = crop.getLocation();
         if (crop.getItemDisplayUuid() != null) {
             Entity ent = Bukkit.getEntity(crop.getItemDisplayUuid());
-            if (ent instanceof ItemDisplay id && ent.isValid()) {
-                return id;
+            if (ent instanceof ArmorStand stand && ent.isValid() && ownsCropEntity(stand, crop)) {
+                updateCropRenderer(stand, crop);
+                return stand;
+            }
+            // Upgrade crops saved by releases that used unsupported ItemDisplay entities.
+            if (ent instanceof ItemDisplay) {
+                entityUuidToCrop.remove(ent.getUniqueId());
+                ent.remove();
             }
         }
 
-        Location center = loc.add(0.5, 0.45, 0.5);
+        Location center = loc.clone().add(0.5, CROP_STAND_Y, 0.5);
         for (Entity nearby : loc.getWorld().getNearbyEntities(center, 0.8, 0.8, 0.8)) {
-            if (nearby instanceof ItemDisplay id && nearby.getPersistentDataContainer().has(cropEntityKey, PersistentDataType.STRING)) {
-                crop.setItemDisplayUuid(id.getUniqueId());
-                entityUuidToCrop.put(id.getUniqueId(), crop);
-                id.setItemStack(factory.createPlantDisplay(crop.getType(), crop.getStage()));
+            if (nearby instanceof ArmorStand stand && ownsCropEntity(stand, crop)) {
+                updateCropRenderer(stand, crop);
+                crop.setItemDisplayUuid(stand.getUniqueId());
+                entityUuidToCrop.put(stand.getUniqueId(), crop);
+                stand.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), crop.getStage()), true);
                 dirty.set(true);
-                return id;
+                return stand;
             }
         }
 
-        ItemDisplay display = loc.getWorld().spawn(center, ItemDisplay.class, d -> {
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
-            d.setTransformation(new Transformation(new Vector3f(0, 0, 0), new AxisAngle4f(), new Vector3f(1.0f, 1.0f, 1.0f), new AxisAngle4f()));
-            d.setItemStack(factory.createPlantDisplay(crop.getType(), crop.getStage()));
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setViewRange(64f);
-            d.setPersistent(true);
-            d.getPersistentDataContainer().set(cropEntityKey, PersistentDataType.STRING, locKey(crop.getLocation()));
+        ArmorStand display = loc.getWorld().spawn(center, ArmorStand.class, stand -> {
+            stand.setInvisible(true);
+            stand.setSmall(true);
+            stand.setMarker(false);
+            stand.setCollidable(false);
+            for (ArmorStand.LockType lock : ArmorStand.LockType.values()) stand.addEquipmentLock(EquipmentSlot.HEAD, lock);
+            stand.setGravity(false);
+            stand.setBasePlate(false);
+            stand.setArms(false);
+            stand.setSilent(true);
+            stand.setInvulnerable(true);
+            stand.setPersistent(true);
+            stand.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), crop.getStage()), true);
+            stand.getPersistentDataContainer().set(cropEntityKey, PersistentDataType.STRING, locKey(crop.getLocation()));
         });
         crop.setItemDisplayUuid(display.getUniqueId());
         entityUuidToCrop.put(display.getUniqueId(), crop);
         dirty.set(true);
         return display;
+    }
+
+    private boolean ownsCropEntity(Entity entity, PlantedCrop crop) {
+        return locKey(crop.getLocation()).equals(entity.getPersistentDataContainer().get(cropEntityKey, PersistentDataType.STRING));
+    }
+
+    private void updateCropRenderer(ArmorStand stand, PlantedCrop crop) {
+        // Upgrade already loaded crops as well as crops recovered after restart.
+        NamespacedKey revisionKey = new NamespacedKey("voidscape", "crop_renderer_revision");
+        if (Integer.valueOf(4).equals(stand.getPersistentDataContainer().get(revisionKey, PersistentDataType.INTEGER))) return;
+        stand.setMarker(false);
+        stand.setCollidable(false);
+        stand.setGravity(false);
+        stand.setInvisible(true);
+        stand.setSmall(true);
+        stand.teleport(crop.getLocation().add(0.5, CROP_STAND_Y, 0.5));
+        for (ArmorStand.LockType lock : ArmorStand.LockType.values()) stand.addEquipmentLock(EquipmentSlot.HEAD, lock);
+        stand.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), crop.getStage()), true);
+        stand.getPersistentDataContainer().set(revisionKey, PersistentDataType.INTEGER, 4);
     }
 
     private Interaction getOrSpawnInteraction(PlantedCrop crop) {
@@ -296,16 +327,22 @@ public final class CropService implements Listener, AutoCloseable {
         // Leave block above as AIR (NO tripwire string!)
         above.setType(Material.AIR, false);
 
-        // Spawn ItemDisplay
-        Location displayLoc = above.getLocation().add(0.5, 0.45, 0.5);
-        ItemDisplay display = above.getWorld().spawn(displayLoc, ItemDisplay.class, d -> {
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
-            d.setTransformation(new Transformation(new Vector3f(0, 0, 0), new AxisAngle4f(), new Vector3f(1.0f, 1.0f, 1.0f), new AxisAngle4f()));
-            d.setItemStack(factory.createPlantDisplay(cropType, 0));
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setViewRange(64f);
-            d.setPersistent(true);
-            d.getPersistentDataContainer().set(cropEntityKey, PersistentDataType.STRING, locKey(above.getLocation()));
+        // An invisible armor stand with a custom helmet renders on Java and through Geyser.
+        Location displayLoc = above.getLocation().add(0.5, CROP_STAND_Y, 0.5);
+        ArmorStand display = above.getWorld().spawn(displayLoc, ArmorStand.class, stand -> {
+            stand.setInvisible(true);
+            stand.setSmall(true);
+            stand.setMarker(false);
+            stand.setCollidable(false);
+            for (ArmorStand.LockType lock : ArmorStand.LockType.values()) stand.addEquipmentLock(EquipmentSlot.HEAD, lock);
+            stand.setGravity(false);
+            stand.setBasePlate(false);
+            stand.setArms(false);
+            stand.setSilent(true);
+            stand.setInvulnerable(true);
+            stand.setPersistent(true);
+            stand.getEquipment().setHelmet(factory.createPlantDisplay(cropType, 0), true);
+            stand.getPersistentDataContainer().set(cropEntityKey, PersistentDataType.STRING, locKey(above.getLocation()));
         });
 
         // Spawn Interaction hitbox
@@ -393,7 +430,7 @@ public final class CropService implements Listener, AutoCloseable {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamageCrop(EntityDamageByEntityEvent e) {
         Entity target = e.getEntity();
-        if (!(target instanceof Interaction) && !(target instanceof ItemDisplay)) return;
+        if (!(target instanceof Interaction) && !(target instanceof ItemDisplay) && !(target instanceof ArmorStand)) return;
 
         PlantedCrop found = entityUuidToCrop.get(target.getUniqueId());
         if (found == null) return;
@@ -624,9 +661,9 @@ public final class CropService implements Listener, AutoCloseable {
                 // Auto-replant at Stage 0 with fresh timestamp!
                 crop.setStage(0);
                 crop.setPlantedAt(System.currentTimeMillis());
-                ItemDisplay display = getOrSpawnDisplay(crop);
+                ArmorStand display = getOrSpawnDisplay(crop);
                 if (display != null) {
-                    display.setItemStack(factory.createPlantDisplay(crop.getType(), 0));
+                    display.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), 0), true);
                 }
                 dirty.set(true);
                 return;
@@ -660,9 +697,9 @@ public final class CropService implements Listener, AutoCloseable {
             if (ent != null) ent.remove();
         }
         Location center = crop.getLocation().add(0.5, 0.45, 0.5);
-        for (Entity nearby : crop.getLocation().getWorld().getNearbyEntities(center, 0.9, 0.9, 0.9)) {
-            if ((nearby instanceof ItemDisplay || nearby instanceof Interaction) &&
-                nearby.getPersistentDataContainer().has(cropEntityKey, PersistentDataType.STRING)) {
+        for (Entity nearby : crop.getLocation().getWorld().getNearbyEntities(center, 0.9, 1.3, 0.9)) {
+            if ((nearby instanceof ItemDisplay || nearby instanceof ArmorStand || nearby instanceof Interaction) &&
+                ownsCropEntity(nearby, crop)) {
                 nearby.remove();
             }
         }

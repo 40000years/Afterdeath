@@ -15,6 +15,10 @@ if (!$SkipPacks) {
 $dependencyRoot = Join-Path $env:USERPROFILE '.m2/repository'
 $dependencyJars = (Get-ChildItem -LiteralPath $dependencyRoot -Recurse -Filter '*.jar').FullName
 if (!$dependencyJars) { throw 'No cached Java dependencies found. Run Maven dependency resolution first.' }
+$advanceMagicJar = Join-Path $workspaceRoot 'advance-magic.jar'
+if (Test-Path $advanceMagicJar) {
+    $dependencyJars = @($advanceMagicJar) + $dependencyJars
+}
 $classPath = [string]::Join([System.IO.Path]::PathSeparator, $dependencyJars)
 $sources = (Get-ChildItem -LiteralPath (Join-Path $moduleRoot 'src/main/java') -Recurse -Filter '*.java').FullName
 & javac --release 21 -proc:none -encoding UTF-8 -cp $classPath -d $classesDir $sources
