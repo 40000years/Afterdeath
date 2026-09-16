@@ -66,6 +66,7 @@ public final class DungeonManager implements Listener {
     private boolean save() {
         try {
             Path dest=file.toPath(),tmp=dest.resolveSibling("dungeons.yml.tmp");
+            if(dest.getParent()!=null)Files.createDirectories(dest.getParent());
             Files.writeString(tmp,ledger.saveToString());
             try{Files.move(tmp,dest,StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);}
             catch(AtomicMoveNotSupportedException e){Files.move(tmp,dest,StandardCopyOption.REPLACE_EXISTING);}
@@ -381,7 +382,9 @@ public final class DungeonManager implements Listener {
         Entity source=e.getDamager();
         Player attacker=source instanceof Player p?p:source instanceof Projectile pr&&pr.getShooter() instanceof Player p?p:null;
         if(enc!=null&&attacker!=null) {
-            if(attacker.getWorld()!=plugin.world()||!enc.site.contains(attacker.getX(),attacker.getZ(),12)) {
+            // Mobs already have an out-of-bounds recall. Do not silently make
+            // them immune to players fighting across the sanctuary boundary.
+            if(attacker.getWorld()!=e.getEntity().getWorld()) {
                 e.setCancelled(true);return;
             }
             combatUntil.put(attacker.getUniqueId(),System.currentTimeMillis()+10000);
@@ -402,7 +405,8 @@ public final class DungeonManager implements Listener {
             Encounter mobEnc=owners.get(mobDamager.getUniqueId());
             if(mobEnc!=null) {
                 Species species=mobEnc.mobs.get(mobDamager.getUniqueId());
-                victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,120,1));
+                if(plugin.getConfig().getBoolean("combat.apply-weakness",false))
+                    victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,120,0));
                 victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,80,1));
                 if(species==Species.BOSS||species==Species.STALKER||(species==Species.MINION&&Math.random()<0.35)) {
                     placeTemporaryWeb(victim.getLocation().getBlock(),6000L);
@@ -673,7 +677,8 @@ public final class DungeonManager implements Listener {
                     if(now-lastCast>plugin.integer("combat.caster-interval-ms",7000,3000,30000)&&mob.getLocation().distanceSquared(target.getLocation())<=256) {
                         enc.casterCooldowns.put(entry.getKey(),now);
                         Location targetLoc=target.getLocation();
-                        target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,160,1));
+                        if(plugin.getConfig().getBoolean("combat.apply-weakness",false))
+                            target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,160,0));
                         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,120,1));
                         placeTemporaryWeb(targetLoc.getBlock(),6000L);
                         target.getWorld().spawnParticle(Particle.WITCH,targetLoc.clone().add(0,1,0),25,0.4,0.6,0.4,0.05);

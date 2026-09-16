@@ -61,6 +61,52 @@ def mask_assets(java,bedrock,name):
   'geometry':{'default':'geometry.voidscape.'+name},'render_controllers':['controller.render.evergarden_mask']}}})
  return model
 
+def bow_attachable(bedrock, name):
+ # Follow Bedrock's vanilla/custom bow attachable layout. A texture_mesh is
+ # required here; a cube-bound item does not inherit bow wield behaviour.
+ geometries=[]
+ for suffix,texture,position in [
+   ('standby','default',[2.0,1.0,-2.0]),
+   ('pulling_0','pulling_0',[2.0,1.0,-1.0]),
+   ('pulling_1','pulling_1',[2.01,1.0,-1.0]),
+   ('pulling_2','pulling_2',[2.01,1.0,-1.0])]:
+  geometries.append({
+   'description':{'identifier':f'geometry.voidscape.{name}_{suffix}',
+                  'texture_width':16.0,'texture_height':16.0},
+   'bones':[{'name':'rightitem','texture_meshes':[{
+    'local_pivot':[6.0,0.0,6.0],'position':position,
+    'rotation':[0.0,-135.0,90.0],'texture':texture}]}]})
+ write_json(bedrock/f'models/entity/{name}.geo.json', {
+  'format_version':'1.16.0','minecraft:geometry':geometries})
+ controller='controller.render.voidscape_'+name
+ write_json(bedrock/f'render_controllers/{name}.json', {
+  'format_version':'1.10','render_controllers':{controller:{
+   'arrays':{
+    'textures':{'array.bow_texture_frames':['texture.default','texture.pulling_0','texture.pulling_1','texture.pulling_2']},
+    'geometries':{'array.bow_geo_frames':['geometry.default','geometry.pulling_0','geometry.pulling_1','geometry.pulling_2']}},
+   'geometry':'array.bow_geo_frames[variable.bow_tex_idx]',
+   'materials':[{'*':'variable.is_enchanted ? material.enchanted : material.default'}],
+   'textures':['array.bow_texture_frames[variable.bow_tex_idx]','texture.enchanted']
+  }}})
+ write_json(bedrock/f'attachables/{name}.json', {
+  'format_version':'1.10.0','minecraft:attachable':{'description':{
+   'identifier':'voidscape:'+name,
+   'materials':{'default':'entity_alphatest','enchanted':'entity_alphatest_glint'},
+   'textures':{'default':'textures/items/'+name,'pulling_0':'textures/items/'+name+'_pulling_0',
+               'pulling_1':'textures/items/'+name+'_pulling_1','pulling_2':'textures/items/'+name+'_pulling_2',
+               'enchanted':'textures/misc/enchanted_item_glint'},
+   'geometry':{'default':f'geometry.voidscape.{name}_standby',
+               'pulling_0':f'geometry.voidscape.{name}_pulling_0',
+               'pulling_1':f'geometry.voidscape.{name}_pulling_1',
+               'pulling_2':f'geometry.voidscape.{name}_pulling_2'},
+   'animations':{'wield':'animation.bow.wield','wield_first_person_pull':'animation.bow.wield_first_person_pull'},
+   'scripts':{
+    'pre_animation':[
+     'variable.charge_amount = math.clamp((query.main_hand_item_max_duration - (query.main_hand_item_use_duration - query.frame_alpha + 1.0)) / 10.0, 0.0, 1.0);',
+     'variable.bow_tex_idx = query.main_hand_item_use_duration == 0.0 ? 0 : variable.charge_amount / 0.5 + 1;'],
+    'animate':['wield',{'wield_first_person_pull':'query.main_hand_item_use_duration > 0.0 && context.is_first_person'}]},
+   'render_controllers':[controller]}}})
+
 def write_json(path, value):
  path.parent.mkdir(parents=True,exist_ok=True)
  path.write_text(json.dumps(value,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
@@ -70,6 +116,32 @@ def png(path, pixels, size=32):
  raw=b''.join(b'\x00'+bytes(c for pixel in row for c in pixel) for row in pixels)
  path.parent.mkdir(parents=True,exist_ok=True)
  path.write_bytes(b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',size,size,8,6,0,0,0))+chunk(b'IDAT',zlib.compress(raw,9))+chunk(b'IEND',b''))
+
+def bedrock_bow_png(source, dest):
+ # Bedrock texture_mesh treats a 32px item as a 32-model-unit plane. Vanilla
+ # bows are 16px, so retain the Java 32px art but make a dedicated 16px copy.
+ data=source.read_bytes();pos=8;compressed=b'';width=height=None
+ while pos<len(data):
+  length=struct.unpack('>I',data[pos:pos+4])[0];kind=data[pos+4:pos+8];payload=data[pos+8:pos+8+length];pos+=12+length
+  if kind==b'IHDR':width,height=struct.unpack('>II',payload[:8])
+  elif kind==b'IDAT':compressed+=payload
+  elif kind==b'IEND':break
+ if width!=32 or height!=32:raise ValueError(f'Expected generated 32x32 bow texture: {source}')
+ raw=zlib.decompress(compressed);rows=[];stride=width*4
+ for y in range(height):
+  row=raw[y*(stride+1):(y+1)*(stride+1)]
+  if not row or row[0]!=0:raise ValueError(f'Unsupported PNG filter in {source}')
+  rows.append([tuple(row[1+x*4:1+x*4+4]) for x in range(width)])
+ small=[]
+ for y in range(0,32,2):
+  out=[]
+  for x in range(0,32,2):
+   block=[rows[y+dy][x+dx] for dy in range(2) for dx in range(2)]
+   alpha=max(pixel[3] for pixel in block)
+   opaque=[pixel for pixel in block if pixel[3]==alpha]
+   out.append(tuple(sum(pixel[channel] for pixel in opaque)//len(opaque) for channel in range(4)))
+  small.append(out)
+ png(dest,small,size=16)
 
 def icon(name,draw=0):
  p=[[(0,0,0,0) for _ in range(32)] for _ in range(32)]
@@ -151,7 +223,7 @@ def archive(folder,path):
 def main():
  java=BUILD/'java';bedrock=BUILD/'bedrock';DIST.mkdir(parents=True,exist_ok=True)
  write_json(java/'pack.mcmeta',{'pack':{'description':'Evergarden | Ancient Relics','min_format':[88,0],'max_format':[88,0]}})
- write_json(bedrock/'manifest.json',{'format_version':2,'header':{'name':'Evergarden','description':'Evergarden relics, crops and loose seeds','uuid':'df4aee6d-9e8e-4ec8-9df1-7974c6bea203','version':[3,3,0],'min_engine_version':[1,21,0]},'modules':[{'type':'resources','uuid':'ef4aee6d-9e8e-4ec8-9df1-7974c6bea204','version':[3,3,0]}]})
+ write_json(bedrock/'manifest.json',{'format_version':2,'header':{'name':'Evergarden','description':'Evergarden detailed 64px crops, relics and azure portal','uuid':'df4aee6d-9e8e-4ec8-9df1-7974c6bea203','version':[3,5,1],'min_engine_version':[1,21,0]},'modules':[{'type':'resources','uuid':'ef4aee6d-9e8e-4ec8-9df1-7974c6bea204','version':[3,5,1]}]})
  textures={};mappings={'format_version':2,'items':{}};selectors={}
  write_json(bedrock/'render_controllers/evergarden_mask.json',{'format_version':'1.8.0','render_controllers':{'controller.render.evergarden_mask':{'geometry':'Geometry.default','materials':[{'*':'Material.default'}],'textures':['Texture.default']}}})
  for name,(base,title) in ITEMS.items():
@@ -163,7 +235,8 @@ def main():
    dest_java.parent.mkdir(parents=True, exist_ok=True)
    dest_java.write_bytes(data)
    dest_bedrock.parent.mkdir(parents=True, exist_ok=True)
-   dest_bedrock.write_bytes(data)
+   if base=='bow':bedrock_bow_png(equipment_art,dest_bedrock)
+   else:dest_bedrock.write_bytes(data)
   else:
    pixels=icon(name)
    if name in MASKS:
@@ -197,13 +270,14 @@ def main():
      dest_java.parent.mkdir(parents=True, exist_ok=True)
      dest_java.write_bytes(data)
      dest_bedrock.parent.mkdir(parents=True, exist_ok=True)
-     dest_bedrock.write_bytes(data)
+     bedrock_bow_png(stage_art,dest_bedrock)
     else:
      png(java/f'assets/voidscape/textures/item/{stage}.png',icon(name,n+1))
     write_json(java/f'assets/voidscape/models/item/{stage}.json',{'parent':'minecraft:item/bow','textures':{'layer0':'voidscape:item/'+stage}})
     textures['voidscape.'+stage]={'textures':'textures/items/'+stage}
     stages.append({'threshold':[0,0.65,0.9][n],'model':{'type':'minecraft:model','model':'voidscape:item/'+stage}})
    definition={'model':{'type':'minecraft:condition','property':'minecraft:using_item','on_false':definition['model'],'on_true':{'type':'minecraft:range_dispatch','property':'minecraft:use_duration','scale':0.05,'fallback':stages[0]['model'],'entries':stages}}}
+   bow_attachable(bedrock, name)
   write_json(java/f'assets/voidscape/items/{name}.json',definition)
   selectors.setdefault(base,[]).append({'when':'voidscape:'+name,'model':definition['model']})
   cat='equipment' if base in ('netherite_pickaxe','netherite_sword','bow','shield','carved_pumpkin') else 'items'
@@ -257,6 +331,19 @@ def main():
   (bedrock/'pack_icon.png').write_bytes(key_art.read_bytes())
  else:
   png(java/'pack.png',icon('void_key'));png(bedrock/'pack_icon.png',icon('void_key'))
+ # Bedrock caches UUID + version, not the Java ZIP SHA-1. Give every content
+ # revision a deterministic cache identity while retaining the owned pack UUID.
+ digest=hashlib.sha256()
+ for asset in sorted((p for p in bedrock.rglob('*') if p.is_file() and p.name!='manifest.json'),key=lambda p:p.relative_to(bedrock).as_posix()):
+  digest.update(asset.relative_to(bedrock).as_posix().encode('utf8')+b'\0'+asset.read_bytes())
+ manifest=json.loads((bedrock/'manifest.json').read_text(encoding='utf8'))
+ # Bedrock manifest versions are three bounded integers; keep the hash-derived
+ # component below the client parser's safe range while still changing each build.
+ version=[3,6,int(digest.hexdigest()[:7],16) % 60000 + 1]
+ manifest['header']['version']=version
+ for module in manifest['modules']:module['version']=version
+ write_json(bedrock/'manifest.json',manifest)
+ print('Bedrock content version: '+'.'.join(map(str,version)))
  archive(java,DIST/'evergarden-java.zip');archive(bedrock,DIST/'evergarden-bedrock.mcpack')
  hashes={f.name:hashlib.sha1(f.read_bytes()).hexdigest() for f in [DIST/'evergarden-java.zip',DIST/'evergarden-bedrock.mcpack']}
  write_json(DIST/'pack-hashes.json',hashes)

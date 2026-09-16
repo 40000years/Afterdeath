@@ -20,6 +20,8 @@ portal:
   # Build a Nether Portal shape from Block of Quartz, then throw any flower into the empty frame.
   entry-worlds: [world]
 combat:
+  # Optional Weakness I from guardians/casters. Off so low-damage melee remains usable.
+  apply-weakness: false
   # Five guardian waves, followed by one boss. Range 2-12.
   waves: 5
   custom-appearance: true
@@ -41,16 +43,14 @@ combat:
 rewards:
   # Vault Loot Table Percentages:
   # One reward per vault; rates are defined in VaultLootTable.
-  # 35% Diamond Block x2
-  # 35% Netherite Ingot x2
-  # 10% Random Armor Trim Smithing Template x2
-  # 15% Special Equipment (Rift 3x3 Pickaxe, Smelter Pickaxe, Storm Bow)
-  # 4.9% normal tagged Magic Core (14 types, equal chance)
-  # 0.1% Mythic Core of Levitation (5% total Magic Core chance)
+  # 60% Consumables and reagents
+  # 15% Limit Break Scroll, 12% Unique Enchant Scroll
+  # 7% Advance Magic Core (14 normal types, equal chance)
+  # 5% Special Relic Equipment
+  # 0.5% Mythic Core of Levitation, 0.5% Scroll of Eternity
+  # Core total: 7.5%. These comments document VaultLootTable, not configurable weights.
 relics:
   allow-pvp: false
-  bow:
-    cooldown-seconds: 5
 resource-pack:
   enabled: true
   host:

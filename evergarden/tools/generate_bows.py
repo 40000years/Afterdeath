@@ -196,18 +196,18 @@ def generate_storm_bow(draw=0):
         put(nock_x, nock_y, ELEC_WHITE)
     elif draw == 2:
         # Mid draw: Formed lightning arrow
-        line(grid, 6, 6, nock_x, nock_y, CYAN_LIGHT)
-        put(5, 5, ELEC_WHITE) # Tip
-        put(6, 5, CYAN_LIGHT); put(5, 6, CYAN_LIGHT)
-        put(7, 5, CYAN_MID);   put(5, 7, CYAN_MID)
+        line(grid, 10, 10, nock_x, nock_y, CYAN_LIGHT)
+        put(9, 9, ELEC_WHITE) # The arrowhead follows the string without entering the player's arm.
+        put(10, 9, CYAN_LIGHT); put(9, 10, CYAN_LIGHT)
+        put(11, 9, CYAN_MID);   put(9, 11, CYAN_MID)
         # Nock fletchings
         put(nock_x - 1, nock_y, GOLD_HI); put(nock_x, nock_y - 1, GOLD_HI)
         put(nock_x, nock_y, ELEC_WHITE)
     elif draw == 3:
         # FULL DRAW: Overcharged Tempest Lance!
         # Arrow shaft: Blazing pure electric core + cyan glow
-        line(grid, 5, 5, nock_x - 1, nock_y - 1, ELEC_WHITE)
-        for i in range(5, nock_x):
+        line(grid, 13, 13, nock_x - 1, nock_y - 1, ELEC_WHITE)
+        for i in range(13, nock_x):
             put(i + 1, i, CYAN_MID)
             put(i, i + 1, CYAN_LIGHT)
 
@@ -223,7 +223,7 @@ def generate_storm_bow(draw=0):
             (5, 1, OUT), (1, 5, OUT), (6, 2, OUT), (2, 6, OUT)
         ]
         for ax, ay, *ac in arrowhead:
-            put(ax, ay, ac[0] if ac else OUT)
+            put(ax + 8, ay + 8, ac[0] if ac else OUT)
 
         # Tempest Wing Fletchings (Gold + Cyan thunderbird feathers at nock)
         fletch = [
@@ -382,16 +382,16 @@ def generate_nova_bow(draw=0):
         put(9, 9, STAR_WHITE); put(8, 8, NEBULA_PINK)
         put(nock_x, nock_y, STAR_WHITE)
     elif draw == 2:
-        line(grid, 6, 6, nock_x, nock_y, STAR_AMETHYST)
-        put(5, 5, SUN_WHITE)
-        put(6, 5, NEBULA_PINK); put(5, 6, NEBULA_PINK)
-        put(7, 5, STAR_CYAN);   put(5, 7, STAR_CYAN)
+        line(grid, 10, 10, nock_x, nock_y, STAR_AMETHYST)
+        put(9, 9, SUN_WHITE)
+        put(10, 9, NEBULA_PINK); put(9, 10, NEBULA_PINK)
+        put(11, 9, STAR_CYAN);   put(9, 11, STAR_CYAN)
         put(nock_x - 1, nock_y, GOLD_HI); put(nock_x, nock_y - 1, GOLD_HI)
         put(nock_x, nock_y, SUN_WHITE)
     elif draw == 3:
         # FULL DRAW: Blazing Supernova Star Arrow!
-        line(grid, 5, 5, nock_x - 1, nock_y - 1, SUN_WHITE)
-        for i in range(5, nock_x):
+        line(grid, 13, 13, nock_x - 1, nock_y - 1, SUN_WHITE)
+        for i in range(13, nock_x):
             put(i + 1, i, NEBULA_MAGENTA)
             put(i, i + 1, STAR_AMETHYST)
 
@@ -407,7 +407,7 @@ def generate_nova_bow(draw=0):
             (5, 1, OUT), (1, 5, OUT), (6, 2, OUT), (2, 6, OUT)
         ]
         for ax, ay, *ac in arrowhead:
-            put(ax, ay, ac[0] if ac else OUT)
+            put(ax + 8, ay + 8, ac[0] if ac else OUT)
 
         # Astral Wing Fletchings
         fletch = [

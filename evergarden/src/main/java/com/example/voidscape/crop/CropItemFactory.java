@@ -112,6 +112,12 @@ public final class CropItemFactory {
         if (meta == null) return item;
 
         meta.displayName(Component.text(type.thaiName + " [Stage " + stage + "]").decoration(TextDecoration.ITALIC, false));
+        // Preserve the wearable HEAD slot for Geyser, but remove the vanilla
+        // iron armor asset so Java renders the custom plant item on the head.
+        var equipment = meta.getEquippable();
+        equipment.setSlot(org.bukkit.inventory.EquipmentSlot.HEAD);
+        equipment.setModel(null);
+        meta.setEquippable(equipment);
         var modelData = meta.getCustomModelDataComponent();
         modelData.setStrings(List.of("voidscape:crop_" + type.id + "_stage_" + stage));
         meta.setCustomModelDataComponent(modelData);

@@ -25,7 +25,9 @@ public final class FloodgateGuideForm {
 
         SimpleForm.Builder builder = SimpleForm.builder();
         builder.title("§1§lคู่มือ Evergarden §8[§9" + (finalPageIndex + 1) + "§8/§9" + totalPages + "§8]");
-        builder.content(page.content());
+        // Bedrock simple forms default to light text. Keep ordinary paragraphs
+        // dark and reserve bright colours for the deliberately tagged highlights.
+        builder.content("§0" + page.content().replace("§r", "§r§0"));
 
         List<Consumer<Player>> buttonActions = new ArrayList<>();
 
@@ -67,7 +69,7 @@ public final class FloodgateGuideForm {
         List<GuidePage> pages = GuideData.PAGES;
         SimpleForm.Builder builder = SimpleForm.builder();
         builder.title("§1§lสารบัญคู่มือ Evergarden");
-        builder.content("§7เลือกหัวข้อที่ต้องการอ่านเพื่อเปิดหน้านั้นได้ทันที:\n(หน้าที่กำลังอ่านอยู่: §bหน้า " + (returnPageIndex + 1) + "§7)");
+        builder.content("§0เลือกหัวข้อที่ต้องการอ่านเพื่อเปิดหน้านั้นได้ทันที:\n§8(หน้าที่กำลังอ่านอยู่: §bหน้า " + (returnPageIndex + 1) + "§8)");
 
         List<Consumer<Player>> buttonActions = new ArrayList<>();
 

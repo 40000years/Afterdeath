@@ -21,6 +21,7 @@ public final class ResourcePackService implements Listener, AutoCloseable {
     private final JavaPlugin plugin;
     private final Map<UUID,String> statuses=new HashMap<>();
     private PackHttpServer http;
+    private String bedrockPackInfo="Bedrock pack not extracted";
     private String sha1="",failure="",geyserStatus="External Geyser: copy files from resource-packs/ manually.";
     public ResourcePackService(JavaPlugin plugin){this.plugin=plugin;}
 
@@ -33,7 +34,15 @@ public final class ResourcePackService implements Listener, AutoCloseable {
                 writeChanged(output.resolve(name),input.readAllBytes());
             }
         }
-        if(!plugin.getConfig().getBoolean("resource-pack.geyser.auto-install",true))return;
+        try(var zip=new java.util.zip.ZipFile(output.resolve("evergarden-bedrock.mcpack").toFile());
+            var reader=new InputStreamReader(zip.getInputStream(zip.getEntry("manifest.json")),java.nio.charset.StandardCharsets.UTF_8)) {
+            var header=com.google.gson.JsonParser.parseReader(reader).getAsJsonObject().getAsJsonObject("header");
+            bedrockPackInfo="Bundled Bedrock version: "+header.get("version")+" | UUID: "+header.get("uuid").getAsString();
+        }
+        if(!plugin.getConfig().getBoolean("resource-pack.geyser.auto-install",true)) {
+            geyserStatus="Bedrock auto-install disabled; copy bundled pack + mappings to the active Geyser instance.";
+            return;
+        }
         Path plugins=plugin.getDataFolder().toPath().toAbsolutePath().getParent();
         Path geyser=plugins.resolve("Geyser-Spigot");
         boolean present=Files.isDirectory(geyser);
@@ -58,7 +67,7 @@ public final class ResourcePackService implements Listener, AutoCloseable {
             if(cleaned>0)plugin.getLogger().info("Cleaned "+cleaned+" duplicate Geyser files; originals saved in plugin-pack-backups.");
             writeChanged(geyser.resolve("packs/voidscape-bedrock.mcpack"),Files.readAllBytes(output.resolve("evergarden-bedrock.mcpack")));
             writeChanged(geyser.resolve("custom_mappings/voidscape.json"),Files.readAllBytes(output.resolve("geyser-mappings.json")));
-            geyserStatus="Bedrock pack + mappings installed before Geyser-Spigot loads.";
+            geyserStatus="Bedrock files copied to "+geyser.toAbsolutePath()+" (restart Geyser and reconnect to use).";
             plugin.getLogger().info(geyserStatus);
         }
     }
@@ -152,8 +161,13 @@ public final class ResourcePackService implements Listener, AutoCloseable {
         sender.sendMessage("Bundled SHA-1: "+sha1);
         String url=url(sender instanceof Player p?p:null);sender.sendMessage("URL: "+(url.isEmpty()?"auto from joining player's server address; set host.public-host for proxies/SRV":url));
         sender.sendMessage(geyserStatus);
+        sender.sendMessage(bedrockPackInfo);
         if(!failure.isEmpty())sender.sendMessage(ChatColor.RED+failure);
         if(sender instanceof Player p)sender.sendMessage("Your pack: "+statuses.getOrDefault(p.getUniqueId(),"not offered (or Bedrock)"));
+        else for(Player player:Bukkit.getOnlinePlayers()) {
+            sender.sendMessage(player.getName()+": "+(bedrock(player)?"BEDROCK: delivered by Geyser; Java status unavailable":statuses.getOrDefault(player.getUniqueId(),"NOT_OFFERED")));
+            if(!bedrock(player))sender.sendMessage("  URL: "+url(player));
+        }
         sender.sendMessage("Files: plugins/Evergarden/resource-packs/ | Retry: /evergarden pack resend");
     }
     @Override public void close(){if(http!=null){http.close();http=null;}statuses.clear();}

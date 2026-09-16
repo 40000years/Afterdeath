@@ -1,6 +1,78 @@
 """Generates 32x32 pixel art textures, Java item/block models, and Bedrock/Geyser definitions for all 30 Evergarden crops."""
 import math
 
+TEXTURE_SIZE = 64
+
+
+def crop_uv(front, back):
+    # Java mirrors the reverse face; Bedrock uses signed UV extents.
+    return {front: {'uv': [0, 0], 'uv_size': [TEXTURE_SIZE, TEXTURE_SIZE]},
+            back: {'uv': [TEXTURE_SIZE, 0], 'uv_size': [-TEXTURE_SIZE, TEXTURE_SIZE]}}
+
+
+def detailed_pixels(source, info, kind):
+    """Retain the original silhouette; draw new material detail at double resolution.
+
+    This is a deterministic drawing pass, not bilinear enlargement: leaf veins,
+    seed grain, skin pores and directional edge lighting occupy individual pixels.
+    Alpha stays binary so both clients use the same cutout silhouette.
+    """
+    result = new_canvas(TEXTURE_SIZE)
+    shape = info['shape']
+    for y in range(TEXTURE_SIZE):
+        for x in range(TEXTURE_SIZE):
+            sx, sy = x // 2, y // 2
+            color = source[sy][sx]
+            if not color[3]:
+                continue
+            r, g, b, _ = color
+            green = g > r * 1.18 and g > b * 1.2
+            outline = max(r, g, b) < 36
+            if outline:
+                # Colored ink is less harsh than the old almost-black outline.
+                neighbours = [source[ny][nx] for nx, ny in
+                              ((sx-1,sy),(sx+1,sy),(sx,sy-1),(sx,sy+1))
+                              if 0 <= nx < 32 and 0 <= ny < 32
+                              and source[ny][nx][3] and max(source[ny][nx][:3]) > 45]
+                base = max(neighbours, key=lambda c: c[1]) if neighbours else info['sec']
+                color = shade(base, 0.36 if (x+y) % 3 else 0.43)
+            else:
+                # Sub-pixel facets maintain deliberate pixel clusters.
+                light = 1.0 + (0.055 if x % 2 == 0 else -0.025) + (0.035 if y % 2 == 0 else -0.015)
+                color = shade(color, light)
+                if green:
+                    # Branching veins: pale midrib with smaller diagonal veins.
+                    rib = (x + y // 3) % 13
+                    if rib == 0:
+                        color = blend(color, (190, 221, 124, 255), 0.28)
+                    elif (x - y) % 11 == 0 and rib < 6:
+                        color = blend(color, (157, 197, 95, 255), 0.20)
+                    elif rib == 1:
+                        color = shade(color, 0.86)
+                elif kind == 'seed' or shape in ('ROOT_TUBER', 'ACORN', 'BULB_GARLIC', 'BAMBOO_STALK'):
+                    # Fine fibres / papery shell grooves follow the long axis.
+                    if (x + int(2 * math.sin(y / 9))) % 9 == 0:
+                        color = shade(color, 0.78)
+                    elif (x + 2*y) % 23 == 0:
+                        color = blend(color, info['acc'], 0.30)
+                elif shape in ('MUSHROOM', 'SPORE'):
+                    if (x*7+y*11) % 31 < 3:
+                        color = blend(color, info['acc'], 0.36)
+                elif shape == 'CORN_EAR':
+                    if y % 6 == 5 or x % 6 == 5:
+                        color = shade(color, 0.80)
+                    elif x % 6 == 1 and y % 6 == 1:
+                        color = blend(color, (255, 246, 185, 255), 0.45)
+                elif (x*13+y*7) % 47 == 0:
+                    color = blend(color, info['acc'], 0.22)
+                # Lit upper rim and contact shade on the lower rim.
+                if y > 0 and not source[(y-1)//2][sx][3]:
+                    color = blend(color, (225, 239, 170, 255), 0.20)
+                if y < 63 and not source[(y+1)//2][sx][3]:
+                    color = shade(color, 0.78)
+            result[y][x] = color
+    return result
+
 CROPS = [
     # Tier 1: Common Farm (6 crops)
     {'id': 'mana_dew_berry', 'title': 'Blueberry', 'tier': 1, 'seed': 'beetroot_seeds', 'food': 'sweet_berries',
@@ -371,7 +443,13 @@ def draw_crop_stage(info, stage):
             for xx in range(max(0, cx-rx), min(32, cx+rx+1)):
                 d=((xx-cx)/max(1,rx))**2+((yy-cy)/max(1,ry))**2
                 if d <= 1:
-                    p[yy][xx] = highlight if highlight and xx <= cx-1 and yy <= cy-1 and d < .55 else color
+                    # Rounded foliage/fruit with discrete lighting bands, rather
+                    # than flat discs with a rectangular highlight.
+                    nx, ny = (xx-cx)/max(1,rx), (yy-cy)/max(1,ry)
+                    light = (-nx-ny)*0.20 + math.sqrt(max(0,1-d))*0.35
+                    light = round(light*6)/6
+                    body = shade(color, 0.76 + light)
+                    p[yy][xx] = blend(body, highlight, max(0,light)*0.35) if highlight else body
 
     def leaf(x1, y1, x2, y2, color=leaf_mid, width=1):
         steps=max(abs(x2-x1),abs(y2-y1),1)
@@ -381,19 +459,59 @@ def draw_crop_stage(info, stage):
                 if 0<=xx+ox<32 and 0<=yy<32:p[yy][xx+ox]=color
 
     if stage == 0:
-        # Compact two-leaf sprout, comparable to vanilla wheat/carrot stage 0.
-        leaf(16,31,16,20,leaf_mid,1)
-        leaf(16,27,10,22,leaf_dark,1)
-        leaf(16,25,22,20,leaf_light,1)
-        ellipse(16,20,2,2,blend(leaf_light,pri,.18),leaf_light)
+        # Recognisable juvenile anatomy, with stable per-species variation.
+        # No mature fruit on newly planted seedlings.
+        variant = next(i for i,c in enumerate(CROPS) if c['id'] == info['id'])
+        offset = variant % 3 - 1
+        young = blend(leaf_mid, pri, 0.25)
+        shape = info['shape']
+        if shape in ('MUSHROOM', 'SPORE'):
+            for x,y,r in ((11+offset,24,4),(20,20+offset,5),(24-offset,27,3)):
+                leaf(x,31,x,y,acc,1)
+                ellipse(x,y,r,max(2,r-2),pri,shade(pri,1.25))
+                p[y-1][x-1] = acc
+        elif shape in ('CORN_EAR','BAMBOO_STALK','SPROUT_TREE'):
+            count = 3 if shape == 'BAMBOO_STALK' else 2
+            for n in range(count):
+                x=10+n*5+offset
+                top=13+n*3-variant%2
+                leaf(x,31,x,top,young,1)
+                leaf(x,26,x-4,top+4,leaf_dark,1)
+                leaf(x,22,x+4,top+1,leaf_light,0)
+        elif shape in ('ROOT_TUBER','BULB_GARLIC'):
+            ellipse(16,30,3,2,blend(pri,sec,.3),acc)
+            for n in range(3+variant%2):
+                x=6+n*6+offset
+                leaf(16,30,x,17+abs(16-x)//3,young,1)
+                if shape == 'ROOT_TUBER':
+                    ellipse(x,19+abs(16-x)//3,2,4,young,leaf_light)
+        elif shape in ('LEAF_FROND','BLOSSOM'):
+            for n in range(5):
+                angle=math.radians(195+n*38+offset*6)
+                x=16+round(math.cos(angle)*8)
+                y=27+round(math.sin(angle)*8)
+                leaf(16,31,x,y,leaf_dark,1)
+                ellipse(x,y,3+variant%2,4,young,blend(leaf_light,acc,.25))
+        elif shape in ('POD','MELON_SQUASH'):
+            leaf(12,31,18+offset,19,young,1)
+            ellipse(9,24,4,3,young,leaf_light)
+            ellipse(22,20,4,3,young,leaf_light)
+            leaf(18,23,24,16,leaf_light,0)
+            leaf(24,16,26,18,leaf_mid,0)
+        else:
+            top=16+variant%4
+            leaf(16,31,16+offset,top,young,1)
+            for x,y in ((9-offset,24),(22+offset,20),(13,top)):
+                leaf(16,28,x,y,leaf_dark,0)
+                ellipse(x,y,3 if shape=='BERRY_BUNCH' else 2,2+variant%2,young,leaf_light)
 
     elif stage == 1:
         # Three young stems broaden naturally before the mature full-block canopy.
-        for x,top in ((10,16),(16,10),(22,15)):
+        for x,top in ((10,12),(16,6),(22,11)):
             leaf(x,31,x,top,leaf_mid,1)
-            leaf(x,25,x-6,19,leaf_dark,1)
-            leaf(x,22,x+6,16,leaf_light,1)
-            ellipse(x,top,2,2,blend(leaf_light,pri,.28),leaf_light)
+            leaf(x,22,x-7,15,leaf_dark,1)
+            leaf(x,18,x+7,12,leaf_light,1)
+            ellipse(x,top,3,3,blend(leaf_light,pri,.35),leaf_light)
 
     elif stage == 2:
         shape=info['shape']
@@ -525,9 +643,9 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
 
         # 1. Seed Item
         seed_name = 'seed_' + cid
-        seed_pixels = draw_seed(crop)
-        png(java / f'assets/voidscape/textures/item/{seed_name}.png', seed_pixels)
-        png(bedrock / f'textures/items/{seed_name}.png', seed_pixels)
+        seed_pixels = detailed_pixels(draw_seed(crop), crop, 'seed')
+        png(java / f'assets/voidscape/textures/item/{seed_name}.png', seed_pixels, size=TEXTURE_SIZE)
+        png(bedrock / f'textures/items/{seed_name}.png', seed_pixels, size=TEXTURE_SIZE)
         textures['voidscape.' + seed_name] = {'textures': 'textures/items/' + seed_name}
 
         write_json(java / f'assets/voidscape/models/item/{seed_name}.json', {
@@ -552,9 +670,9 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
 
         # 2. Food Item
         food_name = 'crop_' + cid
-        food_pixels = draw_food(crop)
-        png(java / f'assets/voidscape/textures/item/{food_name}.png', food_pixels)
-        png(bedrock / f'textures/items/{food_name}.png', food_pixels)
+        food_pixels = detailed_pixels(draw_food(crop), crop, 'food')
+        png(java / f'assets/voidscape/textures/item/{food_name}.png', food_pixels, size=TEXTURE_SIZE)
+        png(bedrock / f'textures/items/{food_name}.png', food_pixels, size=TEXTURE_SIZE)
         textures['voidscape.' + food_name] = {'textures': 'textures/items/' + food_name}
 
         write_json(java / f'assets/voidscape/models/item/{food_name}.json', {
@@ -580,11 +698,11 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
         # 3. Growth stages use a head-equippable base so Bedrock registers wearable.
         for stage in (0, 1, 2):
             stage_name = f'crop_{cid}_stage_{stage}'
-            stage_pixels = draw_crop_stage(crop, stage)
+            stage_pixels = detailed_pixels(draw_crop_stage(crop, stage), crop, 'plant')
             # Write to both block and item texture paths for Java
-            png(java / f'assets/voidscape/textures/block/{stage_name}.png', stage_pixels)
-            png(java / f'assets/voidscape/textures/item/{stage_name}.png', stage_pixels)
-            png(bedrock / f'textures/items/{stage_name}.png', stage_pixels)
+            png(java / f'assets/voidscape/textures/block/{stage_name}.png', stage_pixels, size=TEXTURE_SIZE)
+            png(java / f'assets/voidscape/textures/item/{stage_name}.png', stage_pixels, size=TEXTURE_SIZE)
+            png(bedrock / f'textures/items/{stage_name}.png', stage_pixels, size=TEXTURE_SIZE)
             textures['voidscape.' + stage_name] = {'textures': 'textures/items/' + stage_name}
 
             stage_model = {
@@ -593,8 +711,9 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
                 'elements': dense_crop_elements,
                 'display': {**cross_display, 'head': {
                     # The renderer uses a small armor stand for Geyser
-                    # compatibility. Scale 2 restores a true one-block crop.
-                    'rotation': [0, 0, 0], 'translation': [0, -4.0, 0], 'scale': [2.0, 2.0, 2.0]
+                    # Compensate Java's .625 head-item scale. Move the centre
+                    # upward by half the added model height to retain its base.
+                    'rotation': [0, 0, 0], 'translation': [0, 9.6, 0], 'scale': [3.2, 3.2, 3.2]
                 }}
             }
             write_json(java / f'assets/voidscape/models/item/{stage_name}.json', stage_model)
@@ -612,7 +731,7 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
                 'format_version': '1.16.0',
                 'minecraft:geometry': [{
                     'description': {
-                        'identifier': geometry_id, 'texture_width': 32, 'texture_height': 32,
+                        'identifier': geometry_id, 'texture_width': TEXTURE_SIZE, 'texture_height': TEXTURE_SIZE,
                         'visible_bounds_width': 3, 'visible_bounds_height': 3,
                         'visible_bounds_offset': [0, 1.75, 0]
                     },
@@ -623,14 +742,17 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
                         'name': 'head',
                         'pivot': [0, 24, 0],
                         'cubes': [
-                            {'origin': [-16, 24, -8.25], 'size': [32, 32, 0.5],
-                             'uv': {face: {'uv': [0, 0], 'uv_size': [32, 32]} for face in ('north', 'south')}},
-                            {'origin': [-16, 24, 7.75], 'size': [32, 32, 0.5],
-                             'uv': {face: {'uv': [0, 0], 'uv_size': [32, 32]} for face in ('north', 'south')}},
-                            {'origin': [-8.25, 24, -16], 'size': [0.5, 32, 32],
-                             'uv': {face: {'uv': [0, 0], 'uv_size': [32, 32]} for face in ('east', 'west')}},
-                            {'origin': [7.75, 24, -16], 'size': [0.5, 32, 32],
-                             'uv': {face: {'uv': [0, 0], 'uv_size': [32, 32]} for face in ('east', 'west')}}
+                            # Java's head item transform adds a .625 scale that
+                            # Bedrock armor geometry does not. 32 * .625 = 20.
+                            # See GeyserIntegratedPack/developer_documentation.md.
+                            {'origin': [-10, 24, -5.15625], 'size': [20, 20, 0.3125],
+                             'uv': crop_uv('north', 'south')},
+                            {'origin': [-10, 24, 4.84375], 'size': [20, 20, 0.3125],
+                             'uv': crop_uv('north', 'south')},
+                            {'origin': [-5.15625, 24, -10], 'size': [0.3125, 20, 20],
+                             'uv': crop_uv('west', 'east')},
+                            {'origin': [4.84375, 24, -10], 'size': [0.3125, 20, 20],
+                             'uv': crop_uv('west', 'east')}
                         ]
                     }]
                 }]

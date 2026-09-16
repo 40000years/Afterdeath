@@ -23,7 +23,12 @@ def register(java, bedrock, textures, mappings, selectors, write_json):
     write_json(java/'assets/voidscape/models/item/azure_portal.json',{
         'textures':{'portal':'voidscape:item/azure_portal'},
         'elements':[{'from':[0,0,7.9],'to':[16,16,8.1], 'faces':{f:{'texture':'#portal','uv':[0,0,16,16]} for f in ('north','south')}}],
-        'display':{'head':{'translation':[0,-4,0],'scale':[1.6,1.6,1.6]}}})
+        'display':{
+            'head':{'translation':[0,6.4,0],'scale':[1.7,1.7,1.7]},
+            'gui':{'rotation':[0,0,0],'translation':[0,0,0],'scale':[1,1,1]},
+            'fixed':{'rotation':[0,0,0],'translation':[0,0,0],'scale':[1,1,1]},
+            'ground':{'rotation':[0,0,0],'translation':[0,2,0],'scale':[0.5,0.5,0.5]}
+        }})
     model={'type':'minecraft:model','model':'voidscape:item/azure_portal'}
     write_json(java/'assets/voidscape/items/azure_portal.json',{'model':model})
     selectors.setdefault('iron_helmet',[]).append({'when':'voidscape:azure_portal','model':model})
@@ -33,16 +38,23 @@ def register(java, bedrock, textures, mappings, selectors, write_json):
         'predicate':{'type':'match','property':'custom_model_data','index':0,'value':'voidscape:azure_portal'},
         'bedrock_identifier':'voidscape:azure_portal','display_name':'Evergarden Azure Portal',
         'bedrock_options':{'icon':'voidscape.azure_portal','allow_offhand':False,'display_handheld':False}})
-    write_json(bedrock/'models/entity/azure_portal.geo.json',{'format_version':'1.12.0','minecraft:geometry':[{
-        'description':{'identifier':'geometry.voidscape.azure_portal','texture_width':32,'texture_height':32,'visible_bounds_width':2,'visible_bounds_height':4,'visible_bounds_offset':[0,1.75,0]},
-        'bones':[{'name':'head','pivot':[0,24,0],'cubes':[{'origin':[-8,24,-0.1],'size':[16,16,0.2],
+    write_json(bedrock/'models/entity/azure_portal.geo.json',{'format_version':'1.16.0','minecraft:geometry':[{
+        'description':{'identifier':'geometry.voidscape.azure_portal','texture_width':32,'texture_height':512,'visible_bounds_width':3,'visible_bounds_height':3,'visible_bounds_offset':[0,1.75,0]},
+        'bones':[{'name':'head','pivot':[0,24,0],'cubes':[{'origin':[-8.1,23.9,-0.1],'size':[16.2,16.2,0.2],
             'uv':{f:{'uv':[0,0],'uv_size':[32,32]} for f in ('north','south')}}]}]}]})
     write_json(bedrock/'attachables/azure_portal.json',{'format_version':'1.10.0','minecraft:attachable':{'description':{
-        'identifier':'voidscape:azure_portal','materials':{'default':'evergarden_portal'},
+        'identifier':'voidscape:azure_portal','materials':{'default':'entity_alphatest'},
         'textures':{'default':'textures/items/azure_portal'},'geometry':{'default':'geometry.voidscape.azure_portal'},
-        'render_controllers':['controller.render.evergarden_portal']}}})
+        'render_controllers':['controller.render.evergarden_mask']}}})
     write_json(bedrock/'render_controllers/azure_portal.json',{'format_version':'1.8.0','render_controllers':{
         'controller.render.evergarden_portal':{'geometry':'Geometry.default','materials':[{'*':'Material.default'}],
-            'textures':['Texture.default'],'ignore_lighting':True,'uv_anim':{'offset':[0,'math.mod(math.floor(query.life_time * 10), 16) / 16'], 'scale':[1,0.0625]}}}})
-    write_json(bedrock/'materials/evergarden_portal.material',{'materials':{'version':'1.0.0',
-        'evergarden_portal:entity_alphablend':{'+defines':['USE_UV_ANIM']}}})
+            'textures':['Texture.default'],'ignore_lighting':True}}})
+    mat_def={'materials':{'version':'1.0.0',
+        'evergarden_portal:entity_alphablend':{'+defines':['USE_UV_ANIM'],'+states':['Blending']}}}
+    write_json(bedrock/'materials/evergarden_portal.material',mat_def)
+    write_json(bedrock/'materials/entity.material',mat_def)
+    write_json(bedrock/'materials/entity.material.json',mat_def)
+    write_json(bedrock/'textures/flipbook_textures.json',[{
+        'flipbook_texture':'textures/items/azure_portal',
+        'atlas_tile':'voidscape.azure_portal',
+        'ticks_per_frame':2}])

@@ -33,7 +33,11 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
                 plugin.cropGui().open(p);
             }
             case "pack" -> {
-                if(args.length>1&&args[1].equalsIgnoreCase("resend")&&p!=null)plugin.packs().offer(p);
+                if(args.length>1&&args[1].equalsIgnoreCase("resend")) {
+                    Player target=args.length>2?Bukkit.getPlayerExact(args[2]):p;
+                    if(target==null) {sender.sendMessage("Usage: /evergarden pack resend <online-player>");return true;}
+                    plugin.packs().offer(target);
+                }
                 plugin.packs().describe(sender);
             }
             case "guide" -> {

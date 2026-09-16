@@ -16,8 +16,10 @@ public final class PortalVisuals {
     private final Map<String, Axis> cells = new HashMap<>();
     private final Map<String, UUID> displays = new HashMap<>();
     private final File file;
+    private final NamespacedKey rendererRevision;
     public PortalVisuals(VoidscapePlugin plugin) {
         this.plugin = plugin;
+        rendererRevision = plugin.key("portal_renderer_revision");
         file = new File(plugin.getDataFolder(), "portals.yml");
         var config = YamlConfiguration.loadConfiguration(file);
         for (String key : config.getKeys(false)) {
@@ -55,7 +57,7 @@ public final class PortalVisuals {
             Block block=w.getBlockAt(x,y,z);
             if(block.getType()!=Material.STRUCTURE_VOID) {remove(block);changed=true;continue;}
             UUID uuid=displays.get(key); Entity old=uuid==null?null:Bukkit.getEntity(uuid);
-            if(old!=null&&old.isValid())continue;
+            if(old instanceof ArmorStand stand&&old.isValid()) {configure(stand,key);continue;}
             Location loc=new Location(w,x+0.5,y-1.5,z+0.5,entry.getValue()==Axis.X?0:90,0);
             ArmorStand found=null;
             for(Entity nearby:w.getNearbyEntities(loc,0.2,0.2,0.2)) {
@@ -66,14 +68,33 @@ public final class PortalVisuals {
                 stand.setCollidable(false);stand.setInvulnerable(true);stand.setSilent(true);
                 stand.setBasePlate(false);stand.setPersistent(true);
                 stand.getPersistentDataContainer().set(plugin.key("portal_visual"),PersistentDataType.STRING,key);
-                ItemStack item=new ItemStack(Material.IRON_HELMET);
-                var meta=item.getItemMeta();var cmd=meta.getCustomModelDataComponent();
-                cmd.setStrings(List.of("voidscape:azure_portal"));meta.setCustomModelDataComponent(cmd);item.setItemMeta(meta);
-                stand.getEquipment().setHelmet(item,true);
-                for(var lock:ArmorStand.LockType.values())stand.addEquipmentLock(EquipmentSlot.HEAD,lock);
+                configure(stand,key);
             });
+            configure(found,key);
             displays.put(key,found.getUniqueId());
         }
         if(changed)save();
+    }
+
+    private void configure(ArmorStand stand,String key) {
+        // Keep the base item model aligned with Geyser's mapping. The worn armor
+        // asset must be absent so Java uses the custom item model on the head.
+        if(Integer.valueOf(5).equals(stand.getPersistentDataContainer().get(rendererRevision,PersistentDataType.INTEGER)))return;
+        stand.setInvisible(true);stand.setGravity(false);stand.setMarker(false);
+        stand.setCollidable(false);stand.setInvulnerable(true);stand.setSilent(true);
+        stand.setBasePlate(false);stand.setPersistent(true);
+        stand.getPersistentDataContainer().set(plugin.key("portal_visual"),PersistentDataType.STRING,key);
+        ItemStack item=new ItemStack(Material.IRON_HELMET);
+        var meta=item.getItemMeta();
+        meta.setItemModel(null);
+        var equipment=meta.getEquippable();
+        equipment.setSlot(EquipmentSlot.HEAD);equipment.setModel(null);
+        meta.setEquippable(equipment);
+        var cmd=meta.getCustomModelDataComponent();
+        cmd.setStrings(List.of("voidscape:azure_portal"));
+        meta.setCustomModelDataComponent(cmd);item.setItemMeta(meta);
+        stand.getEquipment().setHelmet(item,true);
+        for(var lock:ArmorStand.LockType.values())stand.addEquipmentLock(EquipmentSlot.HEAD,lock);
+        stand.getPersistentDataContainer().set(rendererRevision,PersistentDataType.INTEGER,5);
     }
 }

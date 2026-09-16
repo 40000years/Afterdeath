@@ -7,6 +7,14 @@ public final class GuideData {
 
     public static final List<GuidePage> PAGES = List.of(
         new GuidePage(
+            "สารบัญ 1: เริ่มต้นและรางวัล",
+            "§1§lคู่มือ Evergarden§r\n§8สารบัญ · หน้า 1/2§r\n\n§9§l[ เริ่มต้น ]§r\n§0 3. มิติ Evergarden และการเปิดประตู\n§0 4. วิหารทั้ง 3 และการต่อสู้\n§0 5. กุญแจและวัตถุดิบ\n§0 6. ไอเท็มฟื้นฟูและน้ำยา\n\n§2§l[ ฟาร์ม ]§r\n§0 7. ระบบฟาร์ม Evergarden\n§0 8. วิธีหาเมล็ดพันธุ์\n§0 9. รายชื่อพืชทั้ง 30 ชนิด\n\n§5§l[ การเสริมพลัง ]§r\n§0 10. คัมภีร์เวทมนตร์\n§0 11. Enchant พิเศษ\n\n§8ใช้ปุ่มสารบัญในเมนู Bedrock เพื่อเลือกหน้าได้ทันที"
+        ),
+        new GuidePage(
+            "สารบัญ 2: คทาและ Vault",
+            "§1§lคู่มือ Evergarden§r\n§8สารบัญ · หน้า 2/2§r\n\n§b§l[ คทา Advance Magic ]§r\n§0 20-28. รายละเอียดคทาและสกิลทั้งหมด\n§0 คทา §eไม่ดรอปจาก Vault โดยตรง§0; คราฟต์จาก Magic Core\n\n§6§l[ รางวัลหายาก ]§r\n§0 29. อัตราสุ่ม Evergarden Vault\n§b Magic Core ปกติ: 7%\n§d Core of Levitation: 0.5% §lMYTHIC§r\n§6 ยุทธภัณฑ์โบราณ: 5%\n§d Scroll of Eternity: 0.5% §lMYTHIC§r\n\n§8สีฟ้า = Core · สีทอง = ของหายาก · สีชมพู = MYTHIC"
+        ),
+        new GuidePage(
             "มิติ Evergarden",
             "§9--- มิติ Evergarden ---\n§7สวนลอยฟ้าแห่งความว่างเปล่า§r\n\nสร้างกรอบ Block of Quartz รูปทรงเดียวกับ Nether Portal: ขนาดภายนอก 4x5 บล็อก และช่องด้านใน 2x3 บล็อก\n\nโยนดอกไม้ชนิดใดก็ได้เข้าไปในช่องว่างของกรอบ ระบบจะใช้ดอกไม้ 1 ดอกและเปิดประตู Evergarden สีฟ้า\n\nคำสั่ง:\n• /evergarden leave กลับโลกเดิม\n• /evergarden guide เปิดคู่มือ\n\nวิหารใกล้จุดเกิด: เหนือ Z=-250, ตะวันออก X=220 Z=130, ตะวันตก X=-220 Z=130"
         ),
@@ -112,7 +120,7 @@ public final class GuideData {
         ),
         new GuidePage(
             "อัตราสุ่ม Evergarden Vault",
-            "§9--- อัตราสุ่ม Evergarden Vault ---\n\nVault ให้รางวัลหลัก 1 ชิ้นตามตาราง:\n• 60% วัตถุดิบ/ของใช้: Key Shard, Astral Dust, Repair Stone, Void Elixir, Echo Shard หรือ Amethyst\n• 15% Limit Break Scroll\n• 12% Unique Enchant (22 แบบ)\n• 7% Magic Core ปกติ (14 ธาตุ)\n• 5% ยุทธภัณฑ์โบราณ (6 แบบ)\n• 0.5% Core of Levitation [MYTHIC]\n• 0.5% Scroll of Eternity [MYTHIC]\n\nทุกครั้งยังได้รับ Astral Dust 2 ชิ้น และมีโอกาส 25% ได้เมล็ด Tier III-IV เพิ่ม"
+            "§1§lอัตราสุ่ม Evergarden Vault§r\n§8รางวัลหลัก 1 ชิ้นต่อการเปิด Vault§r\n\n§0• 60% วัตถุดิบและของใช้\n§0  Key Shard, Astral Dust, Repair Stone, Void Elixir, Echo Shard หรือ Amethyst\n§0• 15% Limit Break Scroll\n§0• 12% Unique Enchant Scroll\n§b• 7% Magic Core ปกติ §8(14 ธาตุ)§r\n§6• 5% ยุทธภัณฑ์โบราณ §8(6 แบบ)§r\n§d• 0.5% Core of Levitation §l[MYTHIC]§r\n§d• 0.5% Scroll of Eternity §l[MYTHIC]§r\n\n§e§lคทาไม่ดรอปตรง ๆ§r\n§0ใช้ Magic Core คราฟต์เป็นคทา Advance Magic\n\n§8ทุกครั้งได้ Astral Dust 2 ชิ้น และมี 25% ได้เมล็ด Tier III-IV เพิ่ม"
         )
     );
 }

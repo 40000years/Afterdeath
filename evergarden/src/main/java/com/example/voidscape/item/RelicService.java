@@ -4,6 +4,7 @@ import com.example.voidscape.VoidscapePlugin;
 import com.example.voidscape.enchant.LimitBreakType;
 import com.example.voidscape.enchant.UniqueEnchant;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
@@ -465,7 +466,9 @@ public final class RelicService implements Listener {
         meta.setAuthor("ผู้พิทักษ์มิติ");
         List<Component> pages = new java.util.ArrayList<>();
         for (com.example.voidscape.guide.GuidePage page : com.example.voidscape.guide.GuideData.PAGES) {
-            pages.add(Component.text(page.content()));
+            // GuideData uses § formatting. Parse it instead of displaying the
+            // codes as literal text, so headings and rare-item highlights work.
+            pages.add(LegacyComponentSerializer.legacySection().deserialize(page.content()));
         }
         meta.pages(pages);
         meta.getPersistentDataContainer().set(plugin.key("guide_book"), PersistentDataType.BYTE, (byte) 1);
@@ -779,12 +782,11 @@ public final class RelicService implements Listener {
         if(immune(p)){e.setCancelled(true);return;}
         Relic r=type(e.getBow());
         if((r!=Relic.NOVA_BOW&&r!=Relic.STORM_BOW)||e.getForce()<0.85)return;
-        if(!ready(p,r)||arrows.size()>=plugin.integer("performance.max-special-projectiles",64,1,256)) {e.setCancelled(true);return;}
+        if(arrows.size()>=plugin.integer("performance.max-special-projectiles",64,1,256)) {e.setCancelled(true);return;}
         Entity arrow=e.getProjectile();
         arrow.getPersistentDataContainer().set(shot,PersistentDataType.STRING,r.name());
         arrow.getPersistentDataContainer().set(shotOwner,PersistentDataType.STRING,p.getUniqueId().toString());
         arrows.put(arrow.getUniqueId(),System.currentTimeMillis()+10000);
-        cooldown(p,r,plugin.integer("relics.bow.cooldown-seconds",5,1,60));
     }
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void hit(ProjectileHitEvent e) {

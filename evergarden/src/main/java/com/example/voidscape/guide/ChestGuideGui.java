@@ -3,6 +3,7 @@ package com.example.voidscape.guide;
 import com.example.voidscape.VoidscapePlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -100,7 +101,7 @@ public final class ChestGuideGui implements Listener {
         Inventory inv = Bukkit.createInventory(holder, 54, Component.text("สารบัญคู่มือ Evergarden", NamedTextColor.DARK_BLUE));
         holder.setInventory(inv);
 
-        for (int i = 0; i < pages.size() && i < 27; i++) {
+        for (int i = 0; i < pages.size() && i < 36; i++) {
             String prefix = (i == returnPageIndex) ? "§6▶ " : "§9";
             inv.setItem(i, createItem(Material.BOOK, prefix + (i + 1) + ". " + pages.get(i).title(), List.of("§7คลิกเพื่ออ่านหน้านี้")));
         }
@@ -155,7 +156,7 @@ public final class ChestGuideGui implements Listener {
             if (name != null) meta.displayName(Component.text(name));
             if (lore != null) {
                 List<Component> loreList = new ArrayList<>();
-                for (String s : lore) loreList.add(Component.text(s));
+                for (String s : lore) loreList.add(LegacyComponentSerializer.legacySection().deserialize(s));
                 meta.lore(loreList);
             }
             item.setItemMeta(meta);

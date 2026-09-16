@@ -2,6 +2,7 @@
 import hashlib
 import json
 import zipfile
+import struct
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
@@ -31,8 +32,12 @@ with zipfile.ZipFile(dist / 'evergarden-java.zip') as java, zipfile.ZipFile(dist
                 json.loads(archive.read(name))
     atlas = json.loads(bedrock.read('textures/item_texture.json'))['texture_data']
     manifest = json.loads(bedrock.read('manifest.json'))
-    assert manifest['header']['version'] == [3, 3, 0]
-    assert manifest['modules'][0]['version'] == [3, 3, 0]
+    content_hash = hashlib.sha256()
+    for name in sorted(n for n in bedrock.namelist() if not n.endswith('/') and n != 'manifest.json'):
+        content_hash.update(name.encode('utf8') + b'\0' + bedrock.read(name))
+    expected_version = [3, 6, int(content_hash.hexdigest()[:7], 16) % 60000 + 1]
+    assert manifest['header']['version'] == expected_version
+    assert manifest['modules'][0]['version'] == expected_version
     assert not any('nether_portal' in name or name.endswith('/portal.png') for name in java.namelist())
     assert 'textures/blocks/portal.png' not in bedrock.namelist()
     assert json.loads(java.read('assets/voidscape/textures/item/azure_portal.png.mcmeta'))['animation']['frametime'] == 2
@@ -45,7 +50,20 @@ with zipfile.ZipFile(dist / 'evergarden-java.zip') as java, zipfile.ZipFile(dist
             assert entry['model'] == base
             assert entry['predicate']['value'] in cases
             name = entry['bedrock_identifier'].split(':')[1]
-            assert java.read(f'assets/voidscape/textures/item/{name}.png') == bedrock.read(atlas[entry['bedrock_options']['icon']]['textures'] + '.png')
+            java_texture = java.read(f'assets/voidscape/textures/item/{name}.png')
+            bedrock_texture = bedrock.read(atlas[entry['bedrock_options']['icon']]['textures'] + '.png')
+            if name in ('storm_bow', 'nova_bow'):
+                assert struct.unpack('>II', java_texture[16:24]) == (32, 32)
+                assert struct.unpack('>II', bedrock_texture[16:24]) == (16, 16)
+                attachment = json.loads(bedrock.read(f'attachables/{name}.json'))['minecraft:attachable']['description']
+                assert 'wield_first_person_pull' in attachment['animations']
+                for stage in range(3):
+                    frame = bedrock.read(f'textures/items/{name}_pulling_{stage}.png')
+                    assert struct.unpack('>II', frame[16:24]) == (16, 16)
+            else:
+                assert java_texture == bedrock_texture
+            if name.startswith(('seed_', 'crop_')):
+                assert struct.unpack('>II', java.read(f'assets/voidscape/textures/item/{name}.png')[16:24]) == (64, 64), name
             if name.endswith(('_mask', '_crown')) or '_stage_' in name:
                 model = json.loads(java.read(f'assets/voidscape/models/item/{name}.json'))
                 assert 'head' in model['display']
@@ -63,15 +81,19 @@ with zipfile.ZipFile(dist / 'evergarden-java.zip') as java, zipfile.ZipFile(dist
                     assert base == 'minecraft:iron_helmet', 'Plant attachables require a head-equippable base'
                     # Match vanilla crop.json density: two X planes plus two Z planes.
                     assert len(geometry['bones'][0]['cubes']) == 4
+                    assert geometry['description']['texture_width'] == geometry['description']['texture_height'] == 64
                     # Box UV previously sampled only the top of the sprite,
                     # clipping the sprout drawn in its lower half.
-                    plane_faces = [('north', 'south'), ('north', 'south'), ('east', 'west'), ('east', 'west')]
+                    plane_faces = [('north', 'south'), ('north', 'south'), ('west', 'east'), ('west', 'east')]
                     for cube, faces in zip(geometry['bones'][0]['cubes'], plane_faces):
                         # Small stand at -0.65, geometry in pixels /16, scale .5.
                         # The base must be above the farmland surface (-1/16).
                         assert abs(-0.8125 + cube['origin'][1] / 16 * 0.5 + 1 / 16) < 1e-6
-                        for face in faces:
-                            assert cube['uv'][face] == {'uv': [0, 0], 'uv_size': [32, 32]}, name
+                        assert cube['uv'][faces[0]] == {'uv': [0, 0], 'uv_size': [64, 64]}, name
+                        assert cube['uv'][faces[1]] == {'uv': [64, 0], 'uv_size': [-64, 64]}, name
+                        assert cube['size'][1] == 20, name
+                        assert model['display']['head']['scale'] == [3.2, 3.2, 3.2], name
+                        assert model['display']['head']['translation'] == [0, 9.6, 0], name
     assert json.loads(java.read('assets/minecraft/items/bow.json'))['model']['fallback']['type'] == 'minecraft:condition'
     assert json.loads(java.read('assets/minecraft/items/shield.json'))['model']['fallback']['on_false']['model']['type'] == 'minecraft:shield'
 with zipfile.ZipFile(dist / 'evergarden-3.0.0.jar') as jar:

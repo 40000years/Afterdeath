@@ -23,6 +23,8 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -238,7 +240,7 @@ public final class CropService implements Listener, AutoCloseable {
     private void updateCropRenderer(ArmorStand stand, PlantedCrop crop) {
         // Upgrade already loaded crops as well as crops recovered after restart.
         NamespacedKey revisionKey = new NamespacedKey("voidscape", "crop_renderer_revision");
-        if (Integer.valueOf(5).equals(stand.getPersistentDataContainer().get(revisionKey, PersistentDataType.INTEGER))) return;
+        if (Integer.valueOf(6).equals(stand.getPersistentDataContainer().get(revisionKey, PersistentDataType.INTEGER))) return;
         stand.setMarker(false);
         stand.setCollidable(false);
         stand.setGravity(false);
@@ -247,7 +249,7 @@ public final class CropService implements Listener, AutoCloseable {
         stand.teleport(crop.getLocation().add(0.5, CROP_STAND_Y, 0.5));
         for (ArmorStand.LockType lock : ArmorStand.LockType.values()) stand.addEquipmentLock(EquipmentSlot.HEAD, lock);
         stand.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), crop.getStage()), true);
-        stand.getPersistentDataContainer().set(revisionKey, PersistentDataType.INTEGER, 5);
+        stand.getPersistentDataContainer().set(revisionKey, PersistentDataType.INTEGER, 6);
     }
 
     private Interaction getOrSpawnInteraction(PlantedCrop crop) {
@@ -710,20 +712,9 @@ public final class CropService implements Listener, AutoCloseable {
     }
 
     public void saveCropsAsync() {
-        if (!dirty.compareAndSet(true, false)) return;
-        if (saving.get()) {
-            dirty.set(true);
-            return;
-        }
-        saving.set(true);
-        Map<String, PlantedCrop> snapshot = new HashMap<>(plantedCrops);
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                writeCropsYaml(snapshot);
-            } finally {
-                saving.set(false);
-            }
-        });
+        // Crop records are small; writing synchronously avoids a stale async
+        // snapshot overwriting changes during shutdown or rapid planting.
+        if (dirty.get()) saveCropsSync();
     }
 
     public void saveCropsSync() {
@@ -737,6 +728,8 @@ public final class CropService implements Listener, AutoCloseable {
 
     private void writeCropsYaml(Map<String, PlantedCrop> map) {
         try {
+            File parent = saveFile.getParentFile();
+            if (parent != null) Files.createDirectories(parent.toPath());
             YamlConfiguration cfg = new YamlConfiguration();
             for (Map.Entry<String, PlantedCrop> entry : map.entrySet()) {
                 String key = entry.getKey();
@@ -753,10 +746,7 @@ public final class CropService implements Listener, AutoCloseable {
             }
             File tmp = new File(saveFile.getParentFile(), "crops.yml.tmp");
             cfg.save(tmp);
-            if (tmp.exists()) {
-                if (saveFile.exists()) saveFile.delete();
-                tmp.renameTo(saveFile);
-            }
+            Files.move(tmp.toPath(), saveFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to save crops.yml: " + e.getMessage());
         }
@@ -778,9 +768,16 @@ public final class CropService implements Listener, AutoCloseable {
                 int stage = cfg.getInt(key + ".stage", 0);
                 long plantedAt = cfg.getLong(key + ".plantedAt", System.currentTimeMillis());
                 String dUuidStr = cfg.getString(key + ".display");
-                UUID displayUuid = dUuidStr != null ? UUID.fromString(dUuidStr) : null;
                 String iUuidStr = cfg.getString(key + ".interaction");
-                UUID interactUuid = iUuidStr != null ? UUID.fromString(iUuidStr) : null;
+                UUID displayUuid;
+                UUID interactUuid;
+                try {
+                    displayUuid = dUuidStr != null ? UUID.fromString(dUuidStr) : null;
+                    interactUuid = iUuidStr != null ? UUID.fromString(iUuidStr) : null;
+                } catch (IllegalArgumentException badUuid) {
+                    plugin.getLogger().warning("Skipping crop with invalid entity UUID: " + key);
+                    continue;
+                }
 
                 PlantedCrop crop = new PlantedCrop(loc, type, stage, plantedAt, displayUuid, interactUuid);
                 plantedCrops.put(key, crop);
@@ -795,8 +792,8 @@ public final class CropService implements Listener, AutoCloseable {
 
     @Override
     public void close() {
-        if (dirty.get()) {
-            saveCropsSync();
-        }
+        // Always flush the complete in-memory set before entities are removed.
+        saveCropsSync();
+        for (PlantedCrop crop : plantedCrops.values()) removeEntities(crop);
     }
 }

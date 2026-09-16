@@ -106,7 +106,8 @@ public final class VoidscapePlugin extends JavaPlugin {
                 org.bukkit.block.Block lecternBlock = voidWorld.getBlockAt(0, 97, 4);
                 if (lecternBlock.getType() == Material.LECTERN && lecternBlock.getState() instanceof org.bukkit.block.Lectern lectern) {
                     if (lectern.getInventory() instanceof org.bukkit.inventory.LecternInventory lecternInv) {
-                        if (lecternInv.getBook() == null) {
+                        if (lecternInv.getBook() == null || lecternInv.getBook().getItemMeta().getPersistentDataContainer()
+                                .has(key("guide_book"), org.bukkit.persistence.PersistentDataType.BYTE)) {
                             lecternInv.setBook(relics.createGuideBook());
                             lectern.update(true, false);
                         }
