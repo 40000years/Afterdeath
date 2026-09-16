@@ -238,7 +238,7 @@ public final class CropService implements Listener, AutoCloseable {
     private void updateCropRenderer(ArmorStand stand, PlantedCrop crop) {
         // Upgrade already loaded crops as well as crops recovered after restart.
         NamespacedKey revisionKey = new NamespacedKey("voidscape", "crop_renderer_revision");
-        if (Integer.valueOf(4).equals(stand.getPersistentDataContainer().get(revisionKey, PersistentDataType.INTEGER))) return;
+        if (Integer.valueOf(5).equals(stand.getPersistentDataContainer().get(revisionKey, PersistentDataType.INTEGER))) return;
         stand.setMarker(false);
         stand.setCollidable(false);
         stand.setGravity(false);
@@ -247,7 +247,7 @@ public final class CropService implements Listener, AutoCloseable {
         stand.teleport(crop.getLocation().add(0.5, CROP_STAND_Y, 0.5));
         for (ArmorStand.LockType lock : ArmorStand.LockType.values()) stand.addEquipmentLock(EquipmentSlot.HEAD, lock);
         stand.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), crop.getStage()), true);
-        stand.getPersistentDataContainer().set(revisionKey, PersistentDataType.INTEGER, 4);
+        stand.getPersistentDataContainer().set(revisionKey, PersistentDataType.INTEGER, 5);
     }
 
     private Interaction getOrSpawnInteraction(PlantedCrop crop) {
@@ -270,8 +270,8 @@ public final class CropService implements Listener, AutoCloseable {
         }
 
         Interaction it = loc.getWorld().spawn(center, Interaction.class, i -> {
-            i.setInteractionWidth(0.8f);
-            i.setInteractionHeight(0.9f);
+            i.setInteractionWidth(0.95f);
+            i.setInteractionHeight(1.0f);
             i.setResponsive(true);
             i.setPersistent(true);
             i.getPersistentDataContainer().set(cropEntityKey, PersistentDataType.STRING, locKey(crop.getLocation()));
@@ -348,8 +348,8 @@ public final class CropService implements Listener, AutoCloseable {
         // Spawn Interaction hitbox
         Location interactLoc = above.getLocation().add(0.5, 0.0, 0.5);
         Interaction interaction = above.getWorld().spawn(interactLoc, Interaction.class, i -> {
-            i.setInteractionWidth(0.8f);
-            i.setInteractionHeight(0.9f);
+            i.setInteractionWidth(0.95f);
+            i.setInteractionHeight(1.0f);
             i.setResponsive(true);
             i.setPersistent(true);
             i.getPersistentDataContainer().set(cropEntityKey, PersistentDataType.STRING, locKey(above.getLocation()));

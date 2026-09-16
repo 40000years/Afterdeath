@@ -7,7 +7,7 @@ public enum CropType {
     // ==========================================
     // Tier 1: Common Farm (6 crops, 180s)
     // ==========================================
-    MANA_DEW_BERRY("mana_dew_berry", CropTier.TIER_1, "ผลน้ำค้างมานา", "Mana Dew Berry",
+    MANA_DEW_BERRY("mana_dew_berry", CropTier.TIER_1, "บลูเบอร์รี", "Blueberry",
         Material.BEETROOT_SEEDS, Material.SWEET_BERRIES,
         "ฟื้นฟูทันที +50 Mana",
         List.of(
@@ -17,7 +17,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 3 นาที · ปลูกบน Farmland"
         )),
 
-    CHAMELEON_LEAF("chameleon_leaf", CropTier.TIER_1, "ใบกิ้งก่าพรางกาย", "Chameleon Leaf",
+    CHAMELEON_LEAF("chameleon_leaf", CropTier.TIER_1, "ผักกาดหอม", "Lettuce",
         Material.WHEAT_SEEDS, Material.DRIED_KELP,
         "พรางกาย มอนสเตอร์ไม่โจมตี 45 วินาที",
         List.of(
@@ -27,7 +27,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 3 นาที · ปลูกบน Farmland"
         )),
 
-    FAIRY_MUSHROOM("fairy_mushroom", CropTier.TIER_1, "เห็ดภูตสวรรค์", "Fairy Mushroom",
+    FAIRY_MUSHROOM("fairy_mushroom", CropTier.TIER_1, "เห็ดทรัฟเฟิล", "Truffle",
         Material.BEETROOT_SEEDS, Material.COOKIE,
         "กระโดดสองจังหวะ (Double Jump) 3 นาที",
         List.of(
@@ -37,7 +37,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 3 นาที · ปลูกบน Farmland"
         )),
 
-    MAGNETIC_SQUASH("magnetic_squash", CropTier.TIER_1, "ฟักทองแม่เหล็ก", "Magnetic Squash",
+    MAGNETIC_SQUASH("magnetic_squash", CropTier.TIER_1, "ฟักทองบัตเตอร์นัต", "Butternut Squash",
         Material.PUMPKIN_SEEDS, Material.PUMPKIN_PIE,
         "แม่เหล็กดูดไอเทมและ EXP 12 บล็อก 2 นาที",
         List.of(
@@ -47,21 +47,21 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 3 นาที · ปลูกบน Farmland"
         )),
 
-    MOUNTAIN_WALKER_BAMBOO("mountain_walker_bamboo", CropTier.TIER_1, "หน่อไม้ก้าวพสุธา", "Mountain Walker Bamboo",
+    MOUNTAIN_WALKER_BAMBOO("mountain_walker_bamboo", CropTier.TIER_1, "ต้นหอมญี่ปุ่น", "Leek",
         Material.WHEAT_SEEDS, Material.CARROT,
         "ก้าวขึ้นเนิน 1 บล็อกอัตโนมัติ (Step Assist) 5 นาที",
         List.of(
-            "§7หน่อไม้ภูเขาสูง มอบสัมผัสแห่งการเหยียบย่างมั่นคง",
+            "§7ต้นหอมญี่ปุ่นสดกรอบ มอบสัมผัสแห่งการเหยียบย่างมั่นคง",
             "§a✦ เดินก้าวขึ้นบล็อกสูง 1 บล็อกได้โดยไม่ต้องกระโดด",
             "§f✦ เคลื่อนที่บนภูมิประเทศขรุขระอย่างลื่นไหล นาน 5 นาที",
             "§8ระยะเวลาเติบโต: 3 นาที · ปลูกบน Farmland"
         )),
 
-    DEMETERS_MELON("demeters_melon", CropTier.TIER_1, "แตงโมเทพีพืชพรรณ", "Demeter's Melon",
+    DEMETERS_MELON("demeters_melon", CropTier.TIER_1, "มะละกอ", "Papaya",
         Material.MELON_SEEDS, Material.MELON_SLICE,
         "ออร่าเร่งโตพืชผักรอบตัว 10 ชาร์จ",
         List.of(
-            "§7ผลแตงโมที่ได้รับพรจากเทพีแห่งการเพาะปลูก",
+            "§7มะละกอสุกหอมจากสวนที่อุดมสมบูรณ์",
             "§a✦ เดินเฉียดพืชผักชนิดใดก็ได้เพื่อเร่งการเติบโตทันที",
             "§e✦ สะสมพลังเร่งโตได้ 10 ครั้ง (10 ชาร์จ)",
             "§8ระยะเวลาเติบโต: 3 นาที · ปลูกบน Farmland"
@@ -70,7 +70,7 @@ public enum CropType {
     // ==========================================
     // Tier 2: Combat & Slaying (6 crops, 300s)
     // ==========================================
-    BLOOD_THORN_TOMATO("blood_thorn_tomato", CropTier.TIER_2, "มะเขือเทศหนามโลหิต", "Blood Thorn Tomato",
+    BLOOD_THORN_TOMATO("blood_thorn_tomato", CropTier.TIER_2, "มะเขือเทศ", "Tomato",
         Material.PUMPKIN_SEEDS, Material.APPLE,
         "ดูดเลือด 20% จากการโจมตี 60 วินาที",
         List.of(
@@ -80,7 +80,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 5 นาที · ปลูกบน Farmland"
         )),
 
-    FROSTBITE_RADISH("frostbite_radish", CropTier.TIER_2, "หัวไชเท้าเยือกแข็ง", "Frostbite Radish",
+    FROSTBITE_RADISH("frostbite_radish", CropTier.TIER_2, "หัวไชเท้า", "Radish",
         Material.BEETROOT_SEEDS, Material.CARROT,
         "แช่แข็งศัตรูที่ถูกโจมตีเป็นน้ำแข็ง 60 วินาที",
         List.of(
@@ -90,7 +90,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 5 นาที · ปลูกบน Farmland"
         )),
 
-    THUNDER_KERNEL_CORN("thunder_kernel_corn", CropTier.TIER_2, "ข้าวโพดประจุอัสนี", "Thunder Kernel Corn",
+    THUNDER_KERNEL_CORN("thunder_kernel_corn", CropTier.TIER_2, "ข้าวโพด", "Corn",
         Material.WHEAT_SEEDS, Material.BREAD,
         "ชิ่งสายฟ้าใส่ศัตรูข้างเคียง 3 ตัว 60 วินาที",
         List.of(
@@ -100,7 +100,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 5 นาที · ปลูกบน Farmland"
         )),
 
-    REAPERS_GARLIC("reapers_garlic", CropTier.TIER_2, "กระเทียมมัจจุราช", "Reaper's Garlic",
+    REAPERS_GARLIC("reapers_garlic", CropTier.TIER_2, "กระเทียม", "Garlic",
         Material.BEETROOT_SEEDS, Material.GOLDEN_CARROT,
         "ปลิดชีพมอนสเตอร์เลือดต่ำกว่า 20% ทันที 60 วินาที",
         List.of(
@@ -110,17 +110,17 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 5 นาที · ปลูกบน Farmland"
         )),
 
-    TITAN_PUMPKIN("titan_pumpkin", CropTier.TIER_2, "ฟักทองไททัน", "Titan Pumpkin",
+    TITAN_PUMPKIN("titan_pumpkin", CropTier.TIER_2, "มะเขือม่วง", "Eggplant",
         Material.PUMPKIN_SEEDS, Material.PUMPKIN_PIE,
         "ทำลายเกราะศัตรู 25% เป็นเวลา 60 วินาที",
         List.of(
-            "§7ฟักทองเนื้อหนาดั่งเหล็กกล้า สลักอักขระไททันโบราณ",
+            "§7มะเขือม่วงเนื้อแน่น ช่วยเสริมพลังทำลายเกราะ",
             "§6✦ การโจมตีจะทำลายเกราะศัตรู 25% ทำให้อ่อนแอลงอย่างมาก",
             "§e✦ เพิ่มดาเมจที่ศัตรูได้รับ นาน 60 วินาที",
             "§8ระยะเวลาเติบโต: 5 นาที · ปลูกบน Farmland"
         )),
 
-    KINETIC_PEA_POD("kinetic_pea_pod", CropTier.TIER_2, "ถั่วลันเตาสะท้อนแรง", "Kinetic Pea Pod",
+    KINETIC_PEA_POD("kinetic_pea_pod", CropTier.TIER_2, "ถั่วลันเตา", "Green Peas",
         Material.WHEAT_SEEDS, Material.SWEET_BERRIES,
         "ไร้ดาเมจตกจากที่สูง & ระเบิดแรงกระแทกรอบตัว 3 นาที",
         List.of(
@@ -133,7 +133,7 @@ public enum CropType {
     // ==========================================
     // Tier 3: Dimension & Survival (6 crops, 450s)
     // ==========================================
-    SOUL_WARD_BULB("soul_ward_bulb", CropTier.TIER_3, "หัวหอมพิทักษ์วิญญาณ", "Soul Ward Bulb",
+    SOUL_WARD_BULB("soul_ward_bulb", CropTier.TIER_3, "หอมหัวใหญ่", "Onion",
         Material.BEETROOT_SEEDS, Material.GOLDEN_CARROT,
         "ป้องกันการตาย 1 ครั้ง & ผลักศัตรูออกรอบทิศ",
         List.of(
@@ -143,7 +143,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 7.5 นาที · ปลูกบน Farmland"
         )),
 
-    VOID_FEATHER_BLOSSOM("void_feather_blossom", CropTier.TIER_3, "ดอกขนนกเวหา", "Void Feather Blossom",
+    VOID_FEATHER_BLOSSOM("void_feather_blossom", CropTier.TIER_3, "กะหล่ำปลีม่วง", "Red Cabbage",
         Material.TORCHFLOWER_SEEDS, Material.DRIED_KELP,
         "ดีดตัวหนีความตายเมื่อตก Void 5 นาที",
         List.of(
@@ -153,7 +153,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 7.5 นาที · ปลูกบน Farmland"
         )),
 
-    LODESTONE_GOURD("lodestone_gourd", CropTier.TIER_3, "น้ำเต้าศิลาหวนคืน", "Lodestone Gourd",
+    LODESTONE_GOURD("lodestone_gourd", CropTier.TIER_3, "น้ำเต้า", "Bottle Gourd",
         Material.MELON_SEEDS, Material.APPLE,
         "ร่าย 3 วินาทีเพื่อวาร์ปกลับจุดเกิด/เตียงนอน",
         List.of(
@@ -163,7 +163,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 7.5 นาที · ปลูกบน Farmland"
         )),
 
-    ABYSSAL_KELP("abyssal_kelp", CropTier.TIER_3, "สาหร่ายเนตรอเวจี", "Abyssal Kelp",
+    ABYSSAL_KELP("abyssal_kelp", CropTier.TIER_3, "ขึ้นฉ่าย", "Celery",
         Material.WHEAT_SEEDS, Material.DRIED_KELP,
         "มองเห็นศัตรูและหีบสมบัติทะลุกำแพง 30 วินาที",
         List.of(
@@ -173,7 +173,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 7.5 นาที · ปลูกบน Farmland"
         )),
 
-    GLIDER_SPORE("glider_spore", CropTier.TIER_3, "สปอร์ร่อนเวหา", "Glider Spore",
+    GLIDER_SPORE("glider_spore", CropTier.TIER_3, "บรอกโคลี", "Broccoli",
         Material.BEETROOT_SEEDS, Material.COOKIE,
         "ย่อตัวกลางอากาศเพื่อกางร่มชูชีพร่อนลง 3 นาที",
         List.of(
@@ -183,7 +183,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 7.5 นาที · ปลูกบน Farmland"
         )),
 
-    STAR_ANISE("star_anise", CropTier.TIER_3, "โป๊ยกั๊กหกแฉกพิสุทธิ์", "Star Anise",
+    STAR_ANISE("star_anise", CropTier.TIER_3, "โป๊ยกั๊ก", "Star Anise",
         Material.PITCHER_POD, Material.GOLDEN_CARROT,
         "ล้างดีบัฟทั้งหมด & ภูมิคุ้มกันสถานะผิดปกติ 2 นาที",
         List.of(
@@ -196,7 +196,7 @@ public enum CropType {
     // ==========================================
     // Tier 4: Mining & Utility (6 crops, 600s)
     // ==========================================
-    FORTUNE_BEET("fortune_beet", CropTier.TIER_4, "บีทรัตน์จำเริญโชค", "Fortune Beet",
+    FORTUNE_BEET("fortune_beet", CropTier.TIER_4, "เทอร์นิป", "Turnip",
         Material.BEETROOT_SEEDS, Material.CARROT,
         "+35% โอกาสขุดแร่แล้วดรอปเบิ้ล 2 เท่า 3 นาที",
         List.of(
@@ -206,7 +206,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 10 นาที · ปลูกบน Farmland"
         )),
 
-    LUMBERJACK_ACORN("lumberjack_acorn", CropTier.TIER_4, "ลูกโอ๊กทลายพฤกษา", "Lumberjack Acorn",
+    LUMBERJACK_ACORN("lumberjack_acorn", CropTier.TIER_4, "เกาลัด", "Chestnut",
         Material.WHEAT_SEEDS, Material.COOKIE,
         "โค่นต้นไม้ทั้งต้นในพริบตา (Tree Feller) 5 ชาร์จ",
         List.of(
@@ -216,17 +216,17 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 10 นาที · ปลูกบน Farmland"
         )),
 
-    PRISM_SHARD_CARROT("prism_shard_carrot", CropTier.TIER_4, "แครอทเกล็ดปริซึม", "Prism Shard Carrot",
+    PRISM_SHARD_CARROT("prism_shard_carrot", CropTier.TIER_4, "มันสำปะหลัง", "Cassava",
         Material.PITCHER_POD, Material.GOLDEN_CARROT,
         "+25% โอกาสพบของแรร์ใน Evergarden Vault 5 นาที",
         List.of(
-            "§7แครอทคริสตัลปริซึมสะท้อนแสงหลากสีสัน",
+            "§7หัวมันสำปะหลังเนื้อแน่นจากแปลงเพาะปลูกพิเศษ",
             "§b✦ +25% เพิ่มโอกาสสุ่มพบ Evergarden Key Shards และ Scrolls",
             "§3✦ เมื่อเปิด Evergarden Vault ในวิหารโบราณ นาน 5 นาที",
             "§8ระยะเวลาเติบโต: 10 นาที · ปลูกบน Farmland"
         )),
 
-    GOLDLEAF_HERB("goldleaf_herb", CropTier.TIER_4, "สมุนไพรทองคำฟื้นอาภรณ์", "Goldleaf Herb",
+    GOLDLEAF_HERB("goldleaf_herb", CropTier.TIER_4, "ผักโขม", "Spinach",
         Material.TORCHFLOWER_SEEDS, Material.GOLDEN_APPLE,
         "แปลง 30% ดาเมจที่ได้รับเป็นการซ่อมชุดเกราะ 2 นาที",
         List.of(
@@ -236,7 +236,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 10 นาที · ปลูกบน Farmland"
         )),
 
-    TWILIGHT_GRAPE("twilight_grape", CropTier.TIER_4, "องุ่นรัตติกาลเล็งไกล", "Twilight Grape",
+    TWILIGHT_GRAPE("twilight_grape", CropTier.TIER_4, "องุ่น", "Grape",
         Material.MELON_SEEDS, Material.SWEET_BERRIES,
         "เพิ่มความเร็ว & ระยะยิงคทาเวทมนตร์ +100% 60 วินาที",
         List.of(
@@ -246,7 +246,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 10 นาที · ปลูกบน Farmland"
         )),
 
-    CHRONO_PEPPER("chrono_pepper", CropTier.TIER_4, "พริกไทยกาลเวลา", "Chrono Pepper",
+    CHRONO_PEPPER("chrono_pepper", CropTier.TIER_4, "พริกหวาน", "Bell Pepper",
         Material.PUMPKIN_SEEDS, Material.APPLE,
         "-40% คูลดาวน์คทาเวทมนตร์ทั้งหมด 60 วินาที",
         List.of(
@@ -259,7 +259,7 @@ public enum CropType {
     // ==========================================
     // Tier 5: Mythic Arcana (6 crops, 900s)
     // ==========================================
-    ANCIENT_ASTRAL_ROOT("ancient_astral_root", CropTier.TIER_5, "รากดวงดาวดึกดำบรรพ์", "Ancient Astral Root",
+    ANCIENT_ASTRAL_ROOT("ancient_astral_root", CropTier.TIER_5, "มันหวาน", "Sweet Potato",
         Material.TORCHFLOWER_SEEDS, Material.GOLDEN_APPLE,
         "เพิ่ม Max Mana ถาวร! (แทน Dragon's Breath เดิม, 1 ครั้ง/วัน)",
         List.of(
@@ -272,7 +272,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 15 นาที · ปลูกบน Farmland"
         )),
 
-    YGGDRASIL_SPROUT("yggdrasil_sprout", CropTier.TIER_5, "หน่อไม้อิกดราซิล", "Yggdrasil Sprout",
+    YGGDRASIL_SPROUT("yggdrasil_sprout", CropTier.TIER_5, "หน่อไม้ฝรั่ง", "Asparagus",
         Material.TORCHFLOWER_SEEDS, Material.GOLDEN_APPLE,
         "เพิ่ม Mana Regen ถาวร +0.2/s (สูงสุด 15.0/s, 1 ครั้ง/วัน)",
         List.of(
@@ -283,7 +283,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 15 นาที · ปลูกบน Farmland"
         )),
 
-    VOID_OVERCHARGE_FIG("void_overcharge_fig", CropTier.TIER_5, "มะเดื่อโอเวอร์ชาร์จมิติ", "Void Overcharge Fig",
+    VOID_OVERCHARGE_FIG("void_overcharge_fig", CropTier.TIER_5, "มะเดื่อ", "Fig",
         Material.PITCHER_POD, Material.GOLDEN_CARROT,
         "มอบ +100 Overcharge Mana ทะลุหลอด 45 วินาที",
         List.of(
@@ -294,7 +294,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 15 นาที · ปลูกบน Farmland"
         )),
 
-    ETHEREAL_MINT("ethereal_mint", CropTier.TIER_5, "สะระแหน่เสียงสะท้อนมิติ", "Ethereal Mint",
+    ETHEREAL_MINT("ethereal_mint", CropTier.TIER_5, "สะระแหน่", "Mint",
         Material.WHEAT_SEEDS, Material.APPLE,
         "ร่ายเวทซ้ำเบิ้ล 2 เท่าฟรี! (Arcane Echo) 3 ชาร์จ",
         List.of(
@@ -305,7 +305,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 15 นาที · ปลูกบน Farmland"
         )),
 
-    BLOODBURN_CHILI("bloodburn_chili", CropTier.TIER_5, "พริกโลหิตเพลิงผลาญ", "Bloodburn Chili",
+    BLOODBURN_CHILI("bloodburn_chili", CropTier.TIER_5, "พริกชี้ฟ้า", "Chili Pepper",
         Material.PUMPKIN_SEEDS, Material.APPLE,
         "ร่ายเวทด้วยเลือดแทนเมื่อมานาหมด (Blood Cast) 30 วินาที",
         List.of(
@@ -316,7 +316,7 @@ public enum CropType {
             "§8ระยะเวลาเติบโต: 15 นาที · ปลูกบน Farmland"
         )),
 
-    OMNI_POMEGRANATE("omni_pomegranate", CropTier.TIER_5, "ทับทิมสะท้อนมหาธาตุ", "Omni Pomegranate",
+    OMNI_POMEGRANATE("omni_pomegranate", CropTier.TIER_5, "ทับทิม", "Pomegranate",
         Material.TORCHFLOWER_SEEDS, Material.GOLDEN_APPLE,
         "ร่ายเวทจะระเบิดคลื่นมหาธาตุตรงข้ามรอบตัว 60 วินาที",
         List.of(

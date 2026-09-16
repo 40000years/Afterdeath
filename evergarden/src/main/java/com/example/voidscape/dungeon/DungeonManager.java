@@ -45,7 +45,8 @@ public final class DungeonManager implements Listener {
     private final Map<UUID,Long> combatUntil=new HashMap<>();
     private final Map<UUID,String> seen=new HashMap<>();
     private final Map<Block,Long> tempWebs=new HashMap<>();
-    private final NamespacedKey mobKey,runKey;
+    private final Map<UUID,BossBar> trueDeathBars=new HashMap<>();
+    private final NamespacedKey mobKey,runKey,trueDeathHitsKey,trueDeathLevelKey;
     private final String runId=UUID.randomUUID().toString();
     private final YamlConfiguration ledger;
     private final File file;
@@ -53,6 +54,7 @@ public final class DungeonManager implements Listener {
 
     public DungeonManager(VoidscapePlugin plugin)throws IOException {
         this.plugin=plugin;mobKey=plugin.key("dungeon_mob");runKey=plugin.key("runtime");
+        trueDeathHitsKey=plugin.key("true_death_hits");trueDeathLevelKey=plugin.key("true_death_level");
         file=new File(plugin.getDataFolder(),"dungeons.yml");
         ledger=new YamlConfiguration();
         if(file.exists())try{ledger.load(file);}catch(Exception e){throw new IOException("Cannot safely read reward ledger",e);}
@@ -406,6 +408,7 @@ public final class DungeonManager implements Listener {
                     placeTemporaryWeb(victim.getLocation().getBlock(),6000L);
                 }
                 if (species == Species.BOSS) {
+                    recordTrueDeathHit(victim);
                     // True Damage that penetrates Protection VIII!
                     double trueDmg = 12.0 + Math.max(0, players(mobEnc.site).size() - 1) * 2.0;
                     victim.damage(trueDmg);
@@ -424,6 +427,83 @@ public final class DungeonManager implements Listener {
             }
         }
     }
+
+    private int trueDeathHits(Player p){return p.getPersistentDataContainer().getOrDefault(trueDeathHitsKey,PersistentDataType.INTEGER,0);}
+    private int trueDeathLevel(Player p){return p.getPersistentDataContainer().getOrDefault(trueDeathLevelKey,PersistentDataType.INTEGER,0);}
+    private int trueDeathHitsPerLevel(){return plugin.integer("combat.true-death.hits-per-level",10,1,100);}
+    private int trueDeathMaxLevel(){return plugin.integer("combat.true-death.max-level",5,1,10);}
+
+    private void recordTrueDeathHit(Player victim) {
+        TrueDeathProgress progress=TrueDeathProgress.hit(trueDeathHits(victim),trueDeathLevel(victim),trueDeathHitsPerLevel(),trueDeathMaxLevel());
+        victim.getPersistentDataContainer().set(trueDeathHitsKey,PersistentDataType.INTEGER,progress.hits());
+        victim.getPersistentDataContainer().set(trueDeathLevelKey,PersistentDataType.INTEGER,progress.level());
+        updateTrueDeathBar(victim);
+        victim.sendActionBar(Component.text("☠ True Death "+roman(progress.level())+"/"+trueDeathMaxLevel()+" · "+progress.hits()+"/"+trueDeathHitsPerLevel()+" hits",NamedTextColor.RED));
+        if(!progress.triggered())return;
+
+        victim.showTitle(net.kyori.adventure.title.Title.title(
+                Component.text(progress.finalDeath()?"TRUE DEATH":"TRUE DEATH "+roman(progress.level()),NamedTextColor.DARK_RED),
+                Component.text(progress.finalDeath()?"คำสาปสมบูรณ์ · Totem ไม่อาจช่วยได้":"พลังชีวิตกำลังถูกชำระ · Totem ยังช่วยคุณได้",NamedTextColor.RED)));
+        victim.getWorld().playSound(victim.getLocation(),Sound.ENTITY_WARDEN_SONIC_BOOM,1.0f,0.55f);
+        victim.getWorld().spawnParticle(Particle.SCULK_SOUL,victim.getLocation().add(0,1,0),35,0.45,0.7,0.45,0.08);
+        UUID id=victim.getUniqueId();int expectedLevel=progress.level();
+        Bukkit.getScheduler().runTask(plugin,()->{
+            Player current=Bukkit.getPlayer(id);
+            if(current==null||!current.isOnline()||current.isDead()||trueDeathLevel(current)!=expectedLevel)return;
+            if(progress.finalDeath()) {
+                current.setHealth(0.0); // Direct death deliberately bypasses Totem at the final stack.
+            } else if(!consumeTotem(current)) {
+                current.setHealth(0.0);
+            }
+        });
+    }
+
+    private boolean consumeTotem(Player p) {
+        PlayerInventory inv=p.getInventory();
+        EquipmentSlot used=null;
+        if(inv.getItemInMainHand().getType()==Material.TOTEM_OF_UNDYING)used=EquipmentSlot.HAND;
+        else if(inv.getItemInOffHand().getType()==Material.TOTEM_OF_UNDYING)used=EquipmentSlot.OFF_HAND;
+        if(used==null)return false;
+        ItemStack item=used==EquipmentSlot.HAND?inv.getItemInMainHand():inv.getItemInOffHand();
+        item=item.clone();item.subtract(1);
+        if(used==EquipmentSlot.HAND)inv.setItemInMainHand(item);else inv.setItemInOffHand(item);
+        for(PotionEffect effect:new ArrayList<>(p.getActivePotionEffects()))p.removePotionEffect(effect.getType());
+        p.setHealth(Math.min(1.0,p.getAttribute(Attribute.MAX_HEALTH).getValue()));
+        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION,900,1));
+        p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION,100,1));
+        p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE,800,0));
+        p.playSound(p.getLocation(),Sound.ITEM_TOTEM_USE,1.0f,1.0f);
+        p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,p.getLocation().add(0,1,0),60,0.5,0.8,0.5,0.3);
+        return true;
+    }
+
+    private String roman(int level){return switch(level){case 1->"I";case 2->"II";case 3->"III";case 4->"IV";case 5->"V";default->Integer.toString(level);};}
+
+    private void updateTrueDeathBar(Player p) {
+        int level=trueDeathLevel(p),hits=trueDeathHits(p);
+        if(level<=0&&hits<=0){removeTrueDeathBar(p.getUniqueId());return;}
+        BossBar bar=trueDeathBars.computeIfAbsent(p.getUniqueId(),id->Bukkit.createBossBar("",BarColor.RED,BarStyle.SEGMENTED_10));
+        bar.setTitle("☠ TRUE DEATH "+roman(level)+"/"+trueDeathMaxLevel()+" · "+hits+"/"+trueDeathHitsPerLevel()+" hits");
+        bar.setProgress(Math.max(0.0,Math.min(1.0,hits/(double)trueDeathHitsPerLevel())));
+        if(!bar.getPlayers().contains(p))bar.addPlayer(p);
+    }
+
+    private void removeTrueDeathBar(UUID id){BossBar bar=trueDeathBars.remove(id);if(bar!=null)bar.removeAll();}
+    private boolean clearTrueDeath(Player p) {
+        boolean active=trueDeathLevel(p)>0||trueDeathHits(p)>0;
+        p.getPersistentDataContainer().remove(trueDeathHitsKey);p.getPersistentDataContainer().remove(trueDeathLevelKey);
+        removeTrueDeathBar(p.getUniqueId());return active;
+    }
+
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void drinkMilk(PlayerItemConsumeEvent e) {
+        if(e.getItem().getType()!=Material.MILK_BUCKET||!clearTrueDeath(e.getPlayer()))return;
+        plugin.message(e.getPlayer(),"นมชำระล้างคำสาป True Death และตัวนับการโจมตีทั้งหมดแล้ว");
+        e.getPlayer().playSound(e.getPlayer().getLocation(),Sound.BLOCK_BEACON_DEACTIVATE,0.7f,1.4f);
+    }
+
+    @EventHandler(priority=EventPriority.MONITOR)
+    public void playerDeath(PlayerDeathEvent e){clearTrueDeath(e.getPlayer());}
 
     @EventHandler(priority=EventPriority.HIGHEST)
     public void death(EntityDeathEvent e) {
@@ -516,6 +596,7 @@ public final class DungeonManager implements Listener {
 
     public void tick() {
         long now=System.currentTimeMillis();combatUntil.values().removeIf(t->t<now);
+        for(Player p:Bukkit.getOnlinePlayers())if(trueDeathLevel(p)>0||trueDeathHits(p)>0)updateTrueDeathBar(p);
         if(!tempWebs.isEmpty()) {
             Iterator<Map.Entry<Block,Long>> it=tempWebs.entrySet().iterator();
             while(it.hasNext()) {
@@ -713,7 +794,7 @@ public final class DungeonManager implements Listener {
     public void explode(EntityExplodeEvent e){e.blockList().removeIf(this::protectedBlock);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void explode(BlockExplodeEvent e){e.blockList().removeIf(this::protectedBlock);}
-    @EventHandler public void quit(PlayerQuitEvent e){seen.remove(e.getPlayer().getUniqueId());}
+    @EventHandler public void quit(PlayerQuitEvent e){seen.remove(e.getPlayer().getUniqueId());removeTrueDeathBar(e.getPlayer().getUniqueId());}
     @EventHandler public void changeWorld(PlayerChangedWorldEvent e){seen.remove(e.getPlayer().getUniqueId());}
     @EventHandler public void chunk(org.bukkit.event.world.ChunkLoadEvent e) {
         if(e.getWorld()!=plugin.world())return;
@@ -754,6 +835,6 @@ public final class DungeonManager implements Listener {
         }
         return b;
     }
-    public void close(){for(Encounter enc:active.values())remove(enc);active.clear();clearWebs(null);if(storageHealthy)save();}
+    public void close(){for(Encounter enc:active.values())remove(enc);active.clear();clearWebs(null);trueDeathBars.values().forEach(BossBar::removeAll);trueDeathBars.clear();if(storageHealthy)save();}
     public int waveCount(){return plugin.integer("combat.waves",5,2,12);}
 }

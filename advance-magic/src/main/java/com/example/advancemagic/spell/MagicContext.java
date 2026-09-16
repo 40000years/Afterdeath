@@ -63,9 +63,21 @@ public final class MagicContext {
         }
         return true;
     }
+    private final Map<UUID, Double> castVelocityMultipliers = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public void setCastVelocityMultiplier(UUID uuid, double mult) {
+        if (mult <= 1.0) castVelocityMultipliers.remove(uuid);
+        else castVelocityMultipliers.put(uuid, mult);
+    }
+    public double getCastVelocityMultiplier(UUID uuid) {
+        return castVelocityMultipliers.getOrDefault(uuid, 1.0);
+    }
+    public void clearCastVelocityMultiplier(UUID uuid) {
+        castVelocityMultipliers.remove(uuid);
+    }
+
     public boolean affect(Player p,LivingEntity target,Spell spell) {
         if(!target.isValid()||target.isDead()||target.getWorld()!=p.getWorld())return false;
-        if(target instanceof Player player && !enemy(p, player)) return false;
         MagicAffectEvent event=new MagicAffectEvent(p,target,spell);
         Bukkit.getPluginManager().callEvent(event);return !event.isCancelled();
     }
@@ -87,8 +99,9 @@ public final class MagicContext {
     }
     public RayTraceResult target(Player p,double range) {
         // Trim to loaded chunks before tracing so casts never generate terrain.
+        double effectiveRange = range * getCastVelocityMultiplier(p.getUniqueId());
         Location eye=p.getEyeLocation();Vector dir=eye.getDirection();double distance=0;
-        for(double d=0.5;d<=range;d+=0.5){if(!loaded(eye.clone().add(dir.clone().multiply(d))))break;distance=d;}
+        for(double d=0.5;d<=effectiveRange;d+=0.5){if(!loaded(eye.clone().add(dir.clone().multiply(d))))break;distance=d;}
         return distance==0?null:p.getWorld().rayTrace(eye,dir,distance,FluidCollisionMode.NEVER,true,0.35,e->enemy(p,e));
     }
     public Location targetPoint(Player p,double range) {

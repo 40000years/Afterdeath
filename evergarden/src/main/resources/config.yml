@@ -17,7 +17,7 @@ performance:
   max-special-projectiles: 64
   idle-reset-seconds: 60
 portal:
-  # Create a Nether Portal shape out of Block of Quartz and ignite with Fire Charge or Eye of Ender.
+  # Build a Nether Portal shape from Block of Quartz, then throw any flower into the empty frame.
   entry-worlds: [world]
 combat:
   # Five guardian waves, followed by one boss. Range 2-12.
@@ -33,6 +33,11 @@ combat:
   boss-skill-interval-ms: 5500
   # Preserve the 2.2-second warning; increase the configured base damage by 10%.
   boss-skill-power-percent: 110
+  true-death:
+    # Every 10 successful boss hits adds one stack and forces a lethal pulse.
+    # Totems work on levels I-IV; level V kills directly through Totems.
+    hits-per-level: 10
+    max-level: 5
 rewards:
   # Vault Loot Table Percentages:
   # One reward per vault; rates are defined in VaultLootTable.

@@ -15,38 +15,36 @@ public final class MagicCommand implements TabExecutor {
             sender.sendMessage(ChatColor.LIGHT_PURPLE+"Advance Magic: right-click a wand to cast.");
             for(Spell s:Spell.values())sender.sendMessage(ChatColor.AQUA+s.id()+ChatColor.GRAY+" | "+s.mana+" mana | "+s.cooldown+"s | Core: Core of "+com.example.advancemagic.item.WandService.coreTitle(s));
             sender.sendMessage(ChatColor.GRAY+"Craft: 8 Netherite Ingots / Nether Stars around a matching Evergarden Vault Core (mix allowed).");
-            sender.sendMessage(ChatColor.YELLOW+"เมนูเสก/คราฟ: "+ChatColor.AQUA+"/magic items "+ChatColor.GREEN+"(หยิบคทา/แกนทันที) "+ChatColor.GRAY+"หรือหยิบจาก Bedrock Creative menu ได้โดยตรง");
+            sender.sendMessage(ChatColor.YELLOW+"เมนูคราฟ: "+ChatColor.AQUA+"/magic craft "+ChatColor.GREEN+"(คราฟคทา) "+ChatColor.GRAY+"(แอดมิน: /magic items)");
             return true;
         }
         if(args[0].equalsIgnoreCase("items")||args[0].equalsIgnoreCase("craft")) {
-            if(sender instanceof Player player)plugin.itemMenu().open(player,args[0].equalsIgnoreCase("items"));
+            boolean admin = args[0].equalsIgnoreCase("items");
+            if(admin && !sender.hasPermission("advance-magic.admin")) {
+                sender.sendMessage(ChatColor.RED+"คุณไม่มีสิทธิ์ใช้คำสั่งเสกของ กรุณาใช้ /magic craft เพื่อคราฟคทา");
+                return true;
+            }
+            if(sender instanceof Player player)plugin.itemMenu().open(player,admin);
             else sender.sendMessage("Use this menu from in-game.");
             return true;
         }
         if(args[0].equalsIgnoreCase("mana")&&sender instanceof Player p){
             plugin.casts().actionbar(p,"");
             var a=plugin.mana().account(p);
-            long currentFullTime=p.getWorld().getFullTime();
-            long currentDay=currentFullTime/24000L;
-            long lastDay=p.getPersistentDataContainer().getOrDefault(plugin.mana().key("last_dragon_day"),org.bukkit.persistence.PersistentDataType.LONG,-1L);
-            String dbStatus;
-            if(a.maxMana()>=300.0) dbStatus=ChatColor.LIGHT_PURPLE+"สูงสุดแล้ว (300/300)";
-            else if(currentDay!=lastDay) dbStatus=ChatColor.GREEN+"พร้อมดื่มวันนี้ในเกม (+Max Mana & Regen)";
-            else {
-                long dayTime=currentFullTime%24000L;
-                long ticksRemaining=24000L-dayTime;
-                long totalSec=Math.max(1L,ticksRemaining/20L);
-                long m=totalSec/60L, s=totalSec%60L;
-                dbStatus=ChatColor.YELLOW+"รอวันใหม่ในเกมอีก "+(m>0?m+" นาที ":"")+s+" วินาที (หรือนอนข้ามคืน)";
-            }
             p.sendMessage(ChatColor.LIGHT_PURPLE+"[Advance Magic] "+ChatColor.AQUA+"Mana: "+String.format(Locale.ROOT,"%.1f/%.1f",a.manaExact(),a.maxMana())+
                 ChatColor.WHITE+" | Regen: "+ChatColor.GREEN+String.format(Locale.ROOT,"%.1f/s",a.regenRate())+
-                ChatColor.WHITE+" | Dragon's Breath: "+dbStatus);
+                ChatColor.GRAY+" (เพิ่มขีดจำกัดถาวรได้จากพืชระดับตำนาน Evergarden)");
             return true;
         }
         if(args[0].equalsIgnoreCase("pack")) {
+            if(args.length>1&&args[1].equalsIgnoreCase("resend")) {
+                if(sender instanceof Player p) {
+                    plugin.packs().offer(p);
+                    sender.sendMessage(ChatColor.GREEN+"ส่ง Resource Pack ให้คุณใหม่แล้ว");
+                }
+                return true;
+            }
             if(!sender.hasPermission("advance-magic.admin")){sender.sendMessage(ChatColor.RED+"No permission.");return true;}
-            if(args.length>1&&args[1].equalsIgnoreCase("resend")&&sender instanceof Player p)plugin.packs().offer(p);
             plugin.packs().describe(sender);return true;
         }
         if(args[0].equalsIgnoreCase("givecore")||(args[0].equalsIgnoreCase("give")&&args.length>=4&&args[3].equalsIgnoreCase("core"))) {

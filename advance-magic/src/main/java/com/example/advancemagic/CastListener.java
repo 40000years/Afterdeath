@@ -35,11 +35,6 @@ public final class CastListener implements Listener {
     @EventHandler(priority=EventPriority.HIGH) public void interact(PlayerInteractEvent e) {
         if((e.getAction()!=Action.RIGHT_CLICK_AIR&&e.getAction()!=Action.RIGHT_CLICK_BLOCK))return;
         ItemStack item=e.getItem();
-        if(item!=null&&item.getType()==Material.DRAGON_BREATH) {
-            e.setCancelled(true);
-            plugin.mana().drinkDragonBreath(e.getPlayer(),item,e.getHand());
-            return;
-        }
         if(e.useItemInHand()==Event.Result.DENY)return;
         ItemStack wandItem=heldItem(e.getPlayer(),e.getHand());
         Spell spell=plugin.wands().spell(wandItem);if(spell==null)return;
@@ -97,10 +92,13 @@ public final class CastListener implements Listener {
             effectiveCd=Math.max(0.1, effectiveCd * event.getCooldownMultiplier());
             if(!account.reserve(spell.id(),spell.mana,effectiveCd,now))return false;
             boolean success=false;
+            plugin.context().setCastVelocityMultiplier(p.getUniqueId(), event.getVelocityMultiplier());
             try { success=plugin.spells().cast(p,spell); }
             catch(RuntimeException ex){plugin.getLogger().log(java.util.logging.Level.SEVERE,"Cast failed: "+spell,ex);}
+            finally { plugin.context().clearCastVelocityMultiplier(p.getUniqueId()); }
             if(!success){account.refund(spell.id(),spell.mana);actionbar(p,"No valid target or safe destination.");}
             else {
+                Bukkit.getPluginManager().callEvent(new com.example.advancemagic.api.MagicCastSuccessEvent(p, spell));
                 if(spell!=Spell.INVISIBILITY_SHROUD)plugin.statuses().reveal(p);
                 int casts=wandItem!=null?plugin.wands().recordCast(wandItem,spell):0;
                 String cdStr=String.format(Locale.ROOT,"%.1f",effectiveCd);
@@ -111,7 +109,12 @@ public final class CastListener implements Listener {
                     Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         if(p.isOnline() && !p.isDead()) {
                             try {
-                                plugin.spells().cast(p, spell);
+                                plugin.context().setCastVelocityMultiplier(p.getUniqueId(), event.getVelocityMultiplier());
+                                try {
+                                    plugin.spells().cast(p, spell);
+                                } finally {
+                                    plugin.context().clearCastVelocityMultiplier(p.getUniqueId());
+                                }
                                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.8f, 1.6f);
                                 p.getWorld().spawnParticle(Particle.WITCH, p.getLocation().add(0, 1, 0), 15, 0.3, 0.4, 0.3, 0.05);
                             } catch (Throwable ignored) {}

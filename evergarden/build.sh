@@ -15,7 +15,11 @@ python3 "$MODULE_ROOT/tools/build_packs.py"
 echo "==> Compiling Java Sources..."
 CLASSPATH="$(cat "$WORKSPACE_ROOT/output/item-fixes-20260915/dependency-classpath.txt"):$WORKSPACE_ROOT/advance-magic/target/classes"
 SOURCES="$(find "$MODULE_ROOT/src/main/java" -name "*.java")"
-javac --release 21 -proc:none -encoding UTF-8 -cp "$CLASSPATH" -d "$CLASSES_DIR" $SOURCES
+# Paper 26.2 is compiled for Java 25 (class-file version 69). Prefer the
+# Homebrew JDK used by this workspace; the macOS java shim may select JDK 23.
+JAVAC_BIN="/opt/homebrew/opt/openjdk/bin/javac"
+if [ ! -x "$JAVAC_BIN" ]; then JAVAC_BIN="$(command -v javac)"; fi
+"$JAVAC_BIN" --release 25 -proc:none -encoding UTF-8 -cp "$CLASSPATH" -d "$CLASSES_DIR" $SOURCES
 
 echo "==> Copying Resources..."
 if [ -d "$MODULE_ROOT/src/main/resources" ]; then

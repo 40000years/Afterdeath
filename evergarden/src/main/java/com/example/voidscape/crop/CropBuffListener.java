@@ -164,7 +164,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 addPlayerMana(p, 50.0);
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.8f);
                 p.getWorld().spawnParticle(Particle.GLOW, p.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, 0.05);
-                p.sendActionBar(Component.text("✦ ดื่มผลน้ำค้างมานา: ฟื้นฟูทันที +50 Mana!", NamedTextColor.AQUA));
+                p.sendActionBar(Component.text("✦ บลูเบอร์รี: ฟื้นฟูทันที +50 Mana!", NamedTextColor.AQUA));
             }
             case CHAMELEON_LEAF -> {
                 chameleonUntil.put(id, now + 45_000L);
@@ -175,7 +175,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 }
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ILLUSIONER_MIRROR_MOVE, 0.8f, 1.2f);
                 p.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, p.getLocation().add(0, 1, 0), 25, 0.4, 0.6, 0.4, 0.02);
-                p.sendActionBar(Component.text("✦ ใบกิ้งก่าพรางกาย: มอนสเตอร์จะไม่โจมตีก่อน (45 วินาที)", NamedTextColor.GREEN));
+                p.sendActionBar(Component.text("✦ ผักกาดหอม: มอนสเตอร์จะไม่โจมตีก่อน (45 วินาที)", NamedTextColor.GREEN));
             }
             case FAIRY_MUSHROOM -> {
                 movement.fairy(p);
@@ -184,7 +184,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 magnetUntil.put(id, now + 120_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.8f, 1.4f);
                 p.getWorld().spawnParticle(Particle.WAX_ON, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ ฟักทองแม่เหล็ก: ดูดไอเทมและ EXP ในระยะ 12 บล็อก (2 นาที)", NamedTextColor.BLUE));
+                p.sendActionBar(Component.text("✦ ฟักทองบัตเตอร์นัต: ดูดไอเทมและ EXP ในระยะ 12 บล็อก (2 นาที)", NamedTextColor.BLUE));
             }
             case MOUNTAIN_WALKER_BAMBOO -> {
                 movement.bamboo(p);
@@ -193,7 +193,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 floraAuraCharges.put(id, floraAuraCharges.getOrDefault(id, 0) + 10);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_COMPOSTER_READY, 0.9f, 1.2f);
                 p.getWorld().spawnParticle(Particle.COMPOSTER, p.getLocation().add(0, 1, 0), 20, 0.4, 0.4, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ แตงโมเทพีพืชพรรณ: ออร่าเร่งโตพืชผักรอบตัว (10 ชาร์จ)", NamedTextColor.GREEN));
+                p.sendActionBar(Component.text("✦ มะละกอ: ออร่าเร่งโตพืชผักรอบตัว (10 ชาร์จ)", NamedTextColor.GREEN));
             }
 
             // ==========================================
@@ -203,37 +203,37 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 vampiricUntil.put(id, now + 60_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_PHANTOM_BITE, 0.8f, 1.2f);
                 p.getWorld().spawnParticle(Particle.HEART, p.getLocation().add(0, 1, 0), 10, 0.3, 0.4, 0.3, 0.05);
-                p.sendActionBar(Component.text("✦ มะเขือเทศหนามโลหิต: ดูดเลือด 20% จากการโจมตี (60 วินาที)", NamedTextColor.RED));
+                p.sendActionBar(Component.text("✦ มะเขือเทศ: ดูดเลือด 20% จากการโจมตี (60 วินาที)", NamedTextColor.RED));
             }
             case FROSTBITE_RADISH -> {
                 glacialUntil.put(id, now + 60_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 0.7f, 1.8f);
                 p.getWorld().spawnParticle(Particle.SNOWFLAKE, p.getLocation().add(0, 1, 0), 25, 0.4, 0.5, 0.4, 0.08);
-                p.sendActionBar(Component.text("✦ หัวไชเท้าเยือกแข็ง: ทุกการโจมตีแช่แข็งศัตรู (60 วินาที)", NamedTextColor.AQUA));
+                p.sendActionBar(Component.text("✦ หัวไชเท้า: ทุกการโจมตีแช่แข็งศัตรู (60 วินาที)", NamedTextColor.AQUA));
             }
             case THUNDER_KERNEL_CORN -> {
                 chainLightningUntil.put(id, now + 60_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.5f, 1.6f);
                 p.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, p.getLocation().add(0, 1, 0), 25, 0.4, 0.5, 0.4, 0.1);
-                p.sendActionBar(Component.text("✦ ข้าวโพดประจุอัสนี: ชิ่งสายฟ้าใส่ศัตรูข้างเคียง 3 ตัว (60 วินาที)", NamedTextColor.YELLOW));
+                p.sendActionBar(Component.text("✦ ข้าวโพด: ชิ่งสายฟ้าใส่ศัตรูข้างเคียง 3 ตัว (60 วินาที)", NamedTextColor.YELLOW));
             }
             case REAPERS_GARLIC -> {
                 executionerUntil.put(id, now + 60_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_WITHER_SHOOT, 0.6f, 1.4f);
                 p.getWorld().spawnParticle(Particle.SOUL, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ กระเทียมมัจจุราช: ปลิดชีพศัตรูเลือดต่ำกว่า 20% ทันที (60 วินาที)", NamedTextColor.DARK_RED));
+                p.sendActionBar(Component.text("✦ กระเทียม: ปลิดชีพศัตรูเลือดต่ำกว่า 20% ทันที (60 วินาที)", NamedTextColor.DARK_RED));
             }
             case TITAN_PUMPKIN -> {
                 titanUntil.put(id, now + 60_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_NETHERITE, 1.0f, 0.9f);
                 p.getWorld().spawnParticle(Particle.CRIT, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.1);
-                p.sendActionBar(Component.text("✦ ฟักทองไททัน: โจมตีทำลายเกราะศัตรู 25% (60 วินาที)", NamedTextColor.GOLD));
+                p.sendActionBar(Component.text("✦ มะเขือม่วง: โจมตีทำลายเกราะศัตรู 25% (60 วินาที)", NamedTextColor.GOLD));
             }
             case KINETIC_PEA_POD -> {
                 kineticSlamUntil.put(id, now + 180_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_IRON_GOLEM_ATTACK, 0.8f, 1.4f);
                 p.getWorld().spawnParticle(Particle.EXPLOSION, p.getLocation().add(0, 0.5, 0), 5, 0.2, 0.2, 0.2, 0.05);
-                p.sendActionBar(Component.text("✦ ถั่วลันเตาสะท้อนแรง: ยกเลิกดาเมจตกจากที่สูง & ปลดปล่อย Ground Slam (3 นาที)", NamedTextColor.GREEN));
+                p.sendActionBar(Component.text("✦ ถั่วลันเตา: ยกเลิกดาเมจตกจากที่สูง & ปลดปล่อย Ground Slam (3 นาที)", NamedTextColor.GREEN));
             }
 
             // ==========================================
@@ -243,13 +243,13 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 soulWardActive.add(id);
                 p.getWorld().playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 0.6f, 1.5f);
                 p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1, 0), 25, 0.3, 0.5, 0.3, 0.15);
-                p.sendActionBar(Component.text("✦ หัวหอมพิทักษ์วิญญาณ: ม่านพลังป้องกันการตาย 1 ครั้ง เปิดใช้งานแล้ว!", NamedTextColor.AQUA));
+                p.sendActionBar(Component.text("✦ หอมหัวใหญ่: ม่านพลังป้องกันการตาย 1 ครั้ง เปิดใช้งานแล้ว!", NamedTextColor.AQUA));
             }
             case VOID_FEATHER_BLOSSOM -> {
                 movement.rescue(p);
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ALLAY_ITEM_TAKEN, 1.0f, 1.2f);
                 p.getWorld().spawnParticle(Particle.PORTAL, p.getLocation().add(0, 1, 0), 25, 0.4, 0.5, 0.4, 0.1);
-                p.sendActionBar(Component.text("✦ ดอกขนนกเวหา: คุ้มกันการตก Void ดีดตัวลอยขึ้นปลอดภัย (5 นาที)", NamedTextColor.LIGHT_PURPLE));
+                p.sendActionBar(Component.text("✦ กะหล่ำปลีม่วง: คุ้มกันการตก Void ดีดตัวลอยขึ้นปลอดภัย (5 นาที)", NamedTextColor.LIGHT_PURPLE));
             }
             case LODESTONE_GOURD -> {
                 recallChannelLoc.put(id, p.getLocation().clone());
@@ -288,20 +288,20 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                         }
                     }
                 }
-                p.sendActionBar(Component.text("✦ สาหร่ายเนตรอเวจี: เปิดเนตรมองเห็นศัตรูในระยะ 24 บล็อก (30 วินาที)", NamedTextColor.DARK_AQUA));
+                p.sendActionBar(Component.text("✦ ขึ้นฉ่าย: มองเห็นศัตรูในระยะ 24 บล็อก (30 วินาที)", NamedTextColor.DARK_AQUA));
             }
             case GLIDER_SPORE -> {
                 movement.glide(p);
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_BAT_TAKEOFF, 0.8f, 0.9f);
                 p.getWorld().spawnParticle(Particle.SPORE_BLOSSOM_AIR, p.getLocation().add(0, 1, 0), 25, 0.4, 0.5, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ สปอร์ร่อนเวหา: ย่อตัวกลางอากาศเพื่อกางร่มชูชีพร่อนช้าๆ (3 นาที)", NamedTextColor.WHITE));
+                p.sendActionBar(Component.text("✦ บรอกโคลี: ย่อตัวกลางอากาศเพื่อกางร่มชูชีพร่อนช้าๆ (3 นาที)", NamedTextColor.WHITE));
             }
             case STAR_ANISE -> {
                 debuffImmunityUntil.put(id, now + 120_000L);
                 cleanseDebuffs(p);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.6f);
                 p.getWorld().spawnParticle(Particle.WAX_OFF, p.getLocation().add(0, 1, 0), 30, 0.4, 0.6, 0.4, 0.08);
-                p.sendActionBar(Component.text("✦ โป๊ยกั๊กหกแฉกพิสุทธิ์: ล้างดีบัฟทั้งหมด & ป้องกันสถานะผิดปกติ (2 นาที)", NamedTextColor.YELLOW));
+                p.sendActionBar(Component.text("✦ โป๊ยกั๊ก: ล้างดีบัฟทั้งหมด & ป้องกันสถานะผิดปกติ (2 นาที)", NamedTextColor.YELLOW));
             }
 
             // ==========================================
@@ -311,37 +311,37 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 oreResonanceUntil.put(id, now + 180_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_AMETHYST_CLUSTER_STEP, 1.0f, 1.4f);
                 p.getWorld().spawnParticle(Particle.SCRAPE, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.1);
-                p.sendActionBar(Component.text("✦ บีทรัตน์จำเริญโชค: +35% โอกาสขุดแร่แล้วดรอปเบิ้ล 2 เท่า (3 นาที)", NamedTextColor.LIGHT_PURPLE));
+                p.sendActionBar(Component.text("✦ เทอร์นิป: +35% โอกาสขุดแร่แล้วดรอปเบิ้ล 2 เท่า (3 นาที)", NamedTextColor.LIGHT_PURPLE));
             }
             case LUMBERJACK_ACORN -> {
                 treeFellerCharges.put(id, treeFellerCharges.getOrDefault(id, 0) + 5);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_WOOD_BREAK, 1.0f, 0.8f);
                 p.getWorld().spawnParticle(Particle.COMPOSTER, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ ลูกโอ๊กทลายพฤกษา: โค่นต้นไม้ทั้งต้นในพริบตา (5 ชาร์จ)", NamedTextColor.GOLD));
+                p.sendActionBar(Component.text("✦ เกาลัด: โค่นต้นไม้ทั้งต้นในพริบตา (5 ชาร์จ)", NamedTextColor.GOLD));
             }
             case PRISM_SHARD_CARROT -> {
                 vaultFortuneUntil.put(id, now + 300_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_CONDUIT_ATTACK_TARGET, 0.8f, 1.4f);
                 p.getWorld().spawnParticle(Particle.NAUTILUS, p.getLocation().add(0, 1, 0), 25, 0.4, 0.5, 0.4, 0.1);
-                p.sendActionBar(Component.text("✦ แครอทเกล็ดปริซึม: +25% โอกาสพบของแรร์ใน Evergarden Vault (5 นาที)", NamedTextColor.AQUA));
+                p.sendActionBar(Component.text("✦ มันสำปะหลัง: +25% โอกาสพบของแรร์ใน Evergarden Vault (5 นาที)", NamedTextColor.AQUA));
             }
             case GOLDLEAF_HERB -> {
                 mendingNectarUntil.put(id, now + 120_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.6f, 1.6f);
                 p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 25, 0.4, 0.5, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ สมุนไพรทองคำฟื้นอาภรณ์: แปลงดาเมจ 30% เป็นการซ่อมชุดเกราะ (2 นาที)", NamedTextColor.GOLD));
+                p.sendActionBar(Component.text("✦ ผักโขม: แปลงดาเมจ 30% เป็นการซ่อมชุดเกราะ (2 นาที)", NamedTextColor.GOLD));
             }
             case TWILIGHT_GRAPE -> {
                 sniperCastUntil.put(id, now + 60_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ARROW_SHOOT, 0.9f, 1.8f);
                 p.getWorld().spawnParticle(Particle.WITCH, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ องุ่นรัตติกาลเล็งไกล: เพิ่มความเร็ว & ระยะยิงเวทมนตร์ +100% (60 วินาที)", NamedTextColor.DARK_PURPLE));
+                p.sendActionBar(Component.text("✦ องุ่น: เพิ่มความเร็ว & ระยะยิงเวทมนตร์ +100% (60 วินาที)", NamedTextColor.DARK_PURPLE));
             }
             case CHRONO_PEPPER -> {
                 chronoSurge.put(id, now + 60_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.8f);
                 p.getWorld().spawnParticle(Particle.ENCHANT, p.getLocation().add(0, 1, 0), 30, 0.4, 0.6, 0.4, 0.2);
-                p.sendActionBar(Component.text("✦ พริกไทยกาลเวลา: -40% คูลดาวน์คทาเวทมนตร์ทั้งหมด (60 วินาที)", NamedTextColor.GOLD));
+                p.sendActionBar(Component.text("✦ พริกหวาน: -40% คูลดาวน์คทาเวทมนตร์ทั้งหมด (60 วินาที)", NamedTextColor.GOLD));
             }
 
             // ==========================================
@@ -449,9 +449,9 @@ public final class CropBuffListener implements Listener, AutoCloseable {
         String maxStr = (newMax == (long)newMax) ? String.valueOf((long)newMax) : String.format(Locale.ROOT, "%.1f", newMax);
         String regenStr = String.format(Locale.ROOT, "%.1f", newRegen);
 
-        p.sendTitle(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "✦ ANCIENT ASTRAL ROOT ✦",
+        p.sendTitle(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "✦ SWEET POTATO ✦",
                 ChatColor.AQUA + "Max Mana: " + maxStr + " (+" + gainStr + ") | " + ChatColor.GREEN + "Regen: " + regenStr + "/s", 10, 70, 20);
-        p.sendMessage(ChatColor.LIGHT_PURPLE + "[Evergarden] " + ChatColor.WHITE + "คุณบริโภค " + ChatColor.GOLD + "Ancient Astral Root " +
+        p.sendMessage(ChatColor.LIGHT_PURPLE + "[Evergarden] " + ChatColor.WHITE + "คุณบริโภค " + ChatColor.GOLD + "มันหวาน " +
                 ChatColor.WHITE + "ซึมซับพลังดวงดาวดึกดำบรรพ์! Max Mana: " + ChatColor.AQUA + maxStr + ChatColor.GREEN + " (+" + gainStr + ")" +
                 ChatColor.WHITE + " | Mana Regen: " + ChatColor.AQUA + regenStr + "/s");
         return true;
@@ -491,9 +491,9 @@ public final class CropBuffListener implements Listener, AutoCloseable {
         p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 30, 0.4, 0.6, 0.4, 0.1);
 
         String regenStr = String.format(Locale.ROOT, "%.1f", newRegen);
-        p.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "✦ YGGDRASIL SPROUT ✦",
+        p.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "✦ ASPARAGUS ✦",
                 ChatColor.AQUA + "Mana Regen: " + regenStr + "/s (+0.2/s)", 10, 60, 20);
-        p.sendMessage(ChatColor.LIGHT_PURPLE + "[Evergarden] " + ChatColor.WHITE + "คุณบริโภค " + ChatColor.GREEN + "หน่อไม้อิกดราซิล " +
+        p.sendMessage(ChatColor.LIGHT_PURPLE + "[Evergarden] " + ChatColor.WHITE + "คุณบริโภค " + ChatColor.GREEN + "หน่อไม้ฝรั่ง " +
                 ChatColor.WHITE + "อัตราฟื้นฟู Mana เพิ่มขึ้นเป็น: " + ChatColor.AQUA + regenStr + "/s");
         return true;
     }

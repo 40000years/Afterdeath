@@ -3,74 +3,74 @@ import math
 
 CROPS = [
     # Tier 1: Common Farm (6 crops)
-    {'id': 'mana_dew_berry', 'title': 'Mana Dew Berry', 'tier': 1, 'seed': 'beetroot_seeds', 'food': 'sweet_berries',
-     'pri': (50, 200, 255), 'sec': (20, 100, 210), 'acc': (210, 250, 255), 'shape': 'BERRY_BUNCH'},
-    {'id': 'chameleon_leaf', 'title': 'Chameleon Leaf', 'tier': 1, 'seed': 'wheat_seeds', 'food': 'dried_kelp',
-     'pri': (80, 175, 70), 'sec': (45, 105, 40), 'acc': (180, 215, 55), 'shape': 'LEAF_FROND'},
-    {'id': 'fairy_mushroom', 'title': 'Fairy Mushroom', 'tier': 1, 'seed': 'beetroot_seeds', 'food': 'cookie',
-     'pri': (250, 130, 185), 'sec': (180, 60, 115), 'acc': (255, 240, 250), 'shape': 'MUSHROOM'},
-    {'id': 'magnetic_squash', 'title': 'Magnetic Squash', 'tier': 1, 'seed': 'pumpkin_seeds', 'food': 'pumpkin_pie',
-     'pri': (55, 110, 205), 'sec': (25, 55, 125), 'acc': (235, 70, 65), 'shape': 'MELON_SQUASH'},
-    {'id': 'mountain_walker_bamboo', 'title': 'Mountain Walker Bamboo', 'tier': 1, 'seed': 'wheat_seeds', 'food': 'carrot',
-     'pri': (150, 185, 60), 'sec': (80, 115, 30), 'acc': (170, 120, 75), 'shape': 'BAMBOO_STALK'},
-    {'id': 'demeters_melon', 'title': "Demeter's Melon", 'tier': 1, 'seed': 'melon_seeds', 'food': 'melon_slice',
-     'pri': (40, 180, 85), 'sec': (20, 100, 45), 'acc': (255, 215, 50), 'shape': 'MELON_SQUASH'},
+    {'id': 'mana_dew_berry', 'title': 'Blueberry', 'tier': 1, 'seed': 'beetroot_seeds', 'food': 'sweet_berries',
+     'pri': (70, 82, 155), 'sec': (38, 46, 105), 'acc': (170, 180, 220), 'shape': 'BERRY_BUNCH'},
+    {'id': 'chameleon_leaf', 'title': 'Lettuce', 'tier': 1, 'seed': 'wheat_seeds', 'food': 'dried_kelp',
+     'pri': (105, 175, 65), 'sec': (50, 112, 42), 'acc': (180, 215, 100), 'shape': 'LEAF_FROND'},
+    {'id': 'fairy_mushroom', 'title': 'Truffle', 'tier': 1, 'seed': 'beetroot_seeds', 'food': 'cookie',
+     'pri': (125, 82, 52), 'sec': (72, 45, 30), 'acc': (175, 125, 82), 'shape': 'MUSHROOM'},
+    {'id': 'magnetic_squash', 'title': 'Butternut Squash', 'tier': 1, 'seed': 'pumpkin_seeds', 'food': 'pumpkin_pie',
+     'pri': (220, 155, 70), 'sec': (150, 92, 38), 'acc': (245, 195, 105), 'shape': 'MELON_SQUASH'},
+    {'id': 'mountain_walker_bamboo', 'title': 'Leek', 'tier': 1, 'seed': 'wheat_seeds', 'food': 'carrot',
+     'pri': (92, 165, 68), 'sec': (45, 105, 38), 'acc': (225, 230, 175), 'shape': 'BAMBOO_STALK'},
+    {'id': 'demeters_melon', 'title': "Papaya", 'tier': 1, 'seed': 'melon_seeds', 'food': 'melon_slice',
+     'pri': (235, 142, 45), 'sec': (155, 78, 25), 'acc': (70, 62, 32), 'shape': 'MELON_SQUASH'},
 
     # Tier 2: Combat & Slaying (6 crops)
-    {'id': 'blood_thorn_tomato', 'title': 'Blood Thorn Tomato', 'tier': 2, 'seed': 'pumpkin_seeds', 'food': 'apple',
+    {'id': 'blood_thorn_tomato', 'title': 'Tomato', 'tier': 2, 'seed': 'pumpkin_seeds', 'food': 'apple',
      'pri': (220, 30, 40), 'sec': (125, 15, 20), 'acc': (45, 45, 55), 'shape': 'ROUND_FRUIT'},
-    {'id': 'frostbite_radish', 'title': 'Frostbite Radish', 'tier': 2, 'seed': 'beetroot_seeds', 'food': 'carrot',
-     'pri': (120, 220, 255), 'sec': (60, 140, 210), 'acc': (255, 255, 255), 'shape': 'ROOT_TUBER'},
-    {'id': 'thunder_kernel_corn', 'title': 'Thunder Kernel Corn', 'tier': 2, 'seed': 'wheat_seeds', 'food': 'bread',
-     'pri': (255, 215, 30), 'sec': (190, 140, 10), 'acc': (100, 235, 255), 'shape': 'CORN_EAR'},
-    {'id': 'reapers_garlic', 'title': "Reaper's Garlic", 'tier': 2, 'seed': 'beetroot_seeds', 'food': 'golden_carrot',
-     'pri': (230, 230, 240), 'sec': (130, 120, 160), 'acc': (60, 30, 90), 'shape': 'BULB_GARLIC'},
-    {'id': 'titan_pumpkin', 'title': 'Titan Pumpkin', 'tier': 2, 'seed': 'pumpkin_seeds', 'food': 'pumpkin_pie',
-     'pri': (235, 125, 25), 'sec': (145, 65, 10), 'acc': (95, 115, 135), 'shape': 'MELON_SQUASH'},
-    {'id': 'kinetic_pea_pod', 'title': 'Kinetic Pea Pod', 'tier': 2, 'seed': 'wheat_seeds', 'food': 'sweet_berries',
+    {'id': 'frostbite_radish', 'title': 'Radish', 'tier': 2, 'seed': 'beetroot_seeds', 'food': 'carrot',
+     'pri': (205, 55, 78), 'sec': (135, 28, 48), 'acc': (245, 225, 210), 'shape': 'ROOT_TUBER'},
+    {'id': 'thunder_kernel_corn', 'title': 'Corn', 'tier': 2, 'seed': 'wheat_seeds', 'food': 'bread',
+     'pri': (245, 205, 45), 'sec': (175, 130, 18), 'acc': (255, 235, 110), 'shape': 'CORN_EAR'},
+    {'id': 'reapers_garlic', 'title': "Garlic", 'tier': 2, 'seed': 'beetroot_seeds', 'food': 'golden_carrot',
+     'pri': (225, 215, 190), 'sec': (155, 135, 110), 'acc': (195, 175, 145), 'shape': 'BULB_GARLIC'},
+    {'id': 'titan_pumpkin', 'title': 'Eggplant', 'tier': 2, 'seed': 'pumpkin_seeds', 'food': 'pumpkin_pie',
+     'pri': (104, 48, 135), 'sec': (55, 24, 78), 'acc': (78, 145, 62), 'shape': 'ROUND_FRUIT'},
+    {'id': 'kinetic_pea_pod', 'title': 'Green Peas', 'tier': 2, 'seed': 'wheat_seeds', 'food': 'sweet_berries',
      'pri': (110, 220, 40), 'sec': (50, 130, 20), 'acc': (215, 255, 75), 'shape': 'POD'},
 
     # Tier 3: Dimension & Survival (6 crops)
-    {'id': 'soul_ward_bulb', 'title': 'Soul Ward Bulb', 'tier': 3, 'seed': 'beetroot_seeds', 'food': 'golden_carrot',
-     'pri': (60, 220, 200), 'sec': (20, 120, 130), 'acc': (255, 255, 220), 'shape': 'BULB_GARLIC'},
-    {'id': 'void_feather_blossom', 'title': 'Void Feather Blossom', 'tier': 3, 'seed': 'torchflower_seeds', 'food': 'dried_kelp',
-     'pri': (190, 120, 250), 'sec': (105, 40, 165), 'acc': (245, 210, 255), 'shape': 'BLOSSOM'},
-    {'id': 'lodestone_gourd', 'title': 'Lodestone Gourd', 'tier': 3, 'seed': 'melon_seeds', 'food': 'apple',
-     'pri': (125, 130, 145), 'sec': (65, 70, 85), 'acc': (220, 90, 50), 'shape': 'ROUND_FRUIT'},
-    {'id': 'abyssal_kelp', 'title': 'Abyssal Kelp', 'tier': 3, 'seed': 'wheat_seeds', 'food': 'dried_kelp',
-     'pri': (25, 140, 150), 'sec': (10, 65, 80), 'acc': (60, 235, 215), 'shape': 'LEAF_FROND'},
-    {'id': 'glider_spore', 'title': 'Glider Spore', 'tier': 3, 'seed': 'beetroot_seeds', 'food': 'cookie',
-     'pri': (225, 220, 195), 'sec': (155, 145, 125), 'acc': (105, 195, 255), 'shape': 'SPORE'},
+    {'id': 'soul_ward_bulb', 'title': 'Onion', 'tier': 3, 'seed': 'beetroot_seeds', 'food': 'golden_carrot',
+     'pri': (220, 190, 125), 'sec': (150, 112, 68), 'acc': (238, 220, 175), 'shape': 'BULB_GARLIC'},
+    {'id': 'void_feather_blossom', 'title': 'Red Cabbage', 'tier': 3, 'seed': 'torchflower_seeds', 'food': 'dried_kelp',
+     'pri': (130, 68, 145), 'sec': (76, 38, 92), 'acc': (182, 120, 190), 'shape': 'BLOSSOM'},
+    {'id': 'lodestone_gourd', 'title': 'Bottle Gourd', 'tier': 3, 'seed': 'melon_seeds', 'food': 'apple',
+     'pri': (120, 165, 68), 'sec': (65, 108, 38), 'acc': (185, 205, 105), 'shape': 'ROUND_FRUIT'},
+    {'id': 'abyssal_kelp', 'title': 'Celery', 'tier': 3, 'seed': 'wheat_seeds', 'food': 'dried_kelp',
+     'pri': (88, 150, 65), 'sec': (45, 92, 38), 'acc': (165, 200, 112), 'shape': 'LEAF_FROND'},
+    {'id': 'glider_spore', 'title': 'Broccoli', 'tier': 3, 'seed': 'beetroot_seeds', 'food': 'cookie',
+     'pri': (52, 125, 58), 'sec': (25, 72, 34), 'acc': (98, 165, 76), 'shape': 'SPORE'},
     {'id': 'star_anise', 'title': 'Star Anise', 'tier': 3, 'seed': 'pitcher_pod', 'food': 'golden_carrot',
      'pri': (185, 125, 70), 'sec': (115, 70, 35), 'acc': (255, 240, 180), 'shape': 'STAR'},
 
     # Tier 4: Mining & Utility (6 crops)
-    {'id': 'fortune_beet', 'title': 'Fortune Beet', 'tier': 4, 'seed': 'beetroot_seeds', 'food': 'carrot',
-     'pri': (210, 35, 115), 'sec': (120, 15, 60), 'acc': (95, 235, 255), 'shape': 'ROOT_TUBER'},
-    {'id': 'lumberjack_acorn', 'title': 'Lumberjack Acorn', 'tier': 4, 'seed': 'wheat_seeds', 'food': 'cookie',
+    {'id': 'fortune_beet', 'title': 'Turnip', 'tier': 4, 'seed': 'beetroot_seeds', 'food': 'carrot',
+     'pri': (220, 205, 188), 'sec': (145, 118, 135), 'acc': (118, 168, 68), 'shape': 'ROOT_TUBER'},
+    {'id': 'lumberjack_acorn', 'title': 'Chestnut', 'tier': 4, 'seed': 'wheat_seeds', 'food': 'cookie',
      'pri': (175, 110, 55), 'sec': (100, 55, 25), 'acc': (225, 175, 105), 'shape': 'ACORN'},
-    {'id': 'prism_shard_carrot', 'title': 'Prism Shard Carrot', 'tier': 4, 'seed': 'pitcher_pod', 'food': 'golden_carrot',
-     'pri': (75, 185, 175), 'sec': (35, 105, 100), 'acc': (245, 130, 65), 'shape': 'ROOT_TUBER'},
-    {'id': 'goldleaf_herb', 'title': 'Goldleaf Herb', 'tier': 4, 'seed': 'torchflower_seeds', 'food': 'golden_apple',
-     'pri': (250, 205, 50), 'sec': (180, 135, 20), 'acc': (90, 210, 95), 'shape': 'LEAF_FROND'},
-    {'id': 'twilight_grape', 'title': 'Twilight Grape', 'tier': 4, 'seed': 'melon_seeds', 'food': 'sweet_berries',
+    {'id': 'prism_shard_carrot', 'title': 'Cassava', 'tier': 4, 'seed': 'pitcher_pod', 'food': 'golden_carrot',
+     'pri': (172, 112, 66), 'sec': (100, 62, 38), 'acc': (225, 184, 125), 'shape': 'ROOT_TUBER'},
+    {'id': 'goldleaf_herb', 'title': 'Spinach', 'tier': 4, 'seed': 'torchflower_seeds', 'food': 'golden_apple',
+     'pri': (58, 145, 62), 'sec': (28, 88, 35), 'acc': (105, 185, 90), 'shape': 'LEAF_FROND'},
+    {'id': 'twilight_grape', 'title': 'Grape', 'tier': 4, 'seed': 'melon_seeds', 'food': 'sweet_berries',
      'pri': (115, 50, 180), 'sec': (60, 20, 105), 'acc': (205, 135, 255), 'shape': 'BERRY_BUNCH'},
-    {'id': 'chrono_pepper', 'title': 'Chrono Pepper', 'tier': 4, 'seed': 'pumpkin_seeds', 'food': 'apple',
-     'pri': (255, 140, 20), 'sec': (190, 50, 10), 'acc': (255, 230, 100), 'shape': 'PEPPER_CHILI'},
+    {'id': 'chrono_pepper', 'title': 'Bell Pepper', 'tier': 4, 'seed': 'pumpkin_seeds', 'food': 'apple',
+     'pri': (225, 165, 35), 'sec': (155, 92, 18), 'acc': (245, 205, 75), 'shape': 'PEPPER_CHILI'},
 
     # Tier 5: Mythic Arcana (6 crops)
-    {'id': 'ancient_astral_root', 'title': 'Ancient Astral Root', 'tier': 5, 'seed': 'torchflower_seeds', 'food': 'golden_apple',
-     'pri': (130, 90, 240), 'sec': (60, 30, 140), 'acc': (255, 220, 90), 'shape': 'ROOT_TUBER'},
-    {'id': 'yggdrasil_sprout', 'title': 'Yggdrasil Sprout', 'tier': 5, 'seed': 'torchflower_seeds', 'food': 'golden_apple',
-     'pri': (40, 195, 95), 'sec': (20, 110, 50), 'acc': (255, 215, 60), 'shape': 'SPROUT_TREE'},
-    {'id': 'void_overcharge_fig', 'title': 'Void Overcharge Fig', 'tier': 5, 'seed': 'pitcher_pod', 'food': 'golden_carrot',
-     'pri': (175, 40, 225), 'sec': (85, 15, 125), 'acc': (255, 135, 245), 'shape': 'ROUND_FRUIT'},
-    {'id': 'ethereal_mint', 'title': 'Ethereal Mint', 'tier': 5, 'seed': 'wheat_seeds', 'food': 'apple',
-     'pri': (80, 240, 195), 'sec': (30, 140, 115), 'acc': (235, 255, 250), 'shape': 'LEAF_FROND'},
-    {'id': 'bloodburn_chili', 'title': 'Bloodburn Chili', 'tier': 5, 'seed': 'pumpkin_seeds', 'food': 'apple',
+    {'id': 'ancient_astral_root', 'title': 'Sweet Potato', 'tier': 5, 'seed': 'torchflower_seeds', 'food': 'golden_apple',
+     'pri': (155, 72, 78), 'sec': (92, 42, 48), 'acc': (205, 115, 82), 'shape': 'ROOT_TUBER'},
+    {'id': 'yggdrasil_sprout', 'title': 'Asparagus', 'tier': 5, 'seed': 'torchflower_seeds', 'food': 'golden_apple',
+     'pri': (72, 155, 72), 'sec': (35, 95, 42), 'acc': (125, 190, 92), 'shape': 'SPROUT_TREE'},
+    {'id': 'void_overcharge_fig', 'title': 'Fig', 'tier': 5, 'seed': 'pitcher_pod', 'food': 'golden_carrot',
+     'pri': (125, 62, 120), 'sec': (72, 32, 72), 'acc': (195, 115, 145), 'shape': 'ROUND_FRUIT'},
+    {'id': 'ethereal_mint', 'title': 'Mint', 'tier': 5, 'seed': 'wheat_seeds', 'food': 'apple',
+     'pri': (72, 165, 105), 'sec': (35, 98, 62), 'acc': (135, 205, 145), 'shape': 'LEAF_FROND'},
+    {'id': 'bloodburn_chili', 'title': 'Chili Pepper', 'tier': 5, 'seed': 'pumpkin_seeds', 'food': 'apple',
      'pri': (240, 45, 25), 'sec': (130, 15, 10), 'acc': (255, 190, 40), 'shape': 'PEPPER_CHILI'},
-    {'id': 'omni_pomegranate', 'title': 'Omni Pomegranate', 'tier': 5, 'seed': 'torchflower_seeds', 'food': 'golden_apple',
-     'pri': (220, 40, 80), 'sec': (110, 15, 40), 'acc': (80, 225, 245), 'shape': 'ROUND_FRUIT'},
+    {'id': 'omni_pomegranate', 'title': 'Pomegranate', 'tier': 5, 'seed': 'torchflower_seeds', 'food': 'golden_apple',
+     'pri': (195, 42, 58), 'sec': (105, 18, 30), 'acc': (235, 105, 92), 'shape': 'ROUND_FRUIT'},
 ]
 
 
@@ -357,80 +357,123 @@ def draw_food(info):
     return p
 
 def draw_crop_stage(info, stage):
-    """Draws 32x32 cross-model texture for crop stages (0=sprout, 1=growing, 2=mature)."""
+    """Draw a full-block, four-plane crop texture in the visual language of vanilla crops."""
     p = new_canvas()
     pri, sec, acc = info['pri'], info['sec'], info['acc']
     border = (20, 15, 25, 255)
 
-    # Soil mound at the base
-    for y in range(29, 32):
-        w = 12 - (y - 29) * 2
-        for x in range(16 - w, 16 + w + 1):
-            p[y][x] = (95, 60, 35, 255) if (x + y) % 2 == 0 else (75, 45, 25, 255)
+    leaf_dark = (42, 105, 38, 255)
+    leaf_mid = (67, 145, 48, 255)
+    leaf_light = (105, 180, 65, 255)
+
+    def ellipse(cx, cy, rx, ry, color, highlight=None):
+        for yy in range(max(0, cy-ry), min(32, cy+ry+1)):
+            for xx in range(max(0, cx-rx), min(32, cx+rx+1)):
+                d=((xx-cx)/max(1,rx))**2+((yy-cy)/max(1,ry))**2
+                if d <= 1:
+                    p[yy][xx] = highlight if highlight and xx <= cx-1 and yy <= cy-1 and d < .55 else color
+
+    def leaf(x1, y1, x2, y2, color=leaf_mid, width=1):
+        steps=max(abs(x2-x1),abs(y2-y1),1)
+        for n in range(steps+1):
+            xx=round(x1+(x2-x1)*n/steps); yy=round(y1+(y2-y1)*n/steps)
+            for ox in range(-width,width+1):
+                if 0<=xx+ox<32 and 0<=yy<32:p[yy][xx+ox]=color
 
     if stage == 0:
-        # Keep the first stage visibly smaller than stage 1, but large enough to
-        # survive Bedrock's armor-stand/attachable scaling at normal view range.
-        for y in range(17, 29):
-            p[y][15] = (70, 150, 50, 255)
-            p[y][16] = (90, 185, 65, 255)
-            p[y][17] = (105, 205, 75, 255)
-        for d in range(1, 7):
-            leaf_y = 23 - d // 2
-            p[leaf_y][16 - d] = (75, 185, 60, 255)
-            p[leaf_y][16 + d] = (85, 200, 70, 255)
-            if d >= 4:
-                p[leaf_y - 1][16 - d] = (100, 225, 80, 255)
-                p[leaf_y - 1][16 + d] = (100, 225, 80, 255)
-        p[18][14] = pri; p[17][15] = pri; p[16][16] = acc
-        p[18][18] = sec; p[17][17] = sec
+        # Compact two-leaf sprout, comparable to vanilla wheat/carrot stage 0.
+        leaf(16,31,16,20,leaf_mid,1)
+        leaf(16,27,10,22,leaf_dark,1)
+        leaf(16,25,22,20,leaf_light,1)
+        ellipse(16,20,2,2,blend(leaf_light,pri,.18),leaf_light)
 
     elif stage == 1:
-        for y in range(14, 29):
-            p[y][16] = (85, 175, 55, 255)
-            if y in (16, 21):
-                p[y][15] = (85, 175, 55, 255); p[y][17] = (85, 175, 55, 255)
-        for d in range(1, 5):
-            p[22 - d//2][16 - d] = (75, 185, 60, 255); p[22 - d//2][16 + d] = (75, 185, 60, 255)
-        p[20][11] = (90, 210, 75, 255); p[20][21] = (90, 210, 75, 255)
-        for d in range(1, 4):
-            p[17 - d//2][16 - d] = (75, 185, 60, 255); p[17 - d//2][16 + d] = (75, 185, 60, 255)
-        p[15][12] = (90, 210, 75, 255); p[15][20] = (90, 210, 75, 255)
-        p[13][16] = (85, 195, 60, 255); p[12][16] = (95, 215, 70, 255)
-        p[14][14] = sec; p[14][18] = sec
-        p[11][16] = pri; p[10][16] = acc
+        # Three young stems broaden naturally before the mature full-block canopy.
+        for x,top in ((10,16),(16,10),(22,15)):
+            leaf(x,31,x,top,leaf_mid,1)
+            leaf(x,25,x-6,19,leaf_dark,1)
+            leaf(x,22,x+6,16,leaf_light,1)
+            ellipse(x,top,2,2,blend(leaf_light,pri,.28),leaf_light)
 
     elif stage == 2:
-        for y in range(6, 29):
-            p[y][16] = (80, 165, 50, 255)
-            if y % 3 == 0:
-                p[y][15] = (70, 150, 45, 255); p[y][17] = (90, 180, 55, 255)
+        shape=info['shape']
 
-        for by, bx_span in ((21, 6), (16, 7), (11, 6), (7, 4)):
-            for d in range(1, bx_span + 1):
-                sy = by - int(d * 0.5)
-                p[sy][16 - d] = (75, 180, 55, 255); p[sy][16 + d] = (85, 195, 65, 255)
-                if d >= bx_span - 1:
-                    p[sy - 1][16 - d] = (95, 215, 75, 255); p[sy - 1][16 + d] = (95, 215, 75, 255)
-
-        fruit_coords = [(10, 17), (22, 17), (16, 6), (12, 12), (20, 12)]
-        for fx, fy in fruit_coords:
-            for dy in (-1, 0, 1):
-                for dx in (-1, 0, 1):
-                    if dx*dx + dy*dy <= 2:
-                        p[fy + dy][fx + dx] = pri
-            p[fy][fx] = acc
-            p[fy - 1][fx] = shade(pri, 1.25)
-            p[fy + 1][fx] = sec
-
-        p[5][16] = acc; p[4][16] = acc
-        p[5][15] = pri; p[5][17] = pri
-
-        if info['tier'] >= 4:
-            p[3][16] = (255, 255, 255, 255)
-            p[8][8] = acc; p[8][24] = acc
-        if info['tier'] == 5:
-            p[2][16] = acc; p[14][5] = acc; p[14][27] = acc
+        if shape == 'CORN_EAR':
+            # Tall stems and broad alternating leaves, like mature vanilla wheat.
+            for x in (11,16,21):
+                leaf(x,31,x,3,leaf_mid,1)
+                for yy in range(7,18):
+                    if yy%2==0:p[yy][x]=acc
+                ellipse(x+(3 if x!=21 else -3),14,2,6,pri,shade(pri,1.2))
+                leaf(x,25,x-7,18,leaf_dark,1);leaf(x,22,x+7,15,leaf_light,1)
+        elif shape in ('MELON_SQUASH','ROUND_FRUIT'):
+            # Ground vine with several large fruits; fills the lower block like potatoes.
+            leaf(1,28,30,24,leaf_mid,1);leaf(6,26,13,12,leaf_dark,1);leaf(24,25,19,10,leaf_mid,1)
+            for fx,fy,rx,ry in ((8,23,5,5),(22,22,5,6),(15,16,4,5)):
+                ellipse(fx,fy,rx,ry,pri,shade(pri,1.25));p[fy][fx]=acc;p[fy+2][fx]=sec
+            for fx,fy in ((3,19),(13,26),(28,17),(18,28)):
+                leaf(fx,fy,fx+(3 if fx<16 else -3),fy-5,leaf_light,1)
+        elif shape in ('MUSHROOM','SPORE'):
+            # A cluster of overlapping caps avoids the sparse single-mushroom look.
+            for cx,cy,rx,ry in ((8,19,7,4),(23,18,7,5),(15,10,8,5),(16,25,6,4)):
+                for yy in range(cy,30):
+                    if abs(yy-cy)<7:
+                        p[yy][cx]=shade(acc,.75)
+                        if cx+1<32:p[yy][cx+1]=shade(acc,.9)
+                ellipse(cx,cy,rx,ry,pri,shade(pri,1.22))
+                for sx in range(cx-rx+2,cx+rx-1,4):
+                    if 0<=sx<32 and 0<=cy<32:p[cy][sx]=acc
+        elif shape in ('ROOT_TUBER','BULB_GARLIC'):
+            # Roots stay mostly below soil; the visible crop is a broad leafy crown.
+            for base in (8,16,24):
+                leaf(base,31,base,14,leaf_mid,1)
+                leaf(base,25,base-7,14,leaf_dark,2);leaf(base,27,base+7,16,leaf_light,2)
+                leaf(base,21,base-5,8,leaf_mid,1);leaf(base,22,base+5,7,leaf_light,1)
+                ellipse(base,28,3,3,pri,shade(pri,1.2))
+        elif shape in ('LEAF_FROND','BLOSSOM','SPROUT_TREE'):
+            # Dense overlapping foliage for lettuce, cabbage, celery, spinach and herbs.
+            for cx,cy,rx,ry,col in ((7,23,7,6,leaf_dark),(24,22,7,7,leaf_mid),(15,17,9,8,leaf_light),
+                                    (8,11,6,7,leaf_mid),(23,9,6,7,leaf_dark),(16,27,10,5,leaf_mid)):
+                ellipse(cx,cy,rx,ry,col,shade(col,1.18))
+            if shape=='BLOSSOM':ellipse(16,14,7,7,pri,shade(pri,1.22))
+        elif shape in ('PEPPER_CHILI','POD'):
+            # Branching bush with clearly readable hanging peppers or pea pods.
+            leaf(16,31,16,5,leaf_mid,1)
+            for bx,by,side in ((16,10,-1),(16,15,1),(16,21,-1),(16,25,1)):
+                leaf(bx,by,bx+side*11,by-5,leaf_mid,1)
+                leaf(bx+side*3,by-1,bx+side*8,by-8,leaf_light,2)
+                fx=bx+side*9;fy=by+1
+                if shape=='POD':ellipse(fx,fy,2,5,pri,shade(pri,1.25))
+                else:
+                    ellipse(fx,fy,3,5,pri,shade(pri,1.25));p[min(31,fy+5)][fx+side]=sec
+        elif shape == 'BERRY_BUNCH':
+            # Full berry bush based on the dense final vanilla sweet-berry stage.
+            for cx,cy,rx,ry in ((7,23,7,7),(23,23,7,7),(15,15,9,8),(7,9,6,6),(24,8,6,6)):
+                ellipse(cx,cy,rx,ry,leaf_mid,leaf_light)
+            for fx,fy in ((4,22),(10,18),(20,24),(26,18),(12,11),(18,9),(6,7),(26,6),(16,19)):
+                ellipse(fx,fy,2,2,pri,shade(pri,1.3));p[fy+1][fx]=sec
+        elif shape == 'BAMBOO_STALK':
+            # Several leek-like stems spread across the whole block.
+            for x,h in ((5,20),(10,27),(16,30),(22,25),(27,19)):
+                for yy in range(31-h,32):
+                    p[yy][x]=acc;p[yy][min(31,x+1)]=pri
+                leaf(x,19,x-4,7,leaf_dark,1);leaf(x,17,x+4,4,leaf_light,1)
+        elif shape == 'STAR':
+            leaf(16,31,16,5,leaf_mid,1)
+            for fx,fy in ((6,20),(25,20),(9,10),(23,8),(16,15)):
+                leaf(16,24,fx,fy,leaf_mid,1)
+                for angle in range(0,360,60):
+                    rad=math.radians(angle)
+                    for d in range(1,4):
+                        xx=round(fx+math.cos(rad)*d);yy=round(fy+math.sin(rad)*d)
+                        if 0<=xx<32 and 0<=yy<32:p[yy][xx]=pri
+                p[fy][fx]=acc
+        else: # ACORN and any future compact produce
+            leaf(16,31,16,4,leaf_dark,1)
+            for cx,cy in ((7,22),(24,21),(13,13),(21,9),(6,7)):
+                ellipse(cx,cy,6,6,leaf_mid,leaf_light)
+            for fx,fy in ((7,23),(24,22),(13,14),(21,10)):
+                ellipse(fx,fy,3,4,pri,shade(pri,1.2));p[fy-3][fx]=sec
 
     # Outline pass (collect first, then apply to avoid cascading smear)
     border_pixels = []
@@ -455,6 +498,24 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
         'firstperson_righthand': {'rotation': [0, 45, 0], 'translation': [0, 0, 0], 'scale': [0.4, 0.4, 0.4]},
         'thirdperson_righthand': {'rotation': [75, 45, 0], 'translation': [0, 2.5, 0], 'scale': [0.375, 0.375, 0.375]}
     }
+
+    # Vanilla's crop.json uses four upright planes at 1/4 and 3/4 of the
+    # block, rather than the two diagonal planes used by block/cross. This is
+    # what makes wheat, carrots and potatoes form a full, dense field.
+    crop_faces_x = {
+        'west': {'uv': [0, 0, 16, 16], 'texture': '#crop'},
+        'east': {'uv': [16, 0, 0, 16], 'texture': '#crop'}
+    }
+    crop_faces_z = {
+        'north': {'uv': [0, 0, 16, 16], 'texture': '#crop'},
+        'south': {'uv': [16, 0, 0, 16], 'texture': '#crop'}
+    }
+    dense_crop_elements = [
+        {'from': [4, 0, 0], 'to': [4, 16, 16], 'shade': False, 'faces': crop_faces_x},
+        {'from': [12, 0, 0], 'to': [12, 16, 16], 'shade': False, 'faces': crop_faces_x},
+        {'from': [0, 0, 4], 'to': [16, 16, 4], 'shade': False, 'faces': crop_faces_z},
+        {'from': [0, 0, 12], 'to': [16, 16, 12], 'shade': False, 'faces': crop_faces_z}
+    ]
 
     for crop in CROPS:
         cid = crop['id']
@@ -527,10 +588,13 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
             textures['voidscape.' + stage_name] = {'textures': 'textures/items/' + stage_name}
 
             stage_model = {
-                'parent': 'minecraft:block/cross',
-                'textures': {'cross': 'voidscape:block/' + stage_name},
+                'ambientocclusion': False,
+                'textures': {'crop': 'voidscape:block/' + stage_name, 'particle': 'voidscape:block/' + stage_name},
+                'elements': dense_crop_elements,
                 'display': {**cross_display, 'head': {
-                    'rotation': [0, 0, 0], 'translation': [0, -4.5, 0], 'scale': [1.35, 1.35, 1.35]
+                    # The renderer uses a small armor stand for Geyser
+                    # compatibility. Scale 2 restores a true one-block crop.
+                    'rotation': [0, 0, 0], 'translation': [0, -4.0, 0], 'scale': [2.0, 2.0, 2.0]
                 }}
             }
             write_json(java / f'assets/voidscape/models/item/{stage_name}.json', stage_model)
@@ -549,7 +613,7 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
                 'minecraft:geometry': [{
                     'description': {
                         'identifier': geometry_id, 'texture_width': 32, 'texture_height': 32,
-                        'visible_bounds_width': 2, 'visible_bounds_height': 2,
+                        'visible_bounds_width': 3, 'visible_bounds_height': 3,
                         'visible_bounds_offset': [0, 1.75, 0]
                     },
                     'bones': [{
@@ -559,9 +623,13 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
                         'name': 'head',
                         'pivot': [0, 24, 0],
                         'cubes': [
-                            {'origin': [-8, 24, -0.25], 'size': [16, 16, 0.5],
+                            {'origin': [-16, 24, -8.25], 'size': [32, 32, 0.5],
                              'uv': {face: {'uv': [0, 0], 'uv_size': [32, 32]} for face in ('north', 'south')}},
-                            {'origin': [-0.25, 24, -8], 'size': [0.5, 16, 16],
+                            {'origin': [-16, 24, 7.75], 'size': [32, 32, 0.5],
+                             'uv': {face: {'uv': [0, 0], 'uv_size': [32, 32]} for face in ('north', 'south')}},
+                            {'origin': [-8.25, 24, -16], 'size': [0.5, 32, 32],
+                             'uv': {face: {'uv': [0, 0], 'uv_size': [32, 32]} for face in ('east', 'west')}},
+                            {'origin': [7.75, 24, -16], 'size': [0.5, 32, 32],
                              'uv': {face: {'uv': [0, 0], 'uv_size': [32, 32]} for face in ('east', 'west')}}
                         ]
                     }]

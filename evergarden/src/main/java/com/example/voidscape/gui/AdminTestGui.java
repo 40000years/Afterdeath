@@ -85,13 +85,13 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         inv.setItem(23, plugin.relics().createScrollUnique(UniqueEnchant.METEOR_ARROW));
         inv.setItem(24, plugin.relics().createScrollUnique(UniqueEnchant.SEISMIC_SLAM));
         inv.setItem(25, plugin.relics().createScrollUnique(UniqueEnchant.VEIN_SMELTER));
-        inv.setItem(26, plugin.relics().createScrollUnique(UniqueEnchant.BEDROCK_RESONANCE));
+        inv.setItem(26, plugin.relics().createScrollUnique(UniqueEnchant.ADVANCE_TOOL));
 
         // ==========================================
         // Row 3 (27-35): Farming & Melee Unique Enchants (9 ชิ้น)
         // ==========================================
         inv.setItem(27, plugin.relics().createScrollUnique(UniqueEnchant.DEMETER_SCYTHE));
-        inv.setItem(28, plugin.relics().createScrollUnique(UniqueEnchant.TIMBER_TITAN));
+        inv.setItem(28, plugin.relics().createScrollUnique(UniqueEnchant.TITAN_BREACH));
         inv.setItem(29, plugin.relics().createScrollUnique(UniqueEnchant.TELEPATHY));
         inv.setItem(30, plugin.relics().createScrollUnique(UniqueEnchant.GUILLOTINE));
         inv.setItem(31, plugin.relics().createScrollUnique(UniqueEnchant.ECHO_STRIKE));
@@ -379,7 +379,7 @@ public final class AdminTestGui implements InventoryHolder, Listener {
 
         attachUnique(meta, UniqueEnchant.SEISMIC_SLAM);
         attachUnique(meta, UniqueEnchant.VEIN_SMELTER);
-        attachUnique(meta, UniqueEnchant.BEDROCK_RESONANCE);
+        attachUnique(meta, UniqueEnchant.ADVANCE_TOOL);
         attachUnique(meta, UniqueEnchant.TELEPATHY);
 
         meta.lore(List.of(

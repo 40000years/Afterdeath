@@ -52,95 +52,9 @@ public final class ManaService {
     public void regenerate(Player p) { if(account(p).regenerate()) save(p); }
 
     public boolean drinkDragonBreath(Player p, ItemStack item, EquipmentSlot hand) {
-        long currentFullTime=p.getWorld().getFullTime();
-        long currentDay=currentFullTime/24000L;
-        var data=p.getPersistentDataContainer();
-        long lastDay=data.getOrDefault(key("last_dragon_day"),PersistentDataType.LONG,-1L);
-
-        if(currentDay==lastDay) {
-            long dayTime=currentFullTime%24000L;
-            long ticksRemaining=24000L-dayTime;
-            long totalSec=Math.max(1L,ticksRemaining/20L);
-            long minutes=totalSec/60L;
-            long seconds=totalSec%60L;
-            String timeStr=minutes>0?String.format(Locale.ROOT,"%d นาที %d วินาที",minutes,seconds)
-                                     :String.format(Locale.ROOT,"%d วินาที",seconds);
-            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                TextComponent.fromLegacyText(ChatColor.RED+"ดื่ม Dragon's Breath ได้วันละ 1 ครั้งในเกมเท่านั้น (รออีก "+timeStr+" หรือนอนข้ามคืน)"));
-            p.playSound(p.getLocation(),Sound.ENTITY_VILLAGER_NO,1.0f,1.0f);
-            return false;
-        }
-
-        CastAccount account=account(p);
-        double currentMax=account.maxMana();
-        if(currentMax>=300.0) {
-            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                TextComponent.fromLegacyText(ChatColor.LIGHT_PURPLE+"คุณมี Max Mana ถึงขีดจำกัดสูงสุดแล้ว (300/300)"));
-            p.playSound(p.getLocation(),Sound.ENTITY_VILLAGER_NO,1.0f,1.0f);
-            return false;
-        }
-
-        // Deduct 1 Dragon's Breath and give Glass Bottle
-        if(p.getGameMode()!=GameMode.CREATIVE) {
-            if(item.getAmount()>1) {
-                item.setAmount(item.getAmount()-1);
-                Map<Integer,ItemStack> leftover=p.getInventory().addItem(new ItemStack(Material.GLASS_BOTTLE));
-                if(!leftover.isEmpty()) {
-                    for(ItemStack drop:leftover.values())p.getWorld().dropItemNaturally(p.getLocation(),drop);
-                }
-            } else {
-                if(hand==EquipmentSlot.HAND) {
-                    p.getInventory().setItemInMainHand(new ItemStack(Material.GLASS_BOTTLE));
-                } else {
-                    p.getInventory().setItemInOffHand(new ItemStack(Material.GLASS_BOTTLE));
-                }
-            }
-        }
-
-        // Progression: <150 -> +5, <200 -> +2, <300 -> +0.5, cap 300
-        double gain;
-        if(currentMax<150.0) {
-            gain=5.0;
-        } else if(currentMax<200.0) {
-            gain=2.0;
-        } else {
-            gain=0.5;
-        }
-        double newMax=Math.min(300.0,currentMax+gain);
-        double newRegen=Math.min(15.0,account.regenRate()+0.2);
-        int drinks=data.getOrDefault(key("dragon_drinks"),PersistentDataType.INTEGER,0)+1;
-
-        account.setMaxMana(newMax);
-        account.setRegenRate(newRegen);
-        account.setMana(newMax); // Full replenish
-
-        data.set(key("last_dragon_day"),PersistentDataType.LONG,currentDay);
-        data.set(key("last_dragon_drink"),PersistentDataType.LONG,System.currentTimeMillis());
-        data.set(key("max_mana"),PersistentDataType.DOUBLE,newMax);
-        data.set(key("mana_regen"),PersistentDataType.DOUBLE,newRegen);
-        data.set(key("mana"),PersistentDataType.DOUBLE,newMax);
-        data.set(key("dragon_drinks"),PersistentDataType.INTEGER,drinks);
-
-        // Audio-visual feedback
-        p.playSound(p.getLocation(),Sound.ENTITY_GENERIC_DRINK,1.0f,1.0f);
-        p.playSound(p.getLocation(),Sound.ENTITY_ENDER_DRAGON_GROWL,0.7f,1.3f);
-        p.playSound(p.getLocation(),Sound.ENTITY_PLAYER_LEVELUP,1.0f,1.2f);
-        p.getWorld().spawnParticle(Particle.DRAGON_BREATH,p.getLocation().add(0,1,0),45,0.4,0.6,0.4,0.05,1.0f);
-        p.getWorld().spawnParticle(Particle.PORTAL,p.getLocation().add(0,1,0),30,0.5,0.5,0.5,0.1);
-
-        String gainStr=(gain==(long)gain)?String.format(Locale.ROOT,"%d",(long)gain):String.format(Locale.ROOT,"%.1f",gain);
-        String maxStr=(newMax==(long)newMax)?String.format(Locale.ROOT,"%d",(long)newMax):String.format(Locale.ROOT,"%.1f",newMax);
-        String regenStr=String.format(Locale.ROOT,"%.1f",newRegen);
-
-        p.sendTitle(ChatColor.LIGHT_PURPLE+""+ChatColor.BOLD+"DRAGON'S ESSENCE",
-            ChatColor.AQUA+"Max Mana: "+maxStr+" (+"+gainStr+") "+ChatColor.WHITE+"| "+ChatColor.GREEN+"Regen: "+regenStr+"/s",
-            10,60,20);
-        p.sendMessage(ChatColor.LIGHT_PURPLE+"[Advance Magic] "+ChatColor.WHITE+"คุณดื่ม "+ChatColor.DARK_PURPLE+"Dragon's Breath "+
-            ChatColor.WHITE+"ซึมซับพลังมังกรโบราณ! Max Mana: "+ChatColor.AQUA+maxStr+ChatColor.GREEN+" (+"+gainStr+")"+
-            ChatColor.WHITE+" | Mana Regen: "+ChatColor.AQUA+regenStr+"/s"+
-            ChatColor.GRAY+" (ดื่มสะสม "+drinks+" ครั้ง)");
-
-        save(p);
-        return true;
+        p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+            TextComponent.fromLegacyText(ChatColor.YELLOW+"ระบบ Dragon's Breath ถูกแทนที่ด้วยพืชผัก Evergarden (Ancient Astral Root & Yggdrasil Sprout) แล้ว"));
+        p.playSound(p.getLocation(),Sound.ENTITY_VILLAGER_NO,1.0f,1.0f);
+        return false;
     }
 }

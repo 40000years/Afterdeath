@@ -1,0 +1,18 @@
+/Users/user/Downloads/plugin/evergarden/src/main/java/com/example/voidscape/VoidscapePlugin.java:81: warning: [removal] DO_DAYLIGHT_CYCLE in GameRule has been deprecated and marked for removal
+            voidWorld.setGameRule(GameRule.DO_DAYLIGHT_CYCLE,false);
+                                          ^
+/Users/user/Downloads/plugin/evergarden/src/main/java/com/example/voidscape/VoidscapePlugin.java:82: warning: [removal] DO_WEATHER_CYCLE in GameRule has been deprecated and marked for removal
+            voidWorld.setGameRule(GameRule.DO_WEATHER_CYCLE,false);
+                                          ^
+/Users/user/Downloads/plugin/evergarden/src/main/java/com/example/voidscape/VoidscapePlugin.java:83: warning: [removal] DO_MOB_SPAWNING in GameRule has been deprecated and marked for removal
+            voidWorld.setGameRule(GameRule.DO_MOB_SPAWNING,false);
+                                          ^
+/Users/user/Downloads/plugin/evergarden/src/main/java/com/example/voidscape/VoidscapePlugin.java:84: warning: [removal] DO_PATROL_SPAWNING in GameRule has been deprecated and marked for removal
+            voidWorld.setGameRule(GameRule.DO_PATROL_SPAWNING,false);
+                                          ^
+/Users/user/Downloads/plugin/evergarden/src/main/java/com/example/voidscape/VoidscapePlugin.java:85: warning: [removal] DO_TRADER_SPAWNING in GameRule has been deprecated and marked for removal
+            voidWorld.setGameRule(GameRule.DO_TRADER_SPAWNING,false);
+                                          ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+5 warnings

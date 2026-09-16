@@ -394,7 +394,7 @@
           "value": "voidscape:seed_mana_dew_berry"
         },
         "bedrock_identifier": "voidscape:seed_mana_dew_berry",
-        "display_name": "Seed of Mana Dew Berry",
+        "display_name": "Seed of Blueberry",
         "bedrock_options": {
           "icon": "voidscape.seed_mana_dew_berry",
           "allow_offhand": true,
@@ -412,7 +412,7 @@
           "value": "voidscape:seed_fairy_mushroom"
         },
         "bedrock_identifier": "voidscape:seed_fairy_mushroom",
-        "display_name": "Seed of Fairy Mushroom",
+        "display_name": "Seed of Truffle",
         "bedrock_options": {
           "icon": "voidscape.seed_fairy_mushroom",
           "allow_offhand": true,
@@ -430,7 +430,7 @@
           "value": "voidscape:seed_frostbite_radish"
         },
         "bedrock_identifier": "voidscape:seed_frostbite_radish",
-        "display_name": "Seed of Frostbite Radish",
+        "display_name": "Seed of Radish",
         "bedrock_options": {
           "icon": "voidscape.seed_frostbite_radish",
           "allow_offhand": true,
@@ -448,7 +448,7 @@
           "value": "voidscape:seed_reapers_garlic"
         },
         "bedrock_identifier": "voidscape:seed_reapers_garlic",
-        "display_name": "Seed of Reaper's Garlic",
+        "display_name": "Seed of Garlic",
         "bedrock_options": {
           "icon": "voidscape.seed_reapers_garlic",
           "allow_offhand": true,
@@ -466,7 +466,7 @@
           "value": "voidscape:seed_soul_ward_bulb"
         },
         "bedrock_identifier": "voidscape:seed_soul_ward_bulb",
-        "display_name": "Seed of Soul Ward Bulb",
+        "display_name": "Seed of Onion",
         "bedrock_options": {
           "icon": "voidscape.seed_soul_ward_bulb",
           "allow_offhand": true,
@@ -484,7 +484,7 @@
           "value": "voidscape:seed_glider_spore"
         },
         "bedrock_identifier": "voidscape:seed_glider_spore",
-        "display_name": "Seed of Glider Spore",
+        "display_name": "Seed of Broccoli",
         "bedrock_options": {
           "icon": "voidscape.seed_glider_spore",
           "allow_offhand": true,
@@ -502,7 +502,7 @@
           "value": "voidscape:seed_fortune_beet"
         },
         "bedrock_identifier": "voidscape:seed_fortune_beet",
-        "display_name": "Seed of Fortune Beet",
+        "display_name": "Seed of Turnip",
         "bedrock_options": {
           "icon": "voidscape.seed_fortune_beet",
           "allow_offhand": true,
@@ -522,7 +522,7 @@
           "value": "voidscape:crop_mana_dew_berry"
         },
         "bedrock_identifier": "voidscape:crop_mana_dew_berry",
-        "display_name": "Mana Dew Berry",
+        "display_name": "Blueberry",
         "bedrock_options": {
           "icon": "voidscape.crop_mana_dew_berry",
           "allow_offhand": true,
@@ -540,7 +540,7 @@
           "value": "voidscape:crop_kinetic_pea_pod"
         },
         "bedrock_identifier": "voidscape:crop_kinetic_pea_pod",
-        "display_name": "Kinetic Pea Pod",
+        "display_name": "Green Peas",
         "bedrock_options": {
           "icon": "voidscape.crop_kinetic_pea_pod",
           "allow_offhand": true,
@@ -558,7 +558,7 @@
           "value": "voidscape:crop_twilight_grape"
         },
         "bedrock_identifier": "voidscape:crop_twilight_grape",
-        "display_name": "Twilight Grape",
+        "display_name": "Grape",
         "bedrock_options": {
           "icon": "voidscape.crop_twilight_grape",
           "allow_offhand": true,
@@ -578,7 +578,7 @@
           "value": "voidscape:crop_mana_dew_berry_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_mana_dew_berry_stage_0",
-        "display_name": "Mana Dew Berry (Stage 0)",
+        "display_name": "Blueberry (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_mana_dew_berry_stage_0",
           "allow_offhand": true,
@@ -596,7 +596,7 @@
           "value": "voidscape:crop_mana_dew_berry_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_mana_dew_berry_stage_1",
-        "display_name": "Mana Dew Berry (Stage 1)",
+        "display_name": "Blueberry (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_mana_dew_berry_stage_1",
           "allow_offhand": true,
@@ -614,7 +614,7 @@
           "value": "voidscape:crop_mana_dew_berry_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_mana_dew_berry_stage_2",
-        "display_name": "Mana Dew Berry (Stage 2)",
+        "display_name": "Blueberry (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_mana_dew_berry_stage_2",
           "allow_offhand": true,
@@ -632,7 +632,7 @@
           "value": "voidscape:crop_chameleon_leaf_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_chameleon_leaf_stage_0",
-        "display_name": "Chameleon Leaf (Stage 0)",
+        "display_name": "Lettuce (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_chameleon_leaf_stage_0",
           "allow_offhand": true,
@@ -650,7 +650,7 @@
           "value": "voidscape:crop_chameleon_leaf_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_chameleon_leaf_stage_1",
-        "display_name": "Chameleon Leaf (Stage 1)",
+        "display_name": "Lettuce (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_chameleon_leaf_stage_1",
           "allow_offhand": true,
@@ -668,7 +668,7 @@
           "value": "voidscape:crop_chameleon_leaf_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_chameleon_leaf_stage_2",
-        "display_name": "Chameleon Leaf (Stage 2)",
+        "display_name": "Lettuce (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_chameleon_leaf_stage_2",
           "allow_offhand": true,
@@ -686,7 +686,7 @@
           "value": "voidscape:crop_fairy_mushroom_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_fairy_mushroom_stage_0",
-        "display_name": "Fairy Mushroom (Stage 0)",
+        "display_name": "Truffle (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_fairy_mushroom_stage_0",
           "allow_offhand": true,
@@ -704,7 +704,7 @@
           "value": "voidscape:crop_fairy_mushroom_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_fairy_mushroom_stage_1",
-        "display_name": "Fairy Mushroom (Stage 1)",
+        "display_name": "Truffle (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_fairy_mushroom_stage_1",
           "allow_offhand": true,
@@ -722,7 +722,7 @@
           "value": "voidscape:crop_fairy_mushroom_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_fairy_mushroom_stage_2",
-        "display_name": "Fairy Mushroom (Stage 2)",
+        "display_name": "Truffle (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_fairy_mushroom_stage_2",
           "allow_offhand": true,
@@ -740,7 +740,7 @@
           "value": "voidscape:crop_magnetic_squash_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_magnetic_squash_stage_0",
-        "display_name": "Magnetic Squash (Stage 0)",
+        "display_name": "Butternut Squash (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_magnetic_squash_stage_0",
           "allow_offhand": true,
@@ -758,7 +758,7 @@
           "value": "voidscape:crop_magnetic_squash_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_magnetic_squash_stage_1",
-        "display_name": "Magnetic Squash (Stage 1)",
+        "display_name": "Butternut Squash (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_magnetic_squash_stage_1",
           "allow_offhand": true,
@@ -776,7 +776,7 @@
           "value": "voidscape:crop_magnetic_squash_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_magnetic_squash_stage_2",
-        "display_name": "Magnetic Squash (Stage 2)",
+        "display_name": "Butternut Squash (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_magnetic_squash_stage_2",
           "allow_offhand": true,
@@ -794,7 +794,7 @@
           "value": "voidscape:crop_mountain_walker_bamboo_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_mountain_walker_bamboo_stage_0",
-        "display_name": "Mountain Walker Bamboo (Stage 0)",
+        "display_name": "Leek (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_mountain_walker_bamboo_stage_0",
           "allow_offhand": true,
@@ -812,7 +812,7 @@
           "value": "voidscape:crop_mountain_walker_bamboo_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_mountain_walker_bamboo_stage_1",
-        "display_name": "Mountain Walker Bamboo (Stage 1)",
+        "display_name": "Leek (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_mountain_walker_bamboo_stage_1",
           "allow_offhand": true,
@@ -830,7 +830,7 @@
           "value": "voidscape:crop_mountain_walker_bamboo_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_mountain_walker_bamboo_stage_2",
-        "display_name": "Mountain Walker Bamboo (Stage 2)",
+        "display_name": "Leek (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_mountain_walker_bamboo_stage_2",
           "allow_offhand": true,
@@ -848,7 +848,7 @@
           "value": "voidscape:crop_demeters_melon_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_demeters_melon_stage_0",
-        "display_name": "Demeter's Melon (Stage 0)",
+        "display_name": "Papaya (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_demeters_melon_stage_0",
           "allow_offhand": true,
@@ -866,7 +866,7 @@
           "value": "voidscape:crop_demeters_melon_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_demeters_melon_stage_1",
-        "display_name": "Demeter's Melon (Stage 1)",
+        "display_name": "Papaya (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_demeters_melon_stage_1",
           "allow_offhand": true,
@@ -884,7 +884,7 @@
           "value": "voidscape:crop_demeters_melon_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_demeters_melon_stage_2",
-        "display_name": "Demeter's Melon (Stage 2)",
+        "display_name": "Papaya (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_demeters_melon_stage_2",
           "allow_offhand": true,
@@ -902,7 +902,7 @@
           "value": "voidscape:crop_blood_thorn_tomato_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_blood_thorn_tomato_stage_0",
-        "display_name": "Blood Thorn Tomato (Stage 0)",
+        "display_name": "Tomato (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_blood_thorn_tomato_stage_0",
           "allow_offhand": true,
@@ -920,7 +920,7 @@
           "value": "voidscape:crop_blood_thorn_tomato_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_blood_thorn_tomato_stage_1",
-        "display_name": "Blood Thorn Tomato (Stage 1)",
+        "display_name": "Tomato (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_blood_thorn_tomato_stage_1",
           "allow_offhand": true,
@@ -938,7 +938,7 @@
           "value": "voidscape:crop_blood_thorn_tomato_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_blood_thorn_tomato_stage_2",
-        "display_name": "Blood Thorn Tomato (Stage 2)",
+        "display_name": "Tomato (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_blood_thorn_tomato_stage_2",
           "allow_offhand": true,
@@ -956,7 +956,7 @@
           "value": "voidscape:crop_frostbite_radish_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_frostbite_radish_stage_0",
-        "display_name": "Frostbite Radish (Stage 0)",
+        "display_name": "Radish (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_frostbite_radish_stage_0",
           "allow_offhand": true,
@@ -974,7 +974,7 @@
           "value": "voidscape:crop_frostbite_radish_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_frostbite_radish_stage_1",
-        "display_name": "Frostbite Radish (Stage 1)",
+        "display_name": "Radish (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_frostbite_radish_stage_1",
           "allow_offhand": true,
@@ -992,7 +992,7 @@
           "value": "voidscape:crop_frostbite_radish_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_frostbite_radish_stage_2",
-        "display_name": "Frostbite Radish (Stage 2)",
+        "display_name": "Radish (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_frostbite_radish_stage_2",
           "allow_offhand": true,
@@ -1010,7 +1010,7 @@
           "value": "voidscape:crop_thunder_kernel_corn_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_thunder_kernel_corn_stage_0",
-        "display_name": "Thunder Kernel Corn (Stage 0)",
+        "display_name": "Corn (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_thunder_kernel_corn_stage_0",
           "allow_offhand": true,
@@ -1028,7 +1028,7 @@
           "value": "voidscape:crop_thunder_kernel_corn_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_thunder_kernel_corn_stage_1",
-        "display_name": "Thunder Kernel Corn (Stage 1)",
+        "display_name": "Corn (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_thunder_kernel_corn_stage_1",
           "allow_offhand": true,
@@ -1046,7 +1046,7 @@
           "value": "voidscape:crop_thunder_kernel_corn_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_thunder_kernel_corn_stage_2",
-        "display_name": "Thunder Kernel Corn (Stage 2)",
+        "display_name": "Corn (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_thunder_kernel_corn_stage_2",
           "allow_offhand": true,
@@ -1064,7 +1064,7 @@
           "value": "voidscape:crop_reapers_garlic_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_reapers_garlic_stage_0",
-        "display_name": "Reaper's Garlic (Stage 0)",
+        "display_name": "Garlic (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_reapers_garlic_stage_0",
           "allow_offhand": true,
@@ -1082,7 +1082,7 @@
           "value": "voidscape:crop_reapers_garlic_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_reapers_garlic_stage_1",
-        "display_name": "Reaper's Garlic (Stage 1)",
+        "display_name": "Garlic (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_reapers_garlic_stage_1",
           "allow_offhand": true,
@@ -1100,7 +1100,7 @@
           "value": "voidscape:crop_reapers_garlic_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_reapers_garlic_stage_2",
-        "display_name": "Reaper's Garlic (Stage 2)",
+        "display_name": "Garlic (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_reapers_garlic_stage_2",
           "allow_offhand": true,
@@ -1118,7 +1118,7 @@
           "value": "voidscape:crop_titan_pumpkin_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_titan_pumpkin_stage_0",
-        "display_name": "Titan Pumpkin (Stage 0)",
+        "display_name": "Eggplant (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_titan_pumpkin_stage_0",
           "allow_offhand": true,
@@ -1136,7 +1136,7 @@
           "value": "voidscape:crop_titan_pumpkin_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_titan_pumpkin_stage_1",
-        "display_name": "Titan Pumpkin (Stage 1)",
+        "display_name": "Eggplant (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_titan_pumpkin_stage_1",
           "allow_offhand": true,
@@ -1154,7 +1154,7 @@
           "value": "voidscape:crop_titan_pumpkin_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_titan_pumpkin_stage_2",
-        "display_name": "Titan Pumpkin (Stage 2)",
+        "display_name": "Eggplant (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_titan_pumpkin_stage_2",
           "allow_offhand": true,
@@ -1172,7 +1172,7 @@
           "value": "voidscape:crop_kinetic_pea_pod_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_kinetic_pea_pod_stage_0",
-        "display_name": "Kinetic Pea Pod (Stage 0)",
+        "display_name": "Green Peas (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_kinetic_pea_pod_stage_0",
           "allow_offhand": true,
@@ -1190,7 +1190,7 @@
           "value": "voidscape:crop_kinetic_pea_pod_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_kinetic_pea_pod_stage_1",
-        "display_name": "Kinetic Pea Pod (Stage 1)",
+        "display_name": "Green Peas (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_kinetic_pea_pod_stage_1",
           "allow_offhand": true,
@@ -1208,7 +1208,7 @@
           "value": "voidscape:crop_kinetic_pea_pod_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_kinetic_pea_pod_stage_2",
-        "display_name": "Kinetic Pea Pod (Stage 2)",
+        "display_name": "Green Peas (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_kinetic_pea_pod_stage_2",
           "allow_offhand": true,
@@ -1226,7 +1226,7 @@
           "value": "voidscape:crop_soul_ward_bulb_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_0",
-        "display_name": "Soul Ward Bulb (Stage 0)",
+        "display_name": "Onion (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_soul_ward_bulb_stage_0",
           "allow_offhand": true,
@@ -1244,7 +1244,7 @@
           "value": "voidscape:crop_soul_ward_bulb_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_1",
-        "display_name": "Soul Ward Bulb (Stage 1)",
+        "display_name": "Onion (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_soul_ward_bulb_stage_1",
           "allow_offhand": true,
@@ -1262,7 +1262,7 @@
           "value": "voidscape:crop_soul_ward_bulb_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_2",
-        "display_name": "Soul Ward Bulb (Stage 2)",
+        "display_name": "Onion (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_soul_ward_bulb_stage_2",
           "allow_offhand": true,
@@ -1280,7 +1280,7 @@
           "value": "voidscape:crop_void_feather_blossom_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_void_feather_blossom_stage_0",
-        "display_name": "Void Feather Blossom (Stage 0)",
+        "display_name": "Red Cabbage (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_void_feather_blossom_stage_0",
           "allow_offhand": true,
@@ -1298,7 +1298,7 @@
           "value": "voidscape:crop_void_feather_blossom_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_void_feather_blossom_stage_1",
-        "display_name": "Void Feather Blossom (Stage 1)",
+        "display_name": "Red Cabbage (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_void_feather_blossom_stage_1",
           "allow_offhand": true,
@@ -1316,7 +1316,7 @@
           "value": "voidscape:crop_void_feather_blossom_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_void_feather_blossom_stage_2",
-        "display_name": "Void Feather Blossom (Stage 2)",
+        "display_name": "Red Cabbage (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_void_feather_blossom_stage_2",
           "allow_offhand": true,
@@ -1334,7 +1334,7 @@
           "value": "voidscape:crop_lodestone_gourd_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_lodestone_gourd_stage_0",
-        "display_name": "Lodestone Gourd (Stage 0)",
+        "display_name": "Bottle Gourd (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_lodestone_gourd_stage_0",
           "allow_offhand": true,
@@ -1352,7 +1352,7 @@
           "value": "voidscape:crop_lodestone_gourd_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_lodestone_gourd_stage_1",
-        "display_name": "Lodestone Gourd (Stage 1)",
+        "display_name": "Bottle Gourd (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_lodestone_gourd_stage_1",
           "allow_offhand": true,
@@ -1370,7 +1370,7 @@
           "value": "voidscape:crop_lodestone_gourd_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_lodestone_gourd_stage_2",
-        "display_name": "Lodestone Gourd (Stage 2)",
+        "display_name": "Bottle Gourd (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_lodestone_gourd_stage_2",
           "allow_offhand": true,
@@ -1388,7 +1388,7 @@
           "value": "voidscape:crop_abyssal_kelp_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_abyssal_kelp_stage_0",
-        "display_name": "Abyssal Kelp (Stage 0)",
+        "display_name": "Celery (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_abyssal_kelp_stage_0",
           "allow_offhand": true,
@@ -1406,7 +1406,7 @@
           "value": "voidscape:crop_abyssal_kelp_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_abyssal_kelp_stage_1",
-        "display_name": "Abyssal Kelp (Stage 1)",
+        "display_name": "Celery (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_abyssal_kelp_stage_1",
           "allow_offhand": true,
@@ -1424,7 +1424,7 @@
           "value": "voidscape:crop_abyssal_kelp_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_abyssal_kelp_stage_2",
-        "display_name": "Abyssal Kelp (Stage 2)",
+        "display_name": "Celery (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_abyssal_kelp_stage_2",
           "allow_offhand": true,
@@ -1442,7 +1442,7 @@
           "value": "voidscape:crop_glider_spore_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_glider_spore_stage_0",
-        "display_name": "Glider Spore (Stage 0)",
+        "display_name": "Broccoli (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_glider_spore_stage_0",
           "allow_offhand": true,
@@ -1460,7 +1460,7 @@
           "value": "voidscape:crop_glider_spore_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_glider_spore_stage_1",
-        "display_name": "Glider Spore (Stage 1)",
+        "display_name": "Broccoli (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_glider_spore_stage_1",
           "allow_offhand": true,
@@ -1478,7 +1478,7 @@
           "value": "voidscape:crop_glider_spore_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_glider_spore_stage_2",
-        "display_name": "Glider Spore (Stage 2)",
+        "display_name": "Broccoli (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_glider_spore_stage_2",
           "allow_offhand": true,
@@ -1550,7 +1550,7 @@
           "value": "voidscape:crop_fortune_beet_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_fortune_beet_stage_0",
-        "display_name": "Fortune Beet (Stage 0)",
+        "display_name": "Turnip (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_fortune_beet_stage_0",
           "allow_offhand": true,
@@ -1568,7 +1568,7 @@
           "value": "voidscape:crop_fortune_beet_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_fortune_beet_stage_1",
-        "display_name": "Fortune Beet (Stage 1)",
+        "display_name": "Turnip (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_fortune_beet_stage_1",
           "allow_offhand": true,
@@ -1586,7 +1586,7 @@
           "value": "voidscape:crop_fortune_beet_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_fortune_beet_stage_2",
-        "display_name": "Fortune Beet (Stage 2)",
+        "display_name": "Turnip (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_fortune_beet_stage_2",
           "allow_offhand": true,
@@ -1604,7 +1604,7 @@
           "value": "voidscape:crop_lumberjack_acorn_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_0",
-        "display_name": "Lumberjack Acorn (Stage 0)",
+        "display_name": "Chestnut (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_lumberjack_acorn_stage_0",
           "allow_offhand": true,
@@ -1622,7 +1622,7 @@
           "value": "voidscape:crop_lumberjack_acorn_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_1",
-        "display_name": "Lumberjack Acorn (Stage 1)",
+        "display_name": "Chestnut (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_lumberjack_acorn_stage_1",
           "allow_offhand": true,
@@ -1640,7 +1640,7 @@
           "value": "voidscape:crop_lumberjack_acorn_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_2",
-        "display_name": "Lumberjack Acorn (Stage 2)",
+        "display_name": "Chestnut (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_lumberjack_acorn_stage_2",
           "allow_offhand": true,
@@ -1658,7 +1658,7 @@
           "value": "voidscape:crop_prism_shard_carrot_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_prism_shard_carrot_stage_0",
-        "display_name": "Prism Shard Carrot (Stage 0)",
+        "display_name": "Cassava (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_prism_shard_carrot_stage_0",
           "allow_offhand": true,
@@ -1676,7 +1676,7 @@
           "value": "voidscape:crop_prism_shard_carrot_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_prism_shard_carrot_stage_1",
-        "display_name": "Prism Shard Carrot (Stage 1)",
+        "display_name": "Cassava (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_prism_shard_carrot_stage_1",
           "allow_offhand": true,
@@ -1694,7 +1694,7 @@
           "value": "voidscape:crop_prism_shard_carrot_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_prism_shard_carrot_stage_2",
-        "display_name": "Prism Shard Carrot (Stage 2)",
+        "display_name": "Cassava (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_prism_shard_carrot_stage_2",
           "allow_offhand": true,
@@ -1712,7 +1712,7 @@
           "value": "voidscape:crop_goldleaf_herb_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_goldleaf_herb_stage_0",
-        "display_name": "Goldleaf Herb (Stage 0)",
+        "display_name": "Spinach (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_goldleaf_herb_stage_0",
           "allow_offhand": true,
@@ -1730,7 +1730,7 @@
           "value": "voidscape:crop_goldleaf_herb_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_goldleaf_herb_stage_1",
-        "display_name": "Goldleaf Herb (Stage 1)",
+        "display_name": "Spinach (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_goldleaf_herb_stage_1",
           "allow_offhand": true,
@@ -1748,7 +1748,7 @@
           "value": "voidscape:crop_goldleaf_herb_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_goldleaf_herb_stage_2",
-        "display_name": "Goldleaf Herb (Stage 2)",
+        "display_name": "Spinach (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_goldleaf_herb_stage_2",
           "allow_offhand": true,
@@ -1766,7 +1766,7 @@
           "value": "voidscape:crop_twilight_grape_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_twilight_grape_stage_0",
-        "display_name": "Twilight Grape (Stage 0)",
+        "display_name": "Grape (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_twilight_grape_stage_0",
           "allow_offhand": true,
@@ -1784,7 +1784,7 @@
           "value": "voidscape:crop_twilight_grape_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_twilight_grape_stage_1",
-        "display_name": "Twilight Grape (Stage 1)",
+        "display_name": "Grape (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_twilight_grape_stage_1",
           "allow_offhand": true,
@@ -1802,7 +1802,7 @@
           "value": "voidscape:crop_twilight_grape_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_twilight_grape_stage_2",
-        "display_name": "Twilight Grape (Stage 2)",
+        "display_name": "Grape (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_twilight_grape_stage_2",
           "allow_offhand": true,
@@ -1820,7 +1820,7 @@
           "value": "voidscape:crop_chrono_pepper_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_chrono_pepper_stage_0",
-        "display_name": "Chrono Pepper (Stage 0)",
+        "display_name": "Bell Pepper (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_chrono_pepper_stage_0",
           "allow_offhand": true,
@@ -1838,7 +1838,7 @@
           "value": "voidscape:crop_chrono_pepper_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_chrono_pepper_stage_1",
-        "display_name": "Chrono Pepper (Stage 1)",
+        "display_name": "Bell Pepper (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_chrono_pepper_stage_1",
           "allow_offhand": true,
@@ -1856,7 +1856,7 @@
           "value": "voidscape:crop_chrono_pepper_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_chrono_pepper_stage_2",
-        "display_name": "Chrono Pepper (Stage 2)",
+        "display_name": "Bell Pepper (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_chrono_pepper_stage_2",
           "allow_offhand": true,
@@ -1874,7 +1874,7 @@
           "value": "voidscape:crop_ancient_astral_root_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_ancient_astral_root_stage_0",
-        "display_name": "Ancient Astral Root (Stage 0)",
+        "display_name": "Sweet Potato (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_ancient_astral_root_stage_0",
           "allow_offhand": true,
@@ -1892,7 +1892,7 @@
           "value": "voidscape:crop_ancient_astral_root_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_ancient_astral_root_stage_1",
-        "display_name": "Ancient Astral Root (Stage 1)",
+        "display_name": "Sweet Potato (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_ancient_astral_root_stage_1",
           "allow_offhand": true,
@@ -1910,7 +1910,7 @@
           "value": "voidscape:crop_ancient_astral_root_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_ancient_astral_root_stage_2",
-        "display_name": "Ancient Astral Root (Stage 2)",
+        "display_name": "Sweet Potato (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_ancient_astral_root_stage_2",
           "allow_offhand": true,
@@ -1928,7 +1928,7 @@
           "value": "voidscape:crop_yggdrasil_sprout_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_yggdrasil_sprout_stage_0",
-        "display_name": "Yggdrasil Sprout (Stage 0)",
+        "display_name": "Asparagus (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_yggdrasil_sprout_stage_0",
           "allow_offhand": true,
@@ -1946,7 +1946,7 @@
           "value": "voidscape:crop_yggdrasil_sprout_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_yggdrasil_sprout_stage_1",
-        "display_name": "Yggdrasil Sprout (Stage 1)",
+        "display_name": "Asparagus (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_yggdrasil_sprout_stage_1",
           "allow_offhand": true,
@@ -1964,7 +1964,7 @@
           "value": "voidscape:crop_yggdrasil_sprout_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_yggdrasil_sprout_stage_2",
-        "display_name": "Yggdrasil Sprout (Stage 2)",
+        "display_name": "Asparagus (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_yggdrasil_sprout_stage_2",
           "allow_offhand": true,
@@ -1982,7 +1982,7 @@
           "value": "voidscape:crop_void_overcharge_fig_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_void_overcharge_fig_stage_0",
-        "display_name": "Void Overcharge Fig (Stage 0)",
+        "display_name": "Fig (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_void_overcharge_fig_stage_0",
           "allow_offhand": true,
@@ -2000,7 +2000,7 @@
           "value": "voidscape:crop_void_overcharge_fig_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_void_overcharge_fig_stage_1",
-        "display_name": "Void Overcharge Fig (Stage 1)",
+        "display_name": "Fig (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_void_overcharge_fig_stage_1",
           "allow_offhand": true,
@@ -2018,7 +2018,7 @@
           "value": "voidscape:crop_void_overcharge_fig_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_void_overcharge_fig_stage_2",
-        "display_name": "Void Overcharge Fig (Stage 2)",
+        "display_name": "Fig (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_void_overcharge_fig_stage_2",
           "allow_offhand": true,
@@ -2036,7 +2036,7 @@
           "value": "voidscape:crop_ethereal_mint_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_ethereal_mint_stage_0",
-        "display_name": "Ethereal Mint (Stage 0)",
+        "display_name": "Mint (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_ethereal_mint_stage_0",
           "allow_offhand": true,
@@ -2054,7 +2054,7 @@
           "value": "voidscape:crop_ethereal_mint_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_ethereal_mint_stage_1",
-        "display_name": "Ethereal Mint (Stage 1)",
+        "display_name": "Mint (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_ethereal_mint_stage_1",
           "allow_offhand": true,
@@ -2072,7 +2072,7 @@
           "value": "voidscape:crop_ethereal_mint_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_ethereal_mint_stage_2",
-        "display_name": "Ethereal Mint (Stage 2)",
+        "display_name": "Mint (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_ethereal_mint_stage_2",
           "allow_offhand": true,
@@ -2090,7 +2090,7 @@
           "value": "voidscape:crop_bloodburn_chili_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_bloodburn_chili_stage_0",
-        "display_name": "Bloodburn Chili (Stage 0)",
+        "display_name": "Chili Pepper (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_bloodburn_chili_stage_0",
           "allow_offhand": true,
@@ -2108,7 +2108,7 @@
           "value": "voidscape:crop_bloodburn_chili_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_bloodburn_chili_stage_1",
-        "display_name": "Bloodburn Chili (Stage 1)",
+        "display_name": "Chili Pepper (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_bloodburn_chili_stage_1",
           "allow_offhand": true,
@@ -2126,7 +2126,7 @@
           "value": "voidscape:crop_bloodburn_chili_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_bloodburn_chili_stage_2",
-        "display_name": "Bloodburn Chili (Stage 2)",
+        "display_name": "Chili Pepper (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_bloodburn_chili_stage_2",
           "allow_offhand": true,
@@ -2144,7 +2144,7 @@
           "value": "voidscape:crop_omni_pomegranate_stage_0"
         },
         "bedrock_identifier": "voidscape:crop_omni_pomegranate_stage_0",
-        "display_name": "Omni Pomegranate (Stage 0)",
+        "display_name": "Pomegranate (Stage 0)",
         "bedrock_options": {
           "icon": "voidscape.crop_omni_pomegranate_stage_0",
           "allow_offhand": true,
@@ -2162,7 +2162,7 @@
           "value": "voidscape:crop_omni_pomegranate_stage_1"
         },
         "bedrock_identifier": "voidscape:crop_omni_pomegranate_stage_1",
-        "display_name": "Omni Pomegranate (Stage 1)",
+        "display_name": "Pomegranate (Stage 1)",
         "bedrock_options": {
           "icon": "voidscape.crop_omni_pomegranate_stage_1",
           "allow_offhand": true,
@@ -2180,7 +2180,7 @@
           "value": "voidscape:crop_omni_pomegranate_stage_2"
         },
         "bedrock_identifier": "voidscape:crop_omni_pomegranate_stage_2",
-        "display_name": "Omni Pomegranate (Stage 2)",
+        "display_name": "Pomegranate (Stage 2)",
         "bedrock_options": {
           "icon": "voidscape.crop_omni_pomegranate_stage_2",
           "allow_offhand": true,
@@ -2217,7 +2217,7 @@
           "value": "voidscape:seed_chameleon_leaf"
         },
         "bedrock_identifier": "voidscape:seed_chameleon_leaf",
-        "display_name": "Seed of Chameleon Leaf",
+        "display_name": "Seed of Lettuce",
         "bedrock_options": {
           "icon": "voidscape.seed_chameleon_leaf",
           "allow_offhand": true,
@@ -2235,7 +2235,7 @@
           "value": "voidscape:seed_mountain_walker_bamboo"
         },
         "bedrock_identifier": "voidscape:seed_mountain_walker_bamboo",
-        "display_name": "Seed of Mountain Walker Bamboo",
+        "display_name": "Seed of Leek",
         "bedrock_options": {
           "icon": "voidscape.seed_mountain_walker_bamboo",
           "allow_offhand": true,
@@ -2253,7 +2253,7 @@
           "value": "voidscape:seed_thunder_kernel_corn"
         },
         "bedrock_identifier": "voidscape:seed_thunder_kernel_corn",
-        "display_name": "Seed of Thunder Kernel Corn",
+        "display_name": "Seed of Corn",
         "bedrock_options": {
           "icon": "voidscape.seed_thunder_kernel_corn",
           "allow_offhand": true,
@@ -2271,7 +2271,7 @@
           "value": "voidscape:seed_kinetic_pea_pod"
         },
         "bedrock_identifier": "voidscape:seed_kinetic_pea_pod",
-        "display_name": "Seed of Kinetic Pea Pod",
+        "display_name": "Seed of Green Peas",
         "bedrock_options": {
           "icon": "voidscape.seed_kinetic_pea_pod",
           "allow_offhand": true,
@@ -2289,7 +2289,7 @@
           "value": "voidscape:seed_abyssal_kelp"
         },
         "bedrock_identifier": "voidscape:seed_abyssal_kelp",
-        "display_name": "Seed of Abyssal Kelp",
+        "display_name": "Seed of Celery",
         "bedrock_options": {
           "icon": "voidscape.seed_abyssal_kelp",
           "allow_offhand": true,
@@ -2307,7 +2307,7 @@
           "value": "voidscape:seed_lumberjack_acorn"
         },
         "bedrock_identifier": "voidscape:seed_lumberjack_acorn",
-        "display_name": "Seed of Lumberjack Acorn",
+        "display_name": "Seed of Chestnut",
         "bedrock_options": {
           "icon": "voidscape.seed_lumberjack_acorn",
           "allow_offhand": true,
@@ -2325,7 +2325,7 @@
           "value": "voidscape:seed_ethereal_mint"
         },
         "bedrock_identifier": "voidscape:seed_ethereal_mint",
-        "display_name": "Seed of Ethereal Mint",
+        "display_name": "Seed of Mint",
         "bedrock_options": {
           "icon": "voidscape.seed_ethereal_mint",
           "allow_offhand": true,
@@ -2345,7 +2345,7 @@
           "value": "voidscape:crop_chameleon_leaf"
         },
         "bedrock_identifier": "voidscape:crop_chameleon_leaf",
-        "display_name": "Chameleon Leaf",
+        "display_name": "Lettuce",
         "bedrock_options": {
           "icon": "voidscape.crop_chameleon_leaf",
           "allow_offhand": true,
@@ -2363,7 +2363,7 @@
           "value": "voidscape:crop_void_feather_blossom"
         },
         "bedrock_identifier": "voidscape:crop_void_feather_blossom",
-        "display_name": "Void Feather Blossom",
+        "display_name": "Red Cabbage",
         "bedrock_options": {
           "icon": "voidscape.crop_void_feather_blossom",
           "allow_offhand": true,
@@ -2381,7 +2381,7 @@
           "value": "voidscape:crop_abyssal_kelp"
         },
         "bedrock_identifier": "voidscape:crop_abyssal_kelp",
-        "display_name": "Abyssal Kelp",
+        "display_name": "Celery",
         "bedrock_options": {
           "icon": "voidscape.crop_abyssal_kelp",
           "allow_offhand": true,
@@ -2401,7 +2401,7 @@
           "value": "voidscape:crop_fairy_mushroom"
         },
         "bedrock_identifier": "voidscape:crop_fairy_mushroom",
-        "display_name": "Fairy Mushroom",
+        "display_name": "Truffle",
         "bedrock_options": {
           "icon": "voidscape.crop_fairy_mushroom",
           "allow_offhand": true,
@@ -2419,7 +2419,7 @@
           "value": "voidscape:crop_glider_spore"
         },
         "bedrock_identifier": "voidscape:crop_glider_spore",
-        "display_name": "Glider Spore",
+        "display_name": "Broccoli",
         "bedrock_options": {
           "icon": "voidscape.crop_glider_spore",
           "allow_offhand": true,
@@ -2437,7 +2437,7 @@
           "value": "voidscape:crop_lumberjack_acorn"
         },
         "bedrock_identifier": "voidscape:crop_lumberjack_acorn",
-        "display_name": "Lumberjack Acorn",
+        "display_name": "Chestnut",
         "bedrock_options": {
           "icon": "voidscape.crop_lumberjack_acorn",
           "allow_offhand": true,
@@ -2457,7 +2457,7 @@
           "value": "voidscape:seed_magnetic_squash"
         },
         "bedrock_identifier": "voidscape:seed_magnetic_squash",
-        "display_name": "Seed of Magnetic Squash",
+        "display_name": "Seed of Butternut Squash",
         "bedrock_options": {
           "icon": "voidscape.seed_magnetic_squash",
           "allow_offhand": true,
@@ -2475,7 +2475,7 @@
           "value": "voidscape:seed_blood_thorn_tomato"
         },
         "bedrock_identifier": "voidscape:seed_blood_thorn_tomato",
-        "display_name": "Seed of Blood Thorn Tomato",
+        "display_name": "Seed of Tomato",
         "bedrock_options": {
           "icon": "voidscape.seed_blood_thorn_tomato",
           "allow_offhand": true,
@@ -2493,7 +2493,7 @@
           "value": "voidscape:seed_titan_pumpkin"
         },
         "bedrock_identifier": "voidscape:seed_titan_pumpkin",
-        "display_name": "Seed of Titan Pumpkin",
+        "display_name": "Seed of Eggplant",
         "bedrock_options": {
           "icon": "voidscape.seed_titan_pumpkin",
           "allow_offhand": true,
@@ -2511,7 +2511,7 @@
           "value": "voidscape:seed_chrono_pepper"
         },
         "bedrock_identifier": "voidscape:seed_chrono_pepper",
-        "display_name": "Seed of Chrono Pepper",
+        "display_name": "Seed of Bell Pepper",
         "bedrock_options": {
           "icon": "voidscape.seed_chrono_pepper",
           "allow_offhand": true,
@@ -2529,7 +2529,7 @@
           "value": "voidscape:seed_bloodburn_chili"
         },
         "bedrock_identifier": "voidscape:seed_bloodburn_chili",
-        "display_name": "Seed of Bloodburn Chili",
+        "display_name": "Seed of Chili Pepper",
         "bedrock_options": {
           "icon": "voidscape.seed_bloodburn_chili",
           "allow_offhand": true,
@@ -2549,7 +2549,7 @@
           "value": "voidscape:crop_magnetic_squash"
         },
         "bedrock_identifier": "voidscape:crop_magnetic_squash",
-        "display_name": "Magnetic Squash",
+        "display_name": "Butternut Squash",
         "bedrock_options": {
           "icon": "voidscape.crop_magnetic_squash",
           "allow_offhand": true,
@@ -2567,7 +2567,7 @@
           "value": "voidscape:crop_titan_pumpkin"
         },
         "bedrock_identifier": "voidscape:crop_titan_pumpkin",
-        "display_name": "Titan Pumpkin",
+        "display_name": "Eggplant",
         "bedrock_options": {
           "icon": "voidscape.crop_titan_pumpkin",
           "allow_offhand": true,
@@ -2587,7 +2587,7 @@
           "value": "voidscape:crop_mountain_walker_bamboo"
         },
         "bedrock_identifier": "voidscape:crop_mountain_walker_bamboo",
-        "display_name": "Mountain Walker Bamboo",
+        "display_name": "Leek",
         "bedrock_options": {
           "icon": "voidscape.crop_mountain_walker_bamboo",
           "allow_offhand": true,
@@ -2605,7 +2605,7 @@
           "value": "voidscape:crop_frostbite_radish"
         },
         "bedrock_identifier": "voidscape:crop_frostbite_radish",
-        "display_name": "Frostbite Radish",
+        "display_name": "Radish",
         "bedrock_options": {
           "icon": "voidscape.crop_frostbite_radish",
           "allow_offhand": true,
@@ -2623,7 +2623,7 @@
           "value": "voidscape:crop_fortune_beet"
         },
         "bedrock_identifier": "voidscape:crop_fortune_beet",
-        "display_name": "Fortune Beet",
+        "display_name": "Turnip",
         "bedrock_options": {
           "icon": "voidscape.crop_fortune_beet",
           "allow_offhand": true,
@@ -2643,7 +2643,7 @@
           "value": "voidscape:seed_demeters_melon"
         },
         "bedrock_identifier": "voidscape:seed_demeters_melon",
-        "display_name": "Seed of Demeter's Melon",
+        "display_name": "Seed of Papaya",
         "bedrock_options": {
           "icon": "voidscape.seed_demeters_melon",
           "allow_offhand": true,
@@ -2661,7 +2661,7 @@
           "value": "voidscape:seed_lodestone_gourd"
         },
         "bedrock_identifier": "voidscape:seed_lodestone_gourd",
-        "display_name": "Seed of Lodestone Gourd",
+        "display_name": "Seed of Bottle Gourd",
         "bedrock_options": {
           "icon": "voidscape.seed_lodestone_gourd",
           "allow_offhand": true,
@@ -2679,7 +2679,7 @@
           "value": "voidscape:seed_twilight_grape"
         },
         "bedrock_identifier": "voidscape:seed_twilight_grape",
-        "display_name": "Seed of Twilight Grape",
+        "display_name": "Seed of Grape",
         "bedrock_options": {
           "icon": "voidscape.seed_twilight_grape",
           "allow_offhand": true,
@@ -2699,7 +2699,7 @@
           "value": "voidscape:crop_demeters_melon"
         },
         "bedrock_identifier": "voidscape:crop_demeters_melon",
-        "display_name": "Demeter's Melon",
+        "display_name": "Papaya",
         "bedrock_options": {
           "icon": "voidscape.crop_demeters_melon",
           "allow_offhand": true,
@@ -2719,7 +2719,7 @@
           "value": "voidscape:crop_blood_thorn_tomato"
         },
         "bedrock_identifier": "voidscape:crop_blood_thorn_tomato",
-        "display_name": "Blood Thorn Tomato",
+        "display_name": "Tomato",
         "bedrock_options": {
           "icon": "voidscape.crop_blood_thorn_tomato",
           "allow_offhand": true,
@@ -2737,7 +2737,7 @@
           "value": "voidscape:crop_lodestone_gourd"
         },
         "bedrock_identifier": "voidscape:crop_lodestone_gourd",
-        "display_name": "Lodestone Gourd",
+        "display_name": "Bottle Gourd",
         "bedrock_options": {
           "icon": "voidscape.crop_lodestone_gourd",
           "allow_offhand": true,
@@ -2755,7 +2755,7 @@
           "value": "voidscape:crop_chrono_pepper"
         },
         "bedrock_identifier": "voidscape:crop_chrono_pepper",
-        "display_name": "Chrono Pepper",
+        "display_name": "Bell Pepper",
         "bedrock_options": {
           "icon": "voidscape.crop_chrono_pepper",
           "allow_offhand": true,
@@ -2773,7 +2773,7 @@
           "value": "voidscape:crop_ethereal_mint"
         },
         "bedrock_identifier": "voidscape:crop_ethereal_mint",
-        "display_name": "Ethereal Mint",
+        "display_name": "Mint",
         "bedrock_options": {
           "icon": "voidscape.crop_ethereal_mint",
           "allow_offhand": true,
@@ -2791,7 +2791,7 @@
           "value": "voidscape:crop_bloodburn_chili"
         },
         "bedrock_identifier": "voidscape:crop_bloodburn_chili",
-        "display_name": "Bloodburn Chili",
+        "display_name": "Chili Pepper",
         "bedrock_options": {
           "icon": "voidscape.crop_bloodburn_chili",
           "allow_offhand": true,
@@ -2811,7 +2811,7 @@
           "value": "voidscape:crop_thunder_kernel_corn"
         },
         "bedrock_identifier": "voidscape:crop_thunder_kernel_corn",
-        "display_name": "Thunder Kernel Corn",
+        "display_name": "Corn",
         "bedrock_options": {
           "icon": "voidscape.crop_thunder_kernel_corn",
           "allow_offhand": true,
@@ -2831,7 +2831,7 @@
           "value": "voidscape:crop_reapers_garlic"
         },
         "bedrock_identifier": "voidscape:crop_reapers_garlic",
-        "display_name": "Reaper's Garlic",
+        "display_name": "Garlic",
         "bedrock_options": {
           "icon": "voidscape.crop_reapers_garlic",
           "allow_offhand": true,
@@ -2849,7 +2849,7 @@
           "value": "voidscape:crop_soul_ward_bulb"
         },
         "bedrock_identifier": "voidscape:crop_soul_ward_bulb",
-        "display_name": "Soul Ward Bulb",
+        "display_name": "Onion",
         "bedrock_options": {
           "icon": "voidscape.crop_soul_ward_bulb",
           "allow_offhand": true,
@@ -2885,7 +2885,7 @@
           "value": "voidscape:crop_prism_shard_carrot"
         },
         "bedrock_identifier": "voidscape:crop_prism_shard_carrot",
-        "display_name": "Prism Shard Carrot",
+        "display_name": "Cassava",
         "bedrock_options": {
           "icon": "voidscape.crop_prism_shard_carrot",
           "allow_offhand": true,
@@ -2903,7 +2903,7 @@
           "value": "voidscape:crop_void_overcharge_fig"
         },
         "bedrock_identifier": "voidscape:crop_void_overcharge_fig",
-        "display_name": "Void Overcharge Fig",
+        "display_name": "Fig",
         "bedrock_options": {
           "icon": "voidscape.crop_void_overcharge_fig",
           "allow_offhand": true,
@@ -2923,7 +2923,7 @@
           "value": "voidscape:seed_void_feather_blossom"
         },
         "bedrock_identifier": "voidscape:seed_void_feather_blossom",
-        "display_name": "Seed of Void Feather Blossom",
+        "display_name": "Seed of Red Cabbage",
         "bedrock_options": {
           "icon": "voidscape.seed_void_feather_blossom",
           "allow_offhand": true,
@@ -2941,7 +2941,7 @@
           "value": "voidscape:seed_goldleaf_herb"
         },
         "bedrock_identifier": "voidscape:seed_goldleaf_herb",
-        "display_name": "Seed of Goldleaf Herb",
+        "display_name": "Seed of Spinach",
         "bedrock_options": {
           "icon": "voidscape.seed_goldleaf_herb",
           "allow_offhand": true,
@@ -2959,7 +2959,7 @@
           "value": "voidscape:seed_ancient_astral_root"
         },
         "bedrock_identifier": "voidscape:seed_ancient_astral_root",
-        "display_name": "Seed of Ancient Astral Root",
+        "display_name": "Seed of Sweet Potato",
         "bedrock_options": {
           "icon": "voidscape.seed_ancient_astral_root",
           "allow_offhand": true,
@@ -2977,7 +2977,7 @@
           "value": "voidscape:seed_yggdrasil_sprout"
         },
         "bedrock_identifier": "voidscape:seed_yggdrasil_sprout",
-        "display_name": "Seed of Yggdrasil Sprout",
+        "display_name": "Seed of Asparagus",
         "bedrock_options": {
           "icon": "voidscape.seed_yggdrasil_sprout",
           "allow_offhand": true,
@@ -2995,7 +2995,7 @@
           "value": "voidscape:seed_omni_pomegranate"
         },
         "bedrock_identifier": "voidscape:seed_omni_pomegranate",
-        "display_name": "Seed of Omni Pomegranate",
+        "display_name": "Seed of Pomegranate",
         "bedrock_options": {
           "icon": "voidscape.seed_omni_pomegranate",
           "allow_offhand": true,
@@ -3033,7 +3033,7 @@
           "value": "voidscape:seed_prism_shard_carrot"
         },
         "bedrock_identifier": "voidscape:seed_prism_shard_carrot",
-        "display_name": "Seed of Prism Shard Carrot",
+        "display_name": "Seed of Cassava",
         "bedrock_options": {
           "icon": "voidscape.seed_prism_shard_carrot",
           "allow_offhand": true,
@@ -3051,7 +3051,7 @@
           "value": "voidscape:seed_void_overcharge_fig"
         },
         "bedrock_identifier": "voidscape:seed_void_overcharge_fig",
-        "display_name": "Seed of Void Overcharge Fig",
+        "display_name": "Seed of Fig",
         "bedrock_options": {
           "icon": "voidscape.seed_void_overcharge_fig",
           "allow_offhand": true,
@@ -3071,7 +3071,7 @@
           "value": "voidscape:crop_goldleaf_herb"
         },
         "bedrock_identifier": "voidscape:crop_goldleaf_herb",
-        "display_name": "Goldleaf Herb",
+        "display_name": "Spinach",
         "bedrock_options": {
           "icon": "voidscape.crop_goldleaf_herb",
           "allow_offhand": true,
@@ -3089,7 +3089,7 @@
           "value": "voidscape:crop_ancient_astral_root"
         },
         "bedrock_identifier": "voidscape:crop_ancient_astral_root",
-        "display_name": "Ancient Astral Root",
+        "display_name": "Sweet Potato",
         "bedrock_options": {
           "icon": "voidscape.crop_ancient_astral_root",
           "allow_offhand": true,
@@ -3107,7 +3107,7 @@
           "value": "voidscape:crop_yggdrasil_sprout"
         },
         "bedrock_identifier": "voidscape:crop_yggdrasil_sprout",
-        "display_name": "Yggdrasil Sprout",
+        "display_name": "Asparagus",
         "bedrock_options": {
           "icon": "voidscape.crop_yggdrasil_sprout",
           "allow_offhand": true,
@@ -3125,7 +3125,7 @@
           "value": "voidscape:crop_omni_pomegranate"
         },
         "bedrock_identifier": "voidscape:crop_omni_pomegranate",
-        "display_name": "Omni Pomegranate",
+        "display_name": "Pomegranate",
         "bedrock_options": {
           "icon": "voidscape.crop_omni_pomegranate",
           "allow_offhand": true,

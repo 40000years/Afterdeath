@@ -21,7 +21,9 @@ public final class ProjectileSpells implements Listener {
     private final Map<UUID,Shot> shots=new HashMap<>();
     public ProjectileSpells(MagicContext c){this.c=c;managed=new NamespacedKey(c.plugin,"projectile");}
     private <T extends Projectile> T launch(EffectEngine.Effect scope,Spell spell,Class<T> type,Vector velocity,Consumer<T> setup,Consumer<Location> impact) {
-        T projectile=scope.track(scope.owner.launchProjectile(type,velocity));
+        double mult = c.getCastVelocityMultiplier(scope.owner.getUniqueId());
+        Vector finalVel = mult != 1.0 ? velocity.clone().multiply(mult) : velocity;
+        T projectile=scope.track(scope.owner.launchProjectile(type,finalVel));
         projectile.getPersistentDataContainer().set(managed,PersistentDataType.BYTE,(byte)1);
         setup.accept(projectile);
         shots.put(projectile.getUniqueId(),new Shot(scope.owner,spell,projectile,impact));

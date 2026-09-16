@@ -328,7 +328,7 @@ public final class UniqueAbilityListener implements Listener {
         if (tool == null || !tool.hasItemMeta()) return;
 
         // Bedrock Resonance (Sonar Radar on Right-Click)
-        if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.BEDROCK_RESONANCE)) {
+        if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.ADVANCE_TOOL)) {
             event.setCancelled(true);
             triggerBedrockSonar(player, player.getLocation().getBlock(), true);
         }
@@ -345,7 +345,7 @@ public final class UniqueAbilityListener implements Listener {
         Block origin = event.getBlock();
 
         // 1. Bedrock Resonance (Passive sonar ping while mining)
-        if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.BEDROCK_RESONANCE)) {
+        if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.ADVANCE_TOOL)) {
             triggerBedrockSonar(player, origin, false);
         }
 
@@ -357,7 +357,7 @@ public final class UniqueAbilityListener implements Listener {
         }
 
         // 3. Timber Titan (Fell whole tree for Axes)
-        if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.TIMBER_TITAN) && Tag.LOGS.isTagged(origin.getType())) {
+        if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.TITAN_BREACH) && Tag.LOGS.isTagged(origin.getType())) {
             fellTree(player, origin);
             return;
         }

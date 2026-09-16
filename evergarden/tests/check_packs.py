@@ -61,10 +61,12 @@ with zipfile.ZipFile(dist / 'evergarden-java.zip') as java, zipfile.ZipFile(dist
                     assert geometry['bones'][0]['name'] == 'head'
                     assert geometry['bones'][0]['pivot'] == [0, 24, 0]
                     assert base == 'minecraft:iron_helmet', 'Plant attachables require a head-equippable base'
-                    assert len(geometry['bones'][0]['cubes']) == 2
+                    # Match vanilla crop.json density: two X planes plus two Z planes.
+                    assert len(geometry['bones'][0]['cubes']) == 4
                     # Box UV previously sampled only the top of the sprite,
                     # clipping the sprout drawn in its lower half.
-                    for cube, faces in zip(geometry['bones'][0]['cubes'], [('north', 'south'), ('east', 'west')]):
+                    plane_faces = [('north', 'south'), ('north', 'south'), ('east', 'west'), ('east', 'west')]
+                    for cube, faces in zip(geometry['bones'][0]['cubes'], plane_faces):
                         # Small stand at -0.65, geometry in pixels /16, scale .5.
                         # The base must be above the farmland surface (-1/16).
                         assert abs(-0.8125 + cube['origin'][1] / 16 * 0.5 + 1 / 16) < 1e-6

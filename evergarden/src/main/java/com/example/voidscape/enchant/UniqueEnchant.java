@@ -14,9 +14,9 @@ public enum UniqueEnchant {
     // Mining & Tools
     SEISMIC_SLAM("Seismic Slam", "ขุดทลาย 3x3", "ขุด 1 ครั้งระเบิดเปิดโพรง 3×3×1 ทันที", ItemCategory.PICKAXE),
     VEIN_SMELTER("Vein Smelter", "หลอมสายแร่คู่", "ขุดทั้งสายแร่ + เผาเป็นแท่งโลหะ + โบนัสแร่ทันที", ItemCategory.PICKAXE),
-    BEDROCK_RESONANCE("Bedrock Resonance", "เรดาร์ส่องแร่", "คลิกขวาปล่อยคลื่นโซนาร์ส่องตรวจจับและชี้ทิศทางแร่หายากในระยะ 16 บล็อก", ItemCategory.PICKAXE),
+    ADVANCE_TOOL("Advance Tool", "เครื่องมือสารพัดช่าง", "ขุดบล็อกทุกประเภท (ดิน, ทราย, กรวด, ไม้, หิน) ด้วยความเร็วสูงระดับ 5 เท่ากันทั้งหมด", ItemCategory.TOOL),
     DEMETER_SCYTHE("Demeter's Scythe", "เคียวเทพกสิกรรม", "เก็บเกี่ยวและปลูกคืนพืช 9×9 บล็อกอัตโนมัติ", ItemCategory.HOE),
-    TIMBER_TITAN("Timber Titan", "โค่นทั้งป่า", "ฟันโคนไม้ต้นไม้ทั้งต้นและใบไม้ล้มลงมาเป็นไอเทม", ItemCategory.AXE),
+    TITAN_BREACH("Titan Breach", "ขวานเจาะเกราะ (Breach)", "ฟันโจมตีทะลุทะลวงเกราะศัตรู (Breach) ลดเกราะและทำ True Damage", ItemCategory.AXE),
     TELEPATHY("Telepathy", "จิตสื่อสาร", "แร่และของที่ขุดได้ทุกชิ้นวาร์ปเข้าตัวผู้เล่น 100%", ItemCategory.TOOL),
 
     // Melee Combat
@@ -50,4 +50,16 @@ public enum UniqueEnchant {
     public String thaiTitle() { return thaiTitle; }
     public String description() { return description; }
     public ItemCategory category() { return category; }
+
+    public static UniqueEnchant parse(String raw) {
+        if (raw == null) return null;
+        String clean = raw.trim().toUpperCase(Locale.ROOT);
+        if (clean.equals("TIMBER_TITAN")) return TITAN_BREACH;
+        if (clean.equals("BEDROCK_RESONANCE")) return ADVANCE_TOOL;
+        try {
+            return valueOf(clean);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
 }

@@ -24,7 +24,9 @@ import java.util.*;
 public final class TravelListener implements Listener {
     private final VoidscapePlugin plugin;
     private final Map<UUID,Long> standing=new HashMap<>(),pending=new HashMap<>(),fallGrace=new HashMap<>();
+    private final Map<UUID,FlowerOffering> flowerOfferings=new HashMap<>();
     private final PortalVisuals visuals;
+    private record FlowerOffering(UUID playerId,long expiresAt) {}
     public TravelListener(VoidscapePlugin plugin){
         this.plugin=plugin;visuals=new PortalVisuals(plugin);
         // Upgrade the built-in return gate only when its expected frame exists.
@@ -89,28 +91,24 @@ public final class TravelListener implements Listener {
             }
         }
 
-        // Crying Obsidian Portal ignition with Fire Charge, Eye of Ender, or Flint and Steel
-        if(hand.getType()==Material.FIRE_CHARGE||hand.getType()==Material.ENDER_EYE||hand.getType()==Material.FLINT_AND_STEEL) {
-            if(!allowedEntryWorld(p)||p.getWorld()==plugin.world())return;
-            Block target=clicked.getType()==Material.QUARTZ_BLOCK?clicked.getRelative(e.getBlockFace()):clicked;
-            if(tryIgnitePortal(target,p)) {
-                e.setCancelled(true);
-                if(p.getGameMode()!=GameMode.CREATIVE) {
-                    if(hand.getType()==Material.FLINT_AND_STEEL) {
-                        if(hand.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg) {
-                            dmg.setDamage(dmg.getDamage()+1);
-                            hand.setItemMeta(dmg);
-                            if(dmg.getDamage()>=hand.getType().getMaxDurability()) {
-                                hand.setAmount(0);
-                                p.playSound(p.getLocation(),Sound.ENTITY_ITEM_BREAK,1.0f,1.0f);
-                            }
-                        }
-                    } else {
-                        hand.subtract(1);
-                    }
-                }
-            }
-        }
+    }
+
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void offerFlower(PlayerDropItemEvent e) {
+        Player p=e.getPlayer();
+        if(p.getWorld()==plugin.world()||!allowedEntryWorld(p)||!isPortalFlower(e.getItemDrop().getItemStack().getType()))return;
+        flowerOfferings.put(e.getItemDrop().getUniqueId(),new FlowerOffering(p.getUniqueId(),System.currentTimeMillis()+10000));
+    }
+
+    private boolean isPortalFlower(Material material) {
+        return Tag.FLOWERS.isTagged(material)||material==Material.PINK_PETALS
+            ||material==Material.SPORE_BLOSSOM||material==Material.FLOWERING_AZALEA;
+    }
+
+    private void consumeFlowerOffering(Item item) {
+        ItemStack stack=item.getItemStack();
+        if(stack.getAmount()<=1)item.remove();
+        else {stack.setAmount(stack.getAmount()-1);item.setItemStack(stack);}
     }
 
     private boolean isVehicleItem(Material m) {
@@ -435,5 +433,18 @@ public final class TravelListener implements Listener {
         long now=System.currentTimeMillis();
         pending.values().removeIf(end->end<now);
         fallGrace.values().removeIf(end->end<now);
+        Iterator<Map.Entry<UUID,FlowerOffering>> iterator=flowerOfferings.entrySet().iterator();
+        while(iterator.hasNext()) {
+            var entry=iterator.next();
+            FlowerOffering offering=entry.getValue();
+            Entity entity=Bukkit.getEntity(entry.getKey());
+            if(now>offering.expiresAt()||!(entity instanceof Item item)||!item.isValid()) {iterator.remove();continue;}
+            Player owner=Bukkit.getPlayer(offering.playerId());
+            if(owner==null||!owner.isOnline()||owner.getWorld()!=item.getWorld())continue;
+            if(tryIgnitePortal(item.getLocation().getBlock(),owner)) {
+                consumeFlowerOffering(item);
+                iterator.remove();
+            }
+        }
     }
 }

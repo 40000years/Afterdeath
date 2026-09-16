@@ -1,0 +1,13 @@
+both_plugins_enabled: true
+normal_cast_allowed: true
+normal_craft_allowed: true
+normal_crop_menu_opened: false
+normal_crop_menu_no_free_seeds: true
+normal_menu_craft_success: true
+BUG_vein_smelt_removes_protected_neighbour: true
+vein_smelt_protection_events: 0
+BUG_scythe_harvests_protected_neighbour: true
+scythe_protection_events: 0
+tree_charges_after_one_break_expected_4: 0
+BUG_daily_drink_A_B_A_all_succeed: true
+BUG_failed_cast_damages_monster: true
