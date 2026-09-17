@@ -33,17 +33,75 @@ public final class CastListener implements Listener {
         return plugin.wands().spell(heldItem(p,hand));
     }
     @EventHandler(priority=EventPriority.HIGH) public void interact(PlayerInteractEvent e) {
-        if((e.getAction()!=Action.RIGHT_CLICK_AIR&&e.getAction()!=Action.RIGHT_CLICK_BLOCK))return;
-        ItemStack item=e.getItem();
-        if(e.useItemInHand()==Event.Result.DENY)return;
-        ItemStack wandItem=heldItem(e.getPlayer(),e.getHand());
-        Spell spell=plugin.wands().spell(wandItem);if(spell==null)return;
-        e.setCancelled(true);cast(e.getPlayer(),spell,wandItem);
+        Action action = e.getAction();
+        boolean validAction = action == Action.RIGHT_CLICK_AIR 
+            || action == Action.RIGHT_CLICK_BLOCK 
+            || action == Action.LEFT_CLICK_AIR
+            || (e.getPlayer().isSneaking() && action == Action.LEFT_CLICK_BLOCK);
+        if(!validAction) return;
+
+        if(e.useItemInHand() == Event.Result.DENY) return;
+        ItemStack wandItem = heldItem(e.getPlayer(), e.getHand());
+        Spell spell = plugin.wands().spell(wandItem);
+        if(spell == null) return;
+        e.setCancelled(true);
+        cast(e.getPlayer(), spell, wandItem);
     }
-    @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true) public void entity(PlayerInteractEntityEvent e) {
-        ItemStack wandItem=heldItem(e.getPlayer(),e.getHand());
-        Spell spell=plugin.wands().spell(wandItem);if(spell==null)return;
-        e.setCancelled(true);cast(e.getPlayer(),spell,wandItem);
+
+    @EventHandler(priority=EventPriority.HIGH)
+    public void onAnimation(PlayerAnimationEvent e) {
+        // Bedrock Mobile: Screen tap in air sends ARM_SWING packet
+        if(e.getAnimationType() != PlayerAnimationType.ARM_SWING) return;
+        Player p = e.getPlayer();
+        ItemStack wandItem = heldItem(p, EquipmentSlot.HAND);
+        if(plugin.wands().spell(wandItem) == null) {
+            wandItem = heldItem(p, EquipmentSlot.OFF_HAND);
+        }
+        Spell spell = plugin.wands().spell(wandItem);
+        if(spell == null) return;
+        cast(p, spell, wandItem);
+    }
+
+    @EventHandler(priority=EventPriority.HIGH, ignoreCancelled=true)
+    public void entity(PlayerInteractEntityEvent e) {
+        ItemStack wandItem = heldItem(e.getPlayer(), e.getHand());
+        Spell spell = plugin.wands().spell(wandItem);
+        if(spell == null) return;
+        e.setCancelled(true);
+        cast(e.getPlayer(), spell, wandItem);
+    }
+
+    @EventHandler(priority=EventPriority.HIGH, ignoreCancelled=true)
+    public void onAttackEntity(org.bukkit.event.entity.EntityDamageByEntityEvent e) {
+        // Bedrock Mobile: Tapping an enemy monster directly with the wand in hand
+        if(!(e.getDamager() instanceof Player p)) return;
+        ItemStack wandItem = heldItem(p, EquipmentSlot.HAND);
+        if(plugin.wands().spell(wandItem) == null) {
+            wandItem = heldItem(p, EquipmentSlot.OFF_HAND);
+        }
+        Spell spell = plugin.wands().spell(wandItem);
+        if(spell == null) return;
+        e.setCancelled(true);
+        cast(p, spell, wandItem);
+    }
+
+    @EventHandler(priority=EventPriority.HIGH)
+    public void onSwapHand(PlayerSwapHandItemsEvent e) {
+        // Bedrock Mobile: Dedicated on-screen shortcut button (swap offhand) to cast wand
+        Player p = e.getPlayer();
+        ItemStack main = p.getInventory().getItemInMainHand();
+        Spell mainSpell = plugin.wands().spell(main);
+        if(mainSpell != null) {
+            e.setCancelled(true);
+            cast(p, mainSpell, main);
+            return;
+        }
+        ItemStack off = p.getInventory().getItemInOffHand();
+        Spell offSpell = plugin.wands().spell(off);
+        if(offSpell != null) {
+            e.setCancelled(true);
+            cast(p, offSpell, off);
+        }
     }
     public boolean cast(Player p,Spell spell) {
         ItemStack item=plugin.wands().spell(p.getInventory().getItemInMainHand())==spell?p.getInventory().getItemInMainHand()
