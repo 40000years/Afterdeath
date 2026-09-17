@@ -94,13 +94,26 @@ public final class CropItemFactory {
         meta.getPersistentDataContainer().set(foodKey, PersistentDataType.STRING, type.id);
         meta.getPersistentDataContainer().set(new NamespacedKey("evergarden", "crop_food"), PersistentDataType.STRING, type.id);
 
-        if (meta.hasFood()) {
-            var food = meta.getFood();
-            food.setCanAlwaysEat(true);
-            meta.setFood(food);
-        }
+        var food = meta.getFood();
+        food.setCanAlwaysEat(true);
+        meta.setFood(food);
 
         item.setItemMeta(meta);
+
+        try {
+            item.setData(io.papermc.paper.datacomponent.DataComponentTypes.FOOD,
+                    io.papermc.paper.datacomponent.item.FoodProperties.food()
+                            .canAlwaysEat(true)
+                            .nutrition(2)
+                            .saturation(1.0f)
+                            .build());
+            item.setData(io.papermc.paper.datacomponent.DataComponentTypes.CONSUMABLE,
+                    io.papermc.paper.datacomponent.item.Consumable.consumable()
+                            .consumeSeconds(1.0f)
+                            .hasConsumeParticles(true)
+                            .build());
+        } catch (Throwable ignored) {}
+
         return item;
     }
 

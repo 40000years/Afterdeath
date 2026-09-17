@@ -146,6 +146,53 @@ public final class CropBuffListener implements Listener, AutoCloseable {
     // ==========================================
     // 1. Food Consumption Buff Dispatcher
     // ==========================================
+    @EventHandler(priority = EventPriority.LOW)
+    public void onCropFoodInteract(PlayerInteractEvent e) {
+        ItemStack item = e.getItem();
+        if (item == null) return;
+        CropType crop = cropService.factory().getFoodType(item);
+        if (crop == null) return;
+
+        // Prevent placing sweet berries / carrots on Farmland / Grass / Soil when trying to eat
+        if (e.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
+            e.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
+        }
+
+        // Auto-upgrade items in player hand so canAlwaysEat is active even for old items
+        var meta = item.getItemMeta();
+        if (meta != null) {
+            var food = meta.getFood();
+            if (!food.canAlwaysEat()) {
+                food.setCanAlwaysEat(true);
+                meta.setFood(food);
+                item.setItemMeta(meta);
+                try {
+                    item.setData(io.papermc.paper.datacomponent.DataComponentTypes.FOOD,
+                            io.papermc.paper.datacomponent.item.FoodProperties.food()
+                                    .canAlwaysEat(true)
+                                    .nutrition(2)
+                                    .saturation(1.0f)
+                                    .build());
+                    item.setData(io.papermc.paper.datacomponent.DataComponentTypes.CONSUMABLE,
+                            io.papermc.paper.datacomponent.item.Consumable.consumable()
+                                    .consumeSeconds(1.0f)
+                                    .hasConsumeParticles(true)
+                                    .build());
+                } catch (Throwable ignored) {}
+            }
+        }
+
+        // Creative mode support: vanilla client does not allow eating food in Creative mode
+        Player p = e.getPlayer();
+        if (p.getGameMode() == GameMode.CREATIVE &&
+                (e.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_AIR || e.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK)) {
+            e.setCancelled(true);
+            org.bukkit.inventory.EquipmentSlot hand = e.getHand() != null ? e.getHand() : org.bukkit.inventory.EquipmentSlot.HAND;
+            PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(p, item, hand);
+            Bukkit.getPluginManager().callEvent(consumeEvent);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onConsume(PlayerItemConsumeEvent e) {
         ItemStack item = e.getItem();
@@ -702,8 +749,12 @@ public final class CropBuffListener implements Listener, AutoCloseable {
     // ==========================================
     // 4. Utility & Mining Buff Handlers
     // ==========================================
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent e) {
+        if (cropService.factory().isFood(e.getItemInHand())) {
+            e.setCancelled(true);
+            return;
+        }
         String name = e.getBlock().getType().name();
         if (name.endsWith("_ORE") || name.equals("ANCIENT_DEBRIS")) {
             e.getBlock().setMetadata("evergarden_placed", new FixedMetadataValue(plugin, true));
