@@ -27,23 +27,23 @@ public final class GuideData {
         ),
         new GuidePage(
             "พืช Tier I (พื้นฐาน)",
-            "§2--- พืช Tier I (พื้นฐาน) ---§r\n\nเติบโต: 3 นาที | กินเพื่อรับผล:\n\n• บลูเบอร์รี (Blueberry)\n  Speed I (2 นาที)\n• ผักกาดหอม (Lettuce)\n  Absorption I (2 นาที)\n• เห็ดทรัฟเฟิล (Truffle)\n  Haste I (2 นาที)\n• ฟักทองบัตเตอร์นัต (Butternut Squash)\n  Resistance I (2 นาที)\n• ต้นหอมญี่ปุ่น (Leek)\n  Saturation I (2 นาที)\n• มะละกอ (Papaya)\n  Regeneration I (30 วินาที)"
+            "§2--- พืช Tier I (พื้นฐาน) ---§r\n\nเติบโต: 3 นาที | กินเพื่อรับพลังบัฟ:\n\n• บลูเบอร์รี (Blueberry)\n  ฟื้นฟูทันที +50 Mana!\n• ผักกาดหอม (Lettuce)\n  มอนสเตอร์ไม่โจมตีก่อน (45s)\n• เห็ดทรัฟเฟิล (Truffle)\n  Double Jump สองจังหวะ (3 นาที)\n• ฟักทองบัตเตอร์นัต (Butternut)\n  แม่เหล็กดูดไอเทม 12 บล็อก (2m)\n• ต้นหอมญี่ปุ่น (Leek)\n  Step Assist ก้าวขึ้น 1 บล็อก (5m)\n• มะละกอ (Papaya)\n  ออร่าเร่งโตพืชผักรอบตัว (10 ชาร์จ)"
         ),
         new GuidePage(
             "พืช Tier II (วิหาร)",
-            "§2--- พืช Tier II (วิหาร) ---§r\n\nเติบโต: 5 นาที | กินเพื่อรับผล:\n\n• มะเขือเทศ (Tomato)\n  Strength I (2 นาที)\n• หัวไชเท้า (Frost Radish)\n  Fire Resistance (3 นาที)\n• ข้าวโพดสายฟ้า (Thunder Corn)\n  Speed II (2 นาที)\n• กระเทียมมรณะ (Reaper Garlic)\n  Resistance II (2 นาที)\n• มะเขือม่วง (Eggplant)\n  Night Vision (5 นาที)\n• ถั่วลันเตา (Kinetic Pea)\n  Jump Boost II (2 นาที)"
+            "§2--- พืช Tier II (วิหาร) ---§r\n\nเติบโต: 5 นาที | กินเพื่อรับพลังบัฟ:\n\n• มะเขือเทศ (Tomato)\n  Vampiric ดูดเลือด 20% (60s)\n• หัวไชเท้า (Radish)\n  โจมตีแช่แข็ง Freeze ศัตรู (60s)\n• ข้าวโพด (Corn)\n  Speed II & ชิ่งสายฟ้า 3 ตัว (60s)\n• กระเทียม (Garlic)\n  ปลิดชีพศัตรู HP < 20% ทันที (60s)\n• มะเขือม่วง (Eggplant)\n  โจมตีทำลายเกราะศัตรู 25% (60s)\n• ถั่วลันเตา (Green Peas)\n  ไร้ดาเมจตก 100% & Slam (3m)"
         ),
         new GuidePage(
             "พืช Tier III (หายาก)",
-            "§2--- พืช Tier III (หายาก) ---§r\n\nเติบโต: 7 นาที 30 วินาที | กินเพื่อรับผล:\n\n• หอมหัวใหญ่ (Void Onion)\n  Regeneration II (1 นาที)\n• กะหล่ำปลีม่วง (Astral Cabbage)\n  Resistance II + Absorption II\n• น้ำเต้า (Chrono Gourd)\n  Haste II (3 นาที)\n• ขึ้นฉ่าย (Celery)\n  Speed II + Saturation II\n• บรอกโคลี (Broccoli)\n  Strength II (2 นาที)\n• โป๊ยกั๊ก (Star Anise)\n  Luck II + Hero of the Village"
+            "§2--- พืช Tier III (หายาก) ---§r\n\nเติบโต: 7 นาที 30 วินาที | กินเพื่อรับผล:\n\n• หอมหัวใหญ่ (Onion)\n  ม่านพิทักษ์ ป้องกันตาย 1 ครั้ง\n• กะหล่ำปลีม่วง (Red Cabbage)\n  คุ้มกันตก Void ลอยขึ้นปลอดภัย (5m)\n• น้ำเต้า (Bottle Gourd)\n  Recall ร่าย 3s วาร์ปกลับจุดเกิด\n• ขึ้นฉ่าย (Celery)\n  ญาณทิพย์ ส่องศัตรู/หีบทะลุกำแพง\n• บรอกโคลี (Broccoli)\n  Sneak กางร่มชูชีพร่อนช้าๆ (3m)\n• โป๊ยกั๊ก (Star Anise)\n  ล้างดีบัฟ & ภูมิคุ้มกันสถานะ (2m)"
         ),
         new GuidePage(
             "พืช Tier IV (ล้ำค่า)",
-            "§2--- พืช Tier IV (ล้ำค่า) ---§r\n\nเติบโต: 10 นาที | กินเพื่อรับผล:\n\n• เทอร์นิป (Golden Turnip)\n  Regeneration III + Fire Resis\n• เกาลัด (Abyssal Chestnut)\n  Resistance III (2 นาที)\n• มันสำปะหลัง (Cassava)\n  Absorption IV (3 นาที)\n• ผักโขม (Iron Spinach)\n  Strength III (2 นาที)\n• องุ่นดวงดาว (Starlight Grapes)\n  Speed III + Jump Boost III\n• พริกหวาน (Sun Pepper)\n  Glowing + Fire Resis + Saturation"
+            "§2--- พืช Tier IV (ล้ำค่า) ---§r\n\nเติบโต: 10 นาที | กินเพื่อรับผล:\n\n• เทอร์นิป (Turnip)\n  Ore Resonance ขุดแร่ดรอป x2\n• เกาลัด (Chestnut)\n  Tree Feller โค่นไม้ทั้งต้น (5 ชาร์จ)\n• มันสำปะหลัง (Cassava)\n  Vault Fortune +25% ของแรร์ (5m)\n• ผักโขม (Spinach)\n  แปลง 30% ดาเมจซ่อมชุดเกราะ\n• องุ่น (Grape)\n  ความเร็ว/ระยะยิงเวท +100% (60s)\n• พริกหวาน (Bell Pepper)\n  ลดคูลดาวน์คทาเวท 40% (60s)"
         ),
         new GuidePage(
             "พืช Tier V [MYTHIC]",
-            "§2--- พืช Tier V [MYTHIC] ---§r\n\nเติบโต: 15 นาที | ผลผลิตในตำนาน:\n\n• มันหวานบรรพกาล (Astral Sweet Potato)\n  Regen IV + Strength III + Speed III\n• หน่อไม้ฝรั่งทอง (Yggdrasil Asparagus)\n  Resistance IV + Absorption V\n• มะเดื่อสุญญากาศ (Void Fig)\n  Invisibility + Night Vision + Speed IV\n• สะระแหน่เยือกแข็ง (Ethereal Mint)\n  Water Breathing + Haste III\n• พริกชี้ฟ้าโลกันตร์ (Bloodbomb Chili)\n  Strength IV + Fire Resis + Saturation\n• ทับทิมเอกภพ (Omni Pomegranate)\n  มอบบัฟรวมทุกธาตุขั้นสูงสุด 5 นาที"
+            "§2--- พืช Tier V [MYTHIC] ---§r\n\nเติบโต: 15 นาที | ผลผลิตในตำนาน:\n\n• มันหวาน (Sweet Potato)\n  เพิ่ม Max Mana ถาวร (วันละ 1 ครั้ง)\n• หน่อไม้ฝรั่ง (Asparagus)\n  เพิ่ม Mana Regen ถาวร +0.2/s\n• มะเดื่อ (Fig)\n  Overcharge Mana +100 (45s)\n• สะระแหน่ (Mint)\n  Arcane Echo ร่ายเวทซ้ำฟรี x2\n• พริกชี้ฟ้า (Chili Pepper)\n  Blood Cast ร่ายเวทด้วยเลือด (30s)\n• ทับทิม (Pomegranate)\n  ระเบิดมหาธาตุรอบตัวเมื่อร่ายเวท"
         ),
         new GuidePage(
             "ช่างพฤกษศาสตร์ & เทคนิค",

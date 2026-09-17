@@ -260,9 +260,10 @@ public final class CropBuffListener implements Listener, AutoCloseable {
             }
             case THUNDER_KERNEL_CORN -> {
                 chainLightningUntil.put(id, now + 60_000L);
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 1));
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.5f, 1.6f);
                 p.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, p.getLocation().add(0, 1, 0), 25, 0.4, 0.5, 0.4, 0.1);
-                p.sendActionBar(Component.text("✦ ข้าวโพด: ชิ่งสายฟ้าใส่ศัตรูข้างเคียง 3 ตัว (60 วินาที)", NamedTextColor.YELLOW));
+                p.sendActionBar(Component.text("✦ ข้าวโพด: Speed II + ชิ่งสายฟ้าใส่ศัตรู 3 ตัว (60 วินาที)", NamedTextColor.YELLOW));
             }
             case REAPERS_GARLIC -> {
                 executionerUntil.put(id, now + 60_000L);
@@ -616,15 +617,18 @@ public final class CropBuffListener implements Listener, AutoCloseable {
 
         // 3. Chain Lightning (with reentrancy guard)
         if (chainLightningUntil.getOrDefault(id, 0L) > now && e.getEntity() instanceof LivingEntity target) {
+            target.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, target.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.1);
             if (isProcessingChainLightning.add(id)) {
                 try {
                     int chains = 0;
                     for (Entity nearby : target.getWorld().getNearbyEntities(target.getLocation(), 6, 6, 6)) {
-                        if (nearby instanceof Monster m && !nearby.equals(target) && !nearby.isDead() && chains < 3) {
-                            chains++;
-                            m.damage(6.0, attacker);
-                            m.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, m.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.1);
-                            m.getWorld().playSound(m.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.5f, 1.8f);
+                        if (nearby instanceof LivingEntity le && !nearby.equals(target) && !nearby.equals(attacker) && !le.isDead() && !(le instanceof ArmorStand) && chains < 3) {
+                            if (le instanceof Monster || (le instanceof Player && plugin.getConfig().getBoolean("relics.allow-pvp", false))) {
+                                chains++;
+                                le.damage(6.0, attacker);
+                                le.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, le.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.1);
+                                le.getWorld().playSound(le.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.5f, 1.8f);
+                            }
                         }
                     }
                 } finally {
