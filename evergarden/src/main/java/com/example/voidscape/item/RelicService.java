@@ -1210,6 +1210,7 @@ public final class RelicService implements Listener {
         };
     }
     public void tick() {
+        if(arrows.isEmpty())return;
         long now=System.currentTimeMillis();
         arrows.entrySet().removeIf(e->{Entity a=Bukkit.getEntity(e.getKey());if(a==null)return true;if(now>=e.getValue()){a.remove();return true;}return false;});
     }

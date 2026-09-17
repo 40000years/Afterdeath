@@ -50,7 +50,6 @@ public final class MobilitySpells {
         c.echo(p,last,Spell.SHADOW_STEP,14,4,20);
         return true;
     }
-    public boolean shroud(Player p){c.plugin.statuses().shroud(p);return true;}
     public boolean armor(Player p) {
         c.potion(p,PotionEffectType.RESISTANCE,1200,3);
         c.potion(p,PotionEffectType.FIRE_RESISTANCE,1200,0);

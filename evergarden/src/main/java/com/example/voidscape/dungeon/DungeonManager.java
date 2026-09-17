@@ -517,6 +517,14 @@ public final class DungeonManager implements Listener {
     @EventHandler(priority=EventPriority.MONITOR)
     public void playerDeath(PlayerDeathEvent e){clearTrueDeath(e.getPlayer());}
 
+    @EventHandler(priority=EventPriority.MONITOR)
+    public void playerQuit(PlayerQuitEvent e) {
+        UUID id = e.getPlayer().getUniqueId();
+        removeTrueDeathBar(id);
+        seen.remove(id);
+        combatUntil.remove(id);
+    }
+
     @EventHandler(priority=EventPriority.HIGHEST)
     public void death(EntityDeathEvent e) {
         Encounter enc=owners.remove(e.getEntity().getUniqueId());if(enc==null)return;

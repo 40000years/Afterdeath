@@ -441,8 +441,8 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         lore.add(Component.text("   §7ขุด 1 ครั้งระเบิดเปิดโพรง 3×3×1 ทันที").decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("✦ Vein Smelter · หลอมสายแร่คู่", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("   §7ขุดทั้งสายแร่ + เผาเป็นแท่งโลหะ + โบนัสแร่ทันที").decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("✦ Bedrock Resonance · เรดาร์ส่องแร่", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("   §7คลิกขวาปล่อยคลื่นโซนาร์ส่องตรวจจับและชี้ทิศทางแร่หายาก").decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("✦ Advance Tool · เครื่องมือสารพัดช่าง", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7ขุดบล็อกทุกประเภท (ดิน, ทราย, กรวด, ไม้, หิน) ด้วยความเร็วสูง 25.0f").decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("✦ Telepathy · จิตสื่อสาร", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("   §7แร่และของที่ขุดได้ทุกชิ้นวาร์ปเข้าตัวผู้เล่น 100%").decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("§e[คลิกซ้าย: รับ God Pickaxe | คลิกขวา: รับ Smelter Pickaxe | Shift+คลิก: รับ Rift Pickaxe]", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
@@ -520,6 +520,9 @@ public final class AdminTestGui implements InventoryHolder, Listener {
     public static void attachUnique(ItemMeta meta, UniqueEnchant ue) {
         NamespacedKey key = new NamespacedKey("evergarden", "ue_" + ue.id().toLowerCase(Locale.ROOT));
         meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
+        if (ue == UniqueEnchant.ADVANCE_TOOL) {
+            com.example.voidscape.enchant.EnchantApplyListener.applyAdvanceToolComponent(meta);
+        }
     }
 
     public static void giveOrDrop(Player player, ItemStack item) {

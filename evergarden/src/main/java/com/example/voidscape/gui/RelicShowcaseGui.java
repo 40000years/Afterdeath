@@ -26,15 +26,13 @@ import java.util.List;
 
 public final class RelicShowcaseGui implements InventoryHolder, Listener {
     private final VoidscapePlugin plugin;
-    private Inventory inventory;
-
     public RelicShowcaseGui(VoidscapePlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public Inventory getInventory() {
-        return inventory;
+        return null;
     }
 
     private static Component parseLegacy(String text) {
@@ -46,8 +44,7 @@ public final class RelicShowcaseGui implements InventoryHolder, Listener {
     }
 
     public void open(Player player) {
-        inventory = Bukkit.createInventory(this, 54, parseLegacy("§9§lEvergarden §8✦ §fRelics, Scrolls & Materials"));
-        Inventory inv = inventory;
+        Inventory inv = Bukkit.createInventory(this, 54, parseLegacy("§9§lEvergarden §8✦ §fRelics, Scrolls & Materials"));
 
         // ==========================================
         // Row 0 (0-8): 6 Special Relics + Key + Shards + Eternity

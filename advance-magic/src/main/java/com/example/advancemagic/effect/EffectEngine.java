@@ -44,7 +44,7 @@ public final class EffectEngine {
         if(!hasCapacity())throw new IllegalStateException("Too many active magic effects");
         Effect e=new Effect(owner,duration,body);effects.add(e);return e;
     }
-    public void tick(){for(Effect e:List.copyOf(effects))e.tick();}
+    public void tick(){if(effects.isEmpty())return;for(Effect e:List.copyOf(effects))e.tick();}
     public void closeOwner(UUID id){for(Effect e:List.copyOf(effects))if(e.owner.getUniqueId().equals(id))e.close();}
     public void close(){for(Effect e:List.copyOf(effects))e.close();}
     public int size(){return effects.size();}

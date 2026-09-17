@@ -25,15 +25,13 @@ import java.util.List;
 
 public final class WandShowcaseGui implements InventoryHolder, Listener {
     private final VoidscapePlugin plugin;
-    private Inventory inventory;
-
     public WandShowcaseGui(VoidscapePlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public Inventory getInventory() {
-        return inventory;
+        return null;
     }
 
     private static Component parseLegacy(String text) {
@@ -45,8 +43,7 @@ public final class WandShowcaseGui implements InventoryHolder, Listener {
     }
 
     public void open(Player player) {
-        inventory = Bukkit.createInventory(this, 54, parseLegacy("§5§lAdvance Magic §8✦ §f15 Wands & Ancient Cores"));
-        Inventory inv = inventory;
+        Inventory inv = Bukkit.createInventory(this, 54, parseLegacy("§5§lAdvance Magic §8✦ §f15 Wands & Ancient Cores"));
         List<RelicService.MagicCore> cores = RelicService.MAGIC_CORES;
 
         // Row 0 (0-8): First 9 Wands

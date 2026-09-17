@@ -33,7 +33,6 @@ public final class UniqueAbilityListener implements Listener {
     private final Map<UUID, Long> shadowStepCooldown = new HashMap<>();
     private final Map<UUID, Long> lastSneakTime = new HashMap<>();
     private final Map<UUID, Long> bladeVortexCooldown = new HashMap<>();
-    private final Map<UUID, Long> sonarCooldown = new HashMap<>();
     private final Set<UUID> recursiveBreaking = new HashSet<>();
 
     public UniqueAbilityListener(VoidscapePlugin plugin) {
@@ -508,104 +507,6 @@ public final class UniqueAbilityListener implements Listener {
         return name.contains("RAW_") || name.endsWith("_INGOT") || name.equals("DIAMOND")
             || name.equals("EMERALD") || name.equals("COAL") || name.equals("REDSTONE")
             || name.equals("LAPIS_LAZULI") || name.equals("NETHER_QUARTZ") || name.equals("AMETHYST_SHARD");
-    }
-
-    private void triggerBedrockSonar(Player player, Block center, boolean manual) {
-        long now = System.currentTimeMillis();
-        long cd = sonarCooldown.getOrDefault(player.getUniqueId(), 0L);
-        if (now < cd) {
-            if (manual) {
-                long left = (cd - now + 999) / 1000;
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.8f);
-                player.sendActionBar(Component.text("✦ เรดาร์ส่องแร่: ชาร์จคลื่นโซนาร์... (" + left + " วิ)", NamedTextColor.GRAY));
-            }
-            return;
-        }
-        sonarCooldown.put(player.getUniqueId(), now + 3500L); // 3.5s cooldown
-        scanOresAround(player, center, manual);
-    }
-
-    private void scanOresAround(Player player, Block center, boolean manual) {
-        Location pLoc = player.getLocation();
-        Location eye = player.getEyeLocation();
-        Block best = null;
-        double bestDist = 999;
-        int bestPriority = 99;
-        String oreNameTh = "";
-
-        // Expanding sonar wave sound & particle
-        player.getWorld().spawnParticle(Particle.GLOW_SQUID_INK, pLoc.clone().add(0, 0.2, 0), 20, 0.8, 0.2, 0.8, 0.05);
-
-        for (int x = -14; x <= 14; x++) {
-            for (int y = -10; y <= 10; y++) {
-                for (int z = -14; z <= 14; z++) {
-                    Block b = center.getRelative(x, y, z);
-                    Material t = b.getType();
-                    int priority = -1;
-                    String name = "";
-                    if (t == Material.ANCIENT_DEBRIS) { priority = 1; name = "Ancient Debris (เนเธอร์ไรต์)"; }
-                    else if (t == Material.DIAMOND_ORE || t == Material.DEEPSLATE_DIAMOND_ORE) { priority = 2; name = "Diamond Ore (แร่เพชร)"; }
-                    else if (t == Material.EMERALD_ORE || t == Material.DEEPSLATE_EMERALD_ORE) { priority = 3; name = "Emerald Ore (แร่มรกต)"; }
-                    else if (t == Material.SPAWNER) { priority = 4; name = "Monster Spawner (กรงมอนสเตอร์)"; }
-                    else if (t == Material.GOLD_ORE || t == Material.DEEPSLATE_GOLD_ORE || t == Material.NETHER_GOLD_ORE) { priority = 5; name = "Gold Ore (แร่ทอง)"; }
-
-                    if (priority > 0) {
-                        double d = pLoc.distance(b.getLocation().add(0.5, 0.5, 0.5));
-                        if (priority < bestPriority || (priority == bestPriority && d < bestDist)) {
-                            bestPriority = priority;
-                            bestDist = d;
-                            best = b;
-                            oreNameTh = name;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (best != null) {
-            Location targetLoc = best.getLocation().add(0.5, 0.5, 0.5);
-            Vector diff = targetLoc.toVector().subtract(eye.toVector());
-            double dist = diff.length();
-
-            // Height offset
-            int dy = best.getY() - pLoc.getBlockY();
-            String vert = dy > 1 ? "▲ สูงกว่า +" + dy + " บล็อก" : dy < -1 ? "▼ ลึกลงไป " + (-dy) + " บล็อก" : "ระดับสายตา";
-
-            // Compass direction
-            double angle = Math.toDegrees(Math.atan2(-diff.getX(), diff.getZ()));
-            if (angle < 0) angle += 360;
-            String compass;
-            if (angle >= 337.5 || angle < 22.5) compass = "ทิศใต้ [S]";
-            else if (angle < 67.5) compass = "ทิศตะวันตกเฉียงใต้ [SW]";
-            else if (angle < 112.5) compass = "ทิศตะวันตก [W]";
-            else if (angle < 157.5) compass = "ทิศตะวันตกเฉียงเหนือ [NW]";
-            else if (angle < 202.5) compass = "ทิศเหนือ [N]";
-            else if (angle < 247.5) compass = "ทิศตะวันออกเฉียงเหนือ [NE]";
-            else if (angle < 292.5) compass = "ทิศตะวันออก [E]";
-            else compass = "ทิศตะวันออกเฉียงใต้ [SE]";
-
-            // Visible tracer beam pointing towards the ore
-            Vector step = diff.clone().normalize().multiply(0.8);
-            Location cur = eye.clone();
-            int maxSteps = Math.min((int) (dist / 0.8), 16);
-            for (int i = 1; i <= maxSteps; i++) {
-                cur.add(step);
-                player.getWorld().spawnParticle(Particle.END_ROD, cur, 1, 0, 0, 0, 0);
-            }
-
-            // Highlight the target block
-            player.getWorld().spawnParticle(Particle.WAX_ON, targetLoc, 12, 0.4, 0.4, 0.4, 0.05);
-            player.getWorld().spawnParticle(Particle.GLOW, targetLoc, 8, 0.3, 0.3, 0.3, 0.05);
-
-            player.playSound(pLoc, Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 2.0f);
-            player.playSound(pLoc, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.6f);
-            player.sendActionBar(Component.text("✦ เรดาร์ส่องแร่: ตรวจพบ " + oreNameTh + " " + compass + " ห่าง " + (int) dist + " บล็อก (" + vert + ")", NamedTextColor.AQUA));
-        } else {
-            if (manual) {
-                player.playSound(pLoc, Sound.BLOCK_AMETHYST_BLOCK_HIT, 0.8f, 0.8f);
-                player.sendActionBar(Component.text("✦ เรดาร์ส่องแร่: ส่งคลื่นโซนาร์... ไม่พบแร่ล้ำค่าในระยะ 14 บล็อก", NamedTextColor.GRAY));
-            }
-        }
     }
 
     private org.bukkit.block.BlockFace getMiningFace(Player player) {
