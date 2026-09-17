@@ -34,7 +34,7 @@ public final class RelicService implements Listener {
         STORM_BOW(Material.BOW,"ธนูพิพากษาสายฟ้า","ยิงธนูผ่าสายฟ้าต่อเนื่องใส่ศัตรู"),
         NOVA_BOW(Material.BOW,"ธนูสะเก็ดดาว","ชาร์จเต็ม: ระเบิดพลังงาน · ไม่ทำลายบล็อก"),
         RIFT_BLADE(Material.NETHERITE_SWORD,"ดาบกรีดมิติ","คลิกขวา: วาร์ปไปข้างหน้า · ต้องมีทางโล่ง"),
-        ETERNAL_AEGIS(Material.SHIELD,"โล่แห่งความอมตะ","คลิกขวา: อมตะ 3 วินาที · โจมตีไม่ได้ขณะใช้งาน"),
+        ETERNAL_AEGIS(Material.SHIELD,"โล่แห่งความอมตะ","คลิกขวา/ย่อ 2 ครั้ง/สลับมือ: อมตะ 3 วินาที · โจมตีไม่ได้ขณะใช้งาน"),
         SCROLL_ETERNITY(Material.PAPER,"คัมภีร์ศิลานิรันดร์","ลากทับไอเทมเพื่อทำให้อุปกรณ์ 'ไม่มีวันพังถาวร (Unbreakable)'"),
         SCROLL_LIMIT_BREAK(Material.PAPER,"คัมภีร์ทลายขีดจำกัด","ลากทับไอเทมเพื่อเพิ่มเลเวลเอนแชนต์เดิม +1"),
         SCROLL_UNIQUE(Material.PAPER,"คัมภีร์มนตราโบราณ","ลากทับไอเทมเพื่อสลักเวทมนตร์เฉพาะตัว"),
@@ -52,6 +52,7 @@ public final class RelicService implements Listener {
     private final NamespacedKey type,shot,shotOwner,shieldUntil,voidKeyTag;
     private final Set<UUID> mining=new HashSet<>();
     private final Map<UUID,Long> arrows=new HashMap<>();
+    private final Map<UUID,Long> lastAegisSneak=new HashMap<>();
 
     public record MagicCore(String id, String title, String wandTitle) {}
     public static final List<MagicCore> MAGIC_CORES = List.of(
@@ -959,6 +960,9 @@ public final class RelicService implements Listener {
         if(type(e.getMainHandItem())==Relic.RIFT_BLADE) {
             e.setCancelled(true);
             triggerRiftBladeWarp(p);
+        } else if(type(e.getMainHandItem())==Relic.ETERNAL_AEGIS||type(e.getOffHandItem())==Relic.ETERNAL_AEGIS) {
+            e.setCancelled(true);
+            triggerAegis(p);
         }
     }
 
@@ -969,7 +973,12 @@ public final class RelicService implements Listener {
         ItemStack main=p.getInventory().getItemInMainHand();
         ItemStack off=p.getInventory().getItemInOffHand();
         if(type(main)==Relic.ETERNAL_AEGIS||type(off)==Relic.ETERNAL_AEGIS) {
-            triggerAegis(p);
+            long now=System.currentTimeMillis();
+            long last=lastAegisSneak.getOrDefault(p.getUniqueId(),0L);
+            lastAegisSneak.put(p.getUniqueId(),now);
+            if(now-last<=550L) { // Double-sneak within 550ms to activate intentionally
+                triggerAegis(p);
+            }
         }
     }
 

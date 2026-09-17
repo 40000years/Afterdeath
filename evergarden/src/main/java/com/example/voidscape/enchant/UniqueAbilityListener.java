@@ -846,7 +846,7 @@ public final class UniqueAbilityListener implements Listener {
             long last = lastSneakTime.getOrDefault(player.getUniqueId(), 0L);
             lastSneakTime.put(player.getUniqueId(), now);
 
-            if (now - last <= 400L) { // Double tap within 400ms
+            if (now - last <= 550L) { // Double tap within 550ms (friendly for mobile touchscreen and ping)
                 long cd = shadowStepCooldown.getOrDefault(player.getUniqueId(), 0L);
                 if (now < cd) {
                     long left = (cd - now + 999) / 1000;

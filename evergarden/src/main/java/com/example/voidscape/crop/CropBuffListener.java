@@ -671,6 +671,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
         if (e.getCause() == EntityDamageEvent.DamageCause.FALL && kineticSlamUntil.getOrDefault(id, 0L) > now) {
             e.setCancelled(true);
             double fallDistance = p.getFallDistance();
+            p.setFallDistance(0);
             if (fallDistance > 3.0) {
                 double radius = Math.min(8.0, 3.0 + fallDistance * 0.4);
                 double damage = Math.min(25.0, fallDistance * 1.5);
