@@ -40,22 +40,17 @@ public final class UpgradeMenuService implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void onAnvilOrSmithingTableInteract(PlayerInteractEvent event) {
+    public void onSmithingTableInteract(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getClickedBlock() == null) return;
 
         Material blockType = event.getClickedBlock().getType();
-        boolean isAltarBlock = (blockType == Material.ANVIL
-            || blockType == Material.CHIPPED_ANVIL
-            || blockType == Material.DAMAGED_ANVIL
-            || blockType == Material.SMITHING_TABLE);
-
-        if (!isAltarBlock) return;
+        if (blockType != Material.SMITHING_TABLE) return;
 
         Player player = event.getPlayer();
 
-        // On Bedrock, right clicking any anvil or smithing table opens the mobile touch upgrade menu!
+        // On Bedrock, right clicking a smithing table opens the mobile touch upgrade menu!
         if (BedrockGuideService.isBedrock(player)) {
             event.setCancelled(true);
             open(plugin, player);
