@@ -7,6 +7,9 @@ meteor:
   # Explosions damage entities but never remove terrain blocks.
   damage: 90.0
 damage:
+  sonic-boom: 75.0
+  blaze-barrage: 25.0
+  guardian-tidal-burst: 45.0
   poison-impact: 20.0
   lightning: 60.0
   lightning-secondary: 30.0
@@ -32,15 +35,14 @@ follow-up:
     earth_wall: 25.0
     dragons_breath: 30.0
     void_pull: 20.0
-    invisibility_shroud: 20.0
-    poison_spores: 30.0
+    sonic_boom: 25.0
+    blaze_barrage: 20.0
     wither_ray: 15.0
     shulker_levitation: 20.0
     meteor_strike: 15.0
     iron_armor: 25.0
-    # Damage on each existing 2.5-second pulse (five pulses per dome).
-    time_dilation: 12.0
-    soul_drain: 20.0
+    vex_legion: 25.0
+    guardian_beam: 20.0
 # Bundled pack is automatically offered one tick after joining.
 resource-pack:
   enabled: true

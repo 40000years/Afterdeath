@@ -29,17 +29,20 @@ public final class ChestGuideGui implements Listener {
     }
 
     public static final class GuideHolder implements InventoryHolder {
+        private final GuideBookType type;
         private final int pageIndex;
         private final boolean isIndex;
         private final int returnPageIndex;
         private Inventory inventory;
 
-        public GuideHolder(int pageIndex, boolean isIndex, int returnPageIndex) {
+        public GuideHolder(GuideBookType type, int pageIndex, boolean isIndex, int returnPageIndex) {
+            this.type = type != null ? type : GuideBookType.CROPS;
             this.pageIndex = pageIndex;
             this.isIndex = isIndex;
             this.returnPageIndex = returnPageIndex;
         }
 
+        public GuideBookType getType() { return type; }
         public int getPageIndex() { return pageIndex; }
         public boolean isIndex() { return isIndex; }
         public int getReturnPageIndex() { return returnPageIndex; }
@@ -49,16 +52,17 @@ public final class ChestGuideGui implements Listener {
         public void setInventory(Inventory inventory) { this.inventory = inventory; }
     }
 
-    public static void open(VoidscapePlugin plugin, Player player, int pageIndex) {
-        List<GuidePage> pages = GuideData.PAGES;
+    public static void open(VoidscapePlugin plugin, Player player, GuideBookType type, int pageIndex) {
+        if (type == null) type = GuideBookType.CROPS;
+        List<GuidePage> pages = GuideData.pagesFor(type);
         if (pageIndex < 0) pageIndex = 0;
         if (pageIndex >= pages.size()) pageIndex = pages.size() - 1;
 
         GuidePage page = pages.get(pageIndex);
         int totalPages = pages.size();
 
-        GuideHolder holder = new GuideHolder(pageIndex, false, pageIndex);
-        Inventory inv = Bukkit.createInventory(holder, 27, Component.text("คู่มือ (" + (pageIndex + 1) + "/" + totalPages + ")", NamedTextColor.DARK_BLUE));
+        GuideHolder holder = new GuideHolder(type, pageIndex, false, pageIndex);
+        Inventory inv = Bukkit.createInventory(holder, 27, Component.text(type.bookTitle + " (" + (pageIndex + 1) + "/" + totalPages + ")", NamedTextColor.DARK_BLUE));
         holder.setInventory(inv);
 
         // Fill borders with dark glass pane
@@ -69,10 +73,25 @@ public final class ChestGuideGui implements Listener {
             }
         }
 
-        // Center: Book reading item
+        // Slot 0: Switch book menu
+        inv.setItem(0, createItem(Material.ENCHANTED_BOOK, "§e📚 เลือกคู่มือเล่มอื่น (3 เล่ม)", List.of("§7คลิกเพื่อกลับไปหน้าเลือกคู่มือ")));
+
+        // Center: Book reading item (Slot 13)
         List<String> lore = new ArrayList<>();
-        String[] lines = page.content().split("\n");
-        lore.addAll(Arrays.asList(lines));
+        for (String line : page.content().split("\n")) {
+            String formatted = line
+                    .replace("§0", "§f")
+                    .replace("§8", "§7")
+                    .replace("§1", "§b")
+                    .replace("§2", "§a")
+                    .replace("§4", "§c")
+                    .replace("§5", "§d")
+                    .replace("§r", "§r§f");
+            if (!formatted.isEmpty() && !formatted.startsWith("§")) {
+                formatted = "§f" + formatted;
+            }
+            lore.add(formatted);
+        }
         inv.setItem(13, createItem(Material.WRITTEN_BOOK, "§e§l" + page.title(), lore));
 
         // Previous button (Slot 11)
@@ -95,10 +114,15 @@ public final class ChestGuideGui implements Listener {
         player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 0.8f, 1.0f);
     }
 
-    public static void openIndex(VoidscapePlugin plugin, Player player, int returnPageIndex) {
-        List<GuidePage> pages = GuideData.PAGES;
-        GuideHolder holder = new GuideHolder(returnPageIndex, true, returnPageIndex);
-        Inventory inv = Bukkit.createInventory(holder, 54, Component.text("สารบัญคู่มือ Evergarden", NamedTextColor.DARK_BLUE));
+    public static void open(VoidscapePlugin plugin, Player player, int pageIndex) {
+        open(plugin, player, GuideBookType.CROPS, pageIndex);
+    }
+
+    public static void openIndex(VoidscapePlugin plugin, Player player, GuideBookType type, int returnPageIndex) {
+        if (type == null) type = GuideBookType.CROPS;
+        List<GuidePage> pages = GuideData.pagesFor(type);
+        GuideHolder holder = new GuideHolder(type, returnPageIndex, true, returnPageIndex);
+        Inventory inv = Bukkit.createInventory(holder, 54, Component.text("สารบัญ: " + type.bookTitle, NamedTextColor.DARK_BLUE));
         holder.setInventory(inv);
 
         for (int i = 0; i < pages.size() && i < 36; i++) {
@@ -113,10 +137,15 @@ public final class ChestGuideGui implements Listener {
         }
 
         inv.setItem(45, createItem(Material.ARROW, "§e⬅️ กลับไปหน้าที่อ่านค้างไว้", List.of("§7หน้า " + (returnPageIndex + 1))));
+        inv.setItem(47, createItem(Material.ENCHANTED_BOOK, "§e📚 เลือกคู่มือเล่มอื่น", List.of("§7คลิกเพื่อกลับไปหน้าเลือกคู่มือ 3 เล่ม")));
         inv.setItem(49, createItem(Material.BARRIER, "§c❌ ปิด", null));
 
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 0.8f, 1.0f);
+    }
+
+    public static void openIndex(VoidscapePlugin plugin, Player player, int returnPageIndex) {
+        openIndex(plugin, player, GuideBookType.CROPS, returnPageIndex);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -128,21 +157,28 @@ public final class ChestGuideGui implements Listener {
         int slot = e.getRawSlot();
         if (slot < 0 || slot >= e.getInventory().getSize()) return;
 
+        GuideBookType type = holder.getType();
+        List<GuidePage> pages = GuideData.pagesFor(type);
+
         if (holder.isIndex()) {
-            if (slot >= 0 && slot < GuideData.PAGES.size()) {
-                open(plugin, player, slot);
+            if (slot >= 0 && slot < pages.size()) {
+                open(plugin, player, type, slot);
             } else if (slot == 45) {
-                open(plugin, player, holder.getReturnPageIndex());
+                open(plugin, player, type, holder.getReturnPageIndex());
+            } else if (slot == 47) {
+                plugin.guideMenu().open(player);
             } else if (slot == 49) {
                 player.closeInventory();
             }
         } else {
-            if (slot == 11 && holder.getPageIndex() > 0) {
-                open(plugin, player, holder.getPageIndex() - 1);
-            } else if (slot == 15 && holder.getPageIndex() < GuideData.PAGES.size() - 1) {
-                open(plugin, player, holder.getPageIndex() + 1);
+            if (slot == 0) {
+                plugin.guideMenu().open(player);
+            } else if (slot == 11 && holder.getPageIndex() > 0) {
+                open(plugin, player, type, holder.getPageIndex() - 1);
+            } else if (slot == 15 && holder.getPageIndex() < pages.size() - 1) {
+                open(plugin, player, type, holder.getPageIndex() + 1);
             } else if (slot == 4) {
-                openIndex(plugin, player, holder.getPageIndex());
+                openIndex(plugin, player, type, holder.getPageIndex());
             } else if (slot == 22) {
                 player.closeInventory();
             }

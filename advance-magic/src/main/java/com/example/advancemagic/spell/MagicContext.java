@@ -50,6 +50,12 @@ public final class MagicContext {
     public boolean ally(Player p,LivingEntity e) {
         if(p.getUniqueId().equals(e.getUniqueId()))return true;
         if(e instanceof Tameable t&&t.getOwner()!=null&&t.getOwner().getUniqueId().equals(p.getUniqueId()))return true;
+        var pdc = e.getPersistentDataContainer();
+        NamespacedKey vexKey = new NamespacedKey(plugin, "allied_vex");
+        if(pdc.has(vexKey, org.bukkit.persistence.PersistentDataType.STRING)) {
+            String owner = pdc.get(vexKey, org.bukkit.persistence.PersistentDataType.STRING);
+            if(p.getUniqueId().toString().equals(owner)) return true;
+        }
         var board=Bukkit.getScoreboardManager().getMainScoreboard();
         var a=board.getEntryTeam(p.getName());
         String entry=e instanceof Player other?other.getName():e.getUniqueId().toString();

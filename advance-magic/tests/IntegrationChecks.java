@@ -104,8 +104,8 @@ public final class IntegrationChecks extends JavaPlugin {
             check(player.hasPotionEffect(PotionEffectType.REGENERATION)&&player.getPotionEffect(PotionEffectType.ABSORPTION).getAmplifier()==1,"caster receives Regen II and Absorption II");
             check(plugin.spells().cast(player,Spell.IRON_ARMOR)&&plugin.statuses().armored(player),"Iron Armor active");
             check(player.getPotionEffect(PotionEffectType.RESISTANCE).getAmplifier()==2,"Resistance III");
-            check(plugin.spells().cast(player,Spell.INVISIBILITY_SHROUD)&&player.hasPotionEffect(PotionEffectType.INVISIBILITY),"Shroud activates");
-            plugin.statuses().reveal(player);check(!player.hasPotionEffect(PotionEffectType.INVISIBILITY),"Shroud reveal removes owned invisibility");
+            check(plugin.spells().cast(player,Spell.SONIC_BOOM),"Sonic Boom casts");
+            check(target.getPotionEffect(PotionEffectType.DARKNESS)!=null,"Sonic Boom applies darkness");
             reset();check(plugin.spells().cast(player,Spell.EARTH_WALL),"Earth Wall casts");
             check(w.getEntitiesByClass(FallingBlock.class).size()==15,"15 temporary wall visuals");
             check(w.getBlockAt(0,100,3).getType()==Material.AIR,"wall never replaces terrain");
@@ -131,9 +131,9 @@ public final class IntegrationChecks extends JavaPlugin {
     }
     void projectiles() {
         check(target.getHealth()<200,"Dragon cloud deals continuous magic damage");
-        reset();check(plugin.spells().cast(player,Spell.POISON_SPORES),"Poison Spores launches");
-        later(12,()->{
-            check(target.hasPotionEffect(PotionEffectType.POISON),"spore impact applies poison");
+        reset();check(plugin.spells().cast(player,Spell.BLAZE_BARRAGE),"Blaze Barrage launches");
+        later(16,()->{
+            check(target.getFireTicks()>0,"blaze impact ignites target");
             reset();check(plugin.spells().cast(player,Spell.SHULKER_LEVITATION),"homing ShulkerBullet launches");
             later(40,()->{
                 check(target.hasPotionEffect(PotionEffectType.LEVITATION)&&target.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier()==1,"shulker impact applies Levitation II");
@@ -143,24 +143,18 @@ public final class IntegrationChecks extends JavaPlugin {
                     reset();check(plugin.spells().cast(player,Spell.VOID_PULL),"gravity orb launches");
                     later(50,()->{
                         check(target.hasPotionEffect(PotionEffectType.SLOWNESS),"gravity orb roots target");
-                        reset();check(plugin.spells().cast(player,Spell.TIME_DILATION),"Time Dilation casts");
-                        Arrow arrow=player.getWorld().spawnArrow(new Location(player.getWorld(),1.5,102,1.5),new org.bukkit.util.Vector(0,0,1),1,0);
-                        double speed=arrow.getVelocity().length();
-                        later(2,()->{
-                            check(arrow.getVelocity().length()<speed*0.4,"time dome slows projectiles");
-                            check(target.hasPotionEffect(PotionEffectType.MINING_FATIGUE),"time dome applies mining fatigue");arrow.remove();
-                            reset();player.setHealth(4);check(plugin.spells().cast(player,Spell.SOUL_DRAIN),"Soul Drain channel starts");
-                            for(int delay:new int[]{21,41,61})later(delay,()->getLogger().info("DRAIN health="+target.getHealth()+" caster="+player.getHealth()+" effects="+plugin.effects().size()+" clear="+plugin.context().clear(player.getEyeLocation(),target.getEyeLocation())));
-                            later(62,this::finishSpells);
-                        });
+                        reset();check(plugin.spells().cast(player,Spell.VEX_LEGION),"Vex Legion casts");
+                        check(!player.getWorld().getEntitiesByClass(Vex.class).isEmpty(),"allied vex spirits spawned");
+                        reset();player.setHealth(4);check(plugin.spells().cast(player,Spell.GUARDIAN_BEAM),"Guardian Beam channel starts");
+                        later(32,this::finishSpells);
                     });
                 });
             });
         });
     }
     void finishSpells() {
-        check(target.getHealth()<=176,"Soul Drain deals three eight-health pulses");
-        check(player.getHealth()>4,"Soul Drain heals caster from actual health drained");
+        check(target.getHealth()<200,"Guardian Beam deals shock and tidal burst damage");
+        check(player.hasPotionEffect(PotionEffectType.REGENERATION),"Guardian Beam rewards water surge regen");
         reset();World w=player.getWorld();
         for(int x=-1;x<=1;x++)for(int y=100;y<=102;y++)w.getBlockAt(x,y,3).setType(Material.STONE);
         check(plugin.spells().cast(player,Spell.SHADOW_STEP)&&player.getLocation().getZ()>4,"Shadow Step phases a one-block wall");

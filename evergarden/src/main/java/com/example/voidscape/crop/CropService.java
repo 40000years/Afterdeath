@@ -17,6 +17,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -36,11 +38,29 @@ public final class CropService implements Listener, AutoCloseable {
     private final CropItemFactory factory;
     private final Map<String, PlantedCrop> plantedCrops = new ConcurrentHashMap<>();
     private final Map<UUID, PlantedCrop> entityUuidToCrop = new ConcurrentHashMap<>();
+    private final Map<ChunkCoord, Set<PlantedCrop>> cropsByChunk = new ConcurrentHashMap<>();
+    private final PriorityQueue<GrowthEntry> growthQueue = new PriorityQueue<>();
     private final NamespacedKey cropEntityKey;
     private final File saveFile;
     private final AtomicBoolean dirty = new AtomicBoolean(false);
     private final AtomicBoolean saving = new AtomicBoolean(false);
     private int tickCounter = 0;
+
+    public record ChunkCoord(String world, int x, int z) {
+        public static ChunkCoord of(Location loc) {
+            return new ChunkCoord(loc.getWorld().getName(), loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
+        }
+        public static ChunkCoord of(Chunk chunk) {
+            return new ChunkCoord(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
+        }
+    }
+
+    public record GrowthEntry(String locKey, long targetTimeMs, int expectedStage) implements Comparable<GrowthEntry> {
+        @Override
+        public int compareTo(GrowthEntry other) {
+            return Long.compare(this.targetTimeMs, other.targetTimeMs);
+        }
+    }
 
     public CropService(VoidscapePlugin plugin) {
         this.plugin = plugin;
@@ -80,49 +100,168 @@ public final class CropService implements Listener, AutoCloseable {
         return new Location(w, Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]));
     }
 
+    private void addCropToChunkIndex(PlantedCrop crop) {
+        Location loc = crop.getLocation();
+        if (loc.getWorld() == null) return;
+        cropsByChunk.computeIfAbsent(ChunkCoord.of(loc), k -> ConcurrentHashMap.newKeySet()).add(crop);
+    }
+
+    private void removeCropFromChunkIndex(PlantedCrop crop) {
+        Location loc = crop.getLocation();
+        if (loc.getWorld() == null) return;
+        ChunkCoord coord = ChunkCoord.of(loc);
+        Set<PlantedCrop> set = cropsByChunk.get(coord);
+        if (set != null) {
+            set.remove(crop);
+            if (set.isEmpty()) {
+                cropsByChunk.remove(coord);
+            }
+        }
+    }
+
+    private synchronized void scheduleGrowth(PlantedCrop crop) {
+        if (crop.isMature()) return;
+        long targetTime = crop.getNextStageTimestamp();
+        if (targetTime != Long.MAX_VALUE) {
+            growthQueue.offer(new GrowthEntry(locKey(crop.getLocation()), targetTime, crop.getStage()));
+        }
+    }
+
+    public synchronized void onCropAccelerated(PlantedCrop crop) {
+        if (crop.isMature()) return;
+        int targetStage = crop.calculateTargetStage();
+        if (targetStage > crop.getStage()) {
+            Location loc = crop.getLocation();
+            boolean chunkLoaded = loc.getWorld() != null && loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
+            ArmorStand display = chunkLoaded ? getOrSpawnDisplay(crop) : null;
+            advanceStage(crop, targetStage, display);
+            if (!crop.isMature()) {
+                scheduleGrowth(crop);
+            }
+        } else {
+            scheduleGrowth(crop);
+        }
+    }
+
+    public PlantedCrop findNearestUnripeCrop(Location center, double radius) {
+        World world = center.getWorld();
+        if (world == null) return null;
+
+        int minCx = (center.getBlockX() - (int) Math.ceil(radius)) >> 4;
+        int maxCx = (center.getBlockX() + (int) Math.ceil(radius)) >> 4;
+        int minCz = (center.getBlockZ() - (int) Math.ceil(radius)) >> 4;
+        int maxCz = (center.getBlockZ() + (int) Math.ceil(radius)) >> 4;
+
+        double radiusSq = radius * radius;
+        PlantedCrop nearest = null;
+        double nearestDistSq = Double.MAX_VALUE;
+
+        for (int cx = minCx; cx <= maxCx; cx++) {
+            for (int cz = minCz; cz <= maxCz; cz++) {
+                ChunkCoord coord = new ChunkCoord(world.getName(), cx, cz);
+                Set<PlantedCrop> crops = cropsByChunk.get(coord);
+                if (crops == null || crops.isEmpty()) continue;
+
+                for (PlantedCrop crop : crops) {
+                    if (crop.isMature()) continue;
+                    Location cLoc = crop.getLocation();
+                    if (!world.equals(cLoc.getWorld())) continue;
+                    double distSq = cLoc.distanceSquared(center);
+                    if (distSq <= radiusSq && distSq < nearestDistSq) {
+                        nearest = crop;
+                        nearestDistSq = distSq;
+                    }
+                }
+            }
+        }
+        return nearest;
+    }
+
     public void tick() {
         tickCounter++;
-        boolean doAmbient = (tickCounter % 8 == 0); // every 4s (8 * 0.5s)
+        long now = System.currentTimeMillis();
 
-        for (PlantedCrop crop : plantedCrops.values()) {
-            Location loc = crop.getLocation();
-            if (!loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) continue;
+        // 1. Process time-based growth queue (O(1) when idle)
+        synchronized (this) {
+            while (!growthQueue.isEmpty()) {
+                GrowthEntry entry = growthQueue.peek();
+                if (entry.targetTimeMs() > now) {
+                    break;
+                }
+                growthQueue.poll();
 
-            // Check if farmland underneath still exists
-            Block soil = loc.subtract(0, 1, 0).getBlock();
-            if (soil.getType() != Material.FARMLAND) {
-                harvest(crop, null, true);
-                continue;
-            }
+                PlantedCrop crop = plantedCrops.get(entry.locKey());
+                if (crop == null || crop.getStage() != entry.expectedStage() || crop.isMature()) {
+                    continue;
+                }
 
-            // Armor stands are translated by Geyser; Java display entities are not.
-            ArmorStand display = getOrSpawnDisplay(crop);
-            getOrSpawnInteraction(crop);
-            if (display == null) continue;
+                Location loc = crop.getLocation();
+                World world = loc.getWorld();
+                if (world == null) continue;
 
-            // Update growth stage
-            int targetStage = crop.getStage();
-            long elapsed = crop.elapsedSeconds();
-            long total = crop.getType().tier.growthSeconds;
+                if (world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+                    Block soil = loc.clone().subtract(0, 1, 0).getBlock();
+                    if (soil.getType() != Material.FARMLAND) {
+                        harvest(crop, null, true);
+                        continue;
+                    }
+                }
 
-            if (elapsed >= total) {
-                targetStage = 2;
-            } else if (elapsed >= total / 3) {
-                targetStage = 1;
-            } else {
-                targetStage = 0;
-            }
-
-            if (targetStage > crop.getStage()) {
-                advanceStage(crop, targetStage, display);
-            } else if (crop.isMature() && doAmbient) {
-                spawnAmbientParticles(crop);
+                int targetStage = crop.calculateTargetStage();
+                if (targetStage > crop.getStage()) {
+                    boolean chunkLoaded = world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
+                    ArmorStand display = chunkLoaded ? getOrSpawnDisplay(crop) : null;
+                    advanceStage(crop, targetStage, display);
+                    if (!crop.isMature()) {
+                        scheduleGrowth(crop);
+                    }
+                }
             }
         }
 
-        // Periodic async autosave every 60s (120 ticks * 0.5s) if modified
+        // 2. Throttled, player-aware ambient particles for mature crops
+        tickAmbientParticles();
+
+        // 3. Periodic async autosave every 60s (120 ticks * 0.5s) if modified
         if (tickCounter % 120 == 0 && dirty.get()) {
             saveCropsAsync();
+        }
+    }
+
+    private void tickAmbientParticles() {
+        if (tickCounter % 2 != 0) return; // run particle check every 1s
+
+        int spawnedThisTick = 0;
+        final int MAX_PARTICLES_PER_TICK = 10;
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (spawnedThisTick >= MAX_PARTICLES_PER_TICK) break;
+            Location pLoc = player.getLocation();
+            World world = pLoc.getWorld();
+            if (world == null) continue;
+
+            int pcx = pLoc.getBlockX() >> 4;
+            int pcz = pLoc.getBlockZ() >> 4;
+
+            for (int dx = -1; dx <= 1 && spawnedThisTick < MAX_PARTICLES_PER_TICK; dx++) {
+                for (int dz = -1; dz <= 1 && spawnedThisTick < MAX_PARTICLES_PER_TICK; dz++) {
+                    ChunkCoord coord = new ChunkCoord(world.getName(), pcx + dx, pcz + dz);
+                    Set<PlantedCrop> crops = cropsByChunk.get(coord);
+                    if (crops == null || crops.isEmpty()) continue;
+
+                    for (PlantedCrop crop : crops) {
+                        if (!crop.isMature()) continue;
+                        Location cLoc = crop.getLocation();
+                        if (cLoc.distanceSquared(pLoc) > 256.0) continue; // within 16 blocks
+
+                        if (((crop.hashCode() ^ (tickCounter >> 1)) & 7) == 0) {
+                            spawnAmbientParticles(crop);
+                            spawnedThisTick++;
+                            if (spawnedThisTick >= MAX_PARTICLES_PER_TICK) break;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -133,12 +272,14 @@ public final class CropService implements Listener, AutoCloseable {
         }
 
         Location loc = crop.getLocation().add(0.5, 0.5, 0.5);
-        loc.getWorld().playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.8f, 1.3f);
-
-        if (newStage == 2) {
-            spawnMatureParticles(crop);
-        } else {
-            loc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, loc, 12, 0.3, 0.3, 0.3, 0.05);
+        World world = loc.getWorld();
+        if (world != null) {
+            world.playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.8f, 1.3f);
+            if (newStage == 2) {
+                spawnMatureParticles(crop);
+            } else {
+                world.spawnParticle(Particle.HAPPY_VILLAGER, loc, 12, 0.3, 0.3, 0.3, 0.05);
+            }
         }
         dirty.set(true);
     }
@@ -146,6 +287,7 @@ public final class CropService implements Listener, AutoCloseable {
     private void spawnMatureParticles(PlantedCrop crop) {
         Location loc = crop.getLocation().add(0.5, 0.6, 0.5);
         World w = loc.getWorld();
+        if (w == null) return;
         switch (crop.getType().tier) {
             case TIER_1 -> {
                 w.spawnParticle(Particle.HAPPY_VILLAGER, loc, 25, 0.4, 0.4, 0.4, 0.08);
@@ -173,6 +315,7 @@ public final class CropService implements Listener, AutoCloseable {
     private void spawnAmbientParticles(PlantedCrop crop) {
         Location loc = crop.getLocation().add(0.5, 0.6, 0.5);
         World w = loc.getWorld();
+        if (w == null) return;
         switch (crop.getType().tier) {
             case TIER_1 -> w.spawnParticle(Particle.HAPPY_VILLAGER, loc, 2, 0.2, 0.2, 0.2, 0.02);
             case TIER_2 -> w.spawnParticle(Particle.CRIT, loc, 3, 0.2, 0.2, 0.2, 0.05);
@@ -185,34 +328,42 @@ public final class CropService implements Listener, AutoCloseable {
         }
     }
 
-    private ArmorStand getOrSpawnDisplay(PlantedCrop crop) {
+    public ArmorStand getOrSpawnDisplay(PlantedCrop crop) {
         Location loc = crop.getLocation();
-        if (crop.getItemDisplayUuid() != null) {
-            Entity ent = Bukkit.getEntity(crop.getItemDisplayUuid());
+        World world = loc.getWorld();
+        if (world == null || !world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+            return null;
+        }
+
+        if (crop.getStandUuid() != null) {
+            Entity ent = Bukkit.getEntity(crop.getStandUuid());
             if (ent instanceof ArmorStand stand && ent.isValid() && ownsCropEntity(stand, crop)) {
                 updateCropRenderer(stand, crop);
                 return stand;
             }
-            // Upgrade crops saved by releases that used unsupported ItemDisplay entities.
-            if (ent instanceof ItemDisplay) {
-                entityUuidToCrop.remove(ent.getUniqueId());
-                ent.remove();
+            if (ent != null && !ent.isValid()) {
+                entityUuidToCrop.remove(crop.getStandUuid());
+                crop.setStandUuid(null);
             }
         }
 
         Location center = loc.clone().add(0.5, CROP_STAND_Y, 0.5);
-        for (Entity nearby : loc.getWorld().getNearbyEntities(center, 0.8, 0.8, 0.8)) {
+        for (Entity nearby : world.getNearbyEntities(center, 0.6, 0.6, 0.6)) {
             if (nearby instanceof ArmorStand stand && ownsCropEntity(stand, crop)) {
                 updateCropRenderer(stand, crop);
-                crop.setItemDisplayUuid(stand.getUniqueId());
+                crop.setStandUuid(stand.getUniqueId());
                 entityUuidToCrop.put(stand.getUniqueId(), crop);
                 stand.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), crop.getStage()), true);
                 dirty.set(true);
                 return stand;
             }
+            if ((nearby instanceof Interaction || nearby instanceof ItemDisplay) && ownsCropEntity(nearby, crop)) {
+                entityUuidToCrop.remove(nearby.getUniqueId());
+                nearby.remove();
+            }
         }
 
-        ArmorStand display = loc.getWorld().spawn(center, ArmorStand.class, stand -> {
+        ArmorStand display = world.spawn(center, ArmorStand.class, stand -> {
             stand.setInvisible(true);
             stand.setSmall(true);
             stand.setMarker(false);
@@ -223,11 +374,11 @@ public final class CropService implements Listener, AutoCloseable {
             stand.setArms(false);
             stand.setSilent(true);
             stand.setInvulnerable(true);
-            stand.setPersistent(true);
+            stand.setPersistent(false);
             stand.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), crop.getStage()), true);
             stand.getPersistentDataContainer().set(cropEntityKey, PersistentDataType.STRING, locKey(crop.getLocation()));
         });
-        crop.setItemDisplayUuid(display.getUniqueId());
+        crop.setStandUuid(display.getUniqueId());
         entityUuidToCrop.put(display.getUniqueId(), crop);
         dirty.set(true);
         return display;
@@ -238,7 +389,6 @@ public final class CropService implements Listener, AutoCloseable {
     }
 
     private void updateCropRenderer(ArmorStand stand, PlantedCrop crop) {
-        // Upgrade already loaded crops as well as crops recovered after restart.
         NamespacedKey revisionKey = new NamespacedKey("voidscape", "crop_renderer_revision");
         if (Integer.valueOf(6).equals(stand.getPersistentDataContainer().get(revisionKey, PersistentDataType.INTEGER))) return;
         stand.setMarker(false);
@@ -252,36 +402,56 @@ public final class CropService implements Listener, AutoCloseable {
         stand.getPersistentDataContainer().set(revisionKey, PersistentDataType.INTEGER, 6);
     }
 
-    private Interaction getOrSpawnInteraction(PlantedCrop crop) {
-        Location loc = crop.getLocation();
-        if (crop.getInteractionUuid() != null) {
-            Entity ent = Bukkit.getEntity(crop.getInteractionUuid());
-            if (ent instanceof Interaction it && ent.isValid()) {
-                return it;
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onChunkLoad(ChunkLoadEvent e) {
+        ChunkCoord coord = ChunkCoord.of(e.getChunk());
+        Set<PlantedCrop> crops = cropsByChunk.get(coord);
+        if (crops == null || crops.isEmpty()) return;
+
+        cleanOrphanCropEntities(e.getChunk());
+
+        for (PlantedCrop crop : crops) {
+            getOrSpawnDisplay(crop);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onChunkUnload(ChunkUnloadEvent e) {
+        ChunkCoord coord = ChunkCoord.of(e.getChunk());
+        Set<PlantedCrop> crops = cropsByChunk.get(coord);
+        if (crops == null || crops.isEmpty()) return;
+
+        for (PlantedCrop crop : crops) {
+            UUID id = crop.getStandUuid();
+            if (id != null) {
+                entityUuidToCrop.remove(id);
+                Entity ent = Bukkit.getEntity(id);
+                if (ent != null) {
+                    ent.remove();
+                }
+                crop.setStandUuid(null);
             }
         }
+    }
 
-        Location center = loc.add(0.5, 0.0, 0.5);
-        for (Entity nearby : loc.getWorld().getNearbyEntities(center, 0.8, 0.8, 0.8)) {
-            if (nearby instanceof Interaction it && nearby.getPersistentDataContainer().has(cropEntityKey, PersistentDataType.STRING)) {
-                crop.setInteractionUuid(it.getUniqueId());
-                entityUuidToCrop.put(it.getUniqueId(), crop);
-                dirty.set(true);
-                return it;
+    private void cleanOrphanCropEntities(Chunk chunk) {
+        Set<String> seenCropKeys = new HashSet<>();
+        for (Entity entity : chunk.getEntities()) {
+            if (entity.getPersistentDataContainer().has(cropEntityKey, PersistentDataType.STRING)) {
+                if (entity instanceof Interaction || entity instanceof ItemDisplay) {
+                    entityUuidToCrop.remove(entity.getUniqueId());
+                    entity.remove();
+                    continue;
+                }
+                if (entity instanceof ArmorStand) {
+                    String key = entity.getPersistentDataContainer().get(cropEntityKey, PersistentDataType.STRING);
+                    if (key == null || !plantedCrops.containsKey(key) || !seenCropKeys.add(key)) {
+                        entityUuidToCrop.remove(entity.getUniqueId());
+                        entity.remove();
+                    }
+                }
             }
         }
-
-        Interaction it = loc.getWorld().spawn(center, Interaction.class, i -> {
-            i.setInteractionWidth(0.95f);
-            i.setInteractionHeight(1.0f);
-            i.setResponsive(true);
-            i.setPersistent(true);
-            i.getPersistentDataContainer().set(cropEntityKey, PersistentDataType.STRING, locKey(crop.getLocation()));
-        });
-        crop.setInteractionUuid(it.getUniqueId());
-        entityUuidToCrop.put(it.getUniqueId(), crop);
-        dirty.set(true);
-        return it;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -329,7 +499,7 @@ public final class CropService implements Listener, AutoCloseable {
         // Leave block above as AIR (NO tripwire string!)
         above.setType(Material.AIR, false);
 
-        // An invisible armor stand with a custom helmet renders on Java and through Geyser.
+        // Single ArmorStand with custom helmet model and hitbox for clicks
         Location displayLoc = above.getLocation().add(0.5, CROP_STAND_Y, 0.5);
         ArmorStand display = above.getWorld().spawn(displayLoc, ArmorStand.class, stand -> {
             stand.setInvisible(true);
@@ -342,25 +512,16 @@ public final class CropService implements Listener, AutoCloseable {
             stand.setArms(false);
             stand.setSilent(true);
             stand.setInvulnerable(true);
-            stand.setPersistent(true);
+            stand.setPersistent(false);
             stand.getEquipment().setHelmet(factory.createPlantDisplay(cropType, 0), true);
             stand.getPersistentDataContainer().set(cropEntityKey, PersistentDataType.STRING, locKey(above.getLocation()));
         });
 
-        // Spawn Interaction hitbox
-        Location interactLoc = above.getLocation().add(0.5, 0.0, 0.5);
-        Interaction interaction = above.getWorld().spawn(interactLoc, Interaction.class, i -> {
-            i.setInteractionWidth(0.95f);
-            i.setInteractionHeight(1.0f);
-            i.setResponsive(true);
-            i.setPersistent(true);
-            i.getPersistentDataContainer().set(cropEntityKey, PersistentDataType.STRING, locKey(above.getLocation()));
-        });
-
-        PlantedCrop crop = new PlantedCrop(above.getLocation(), cropType, 0, System.currentTimeMillis(), display.getUniqueId(), interaction.getUniqueId());
+        PlantedCrop crop = new PlantedCrop(above.getLocation(), cropType, 0, System.currentTimeMillis(), display.getUniqueId());
         plantedCrops.put(locKey(above.getLocation()), crop);
+        addCropToChunkIndex(crop);
         entityUuidToCrop.put(display.getUniqueId(), crop);
-        entityUuidToCrop.put(interaction.getUniqueId(), crop);
+        scheduleGrowth(crop);
 
         if (p.getGameMode() != GameMode.CREATIVE) {
             hand.setAmount(hand.getAmount() - 1);
@@ -426,13 +587,14 @@ public final class CropService implements Listener, AutoCloseable {
             harvest(found, p, false);
         } else {
             p.sendActionBar(Component.text("⏳ " + found.getType().thaiName + " กำลังเติบโต (" + (int)(found.growthProgress() * 100) + "% · เหลือ " + found.secondsRemaining() + " วินาที)", NamedTextColor.YELLOW));
+            found.getLocation().getWorld().playSound(found.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_HIT, 0.6f, 1.5f);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamageCrop(EntityDamageByEntityEvent e) {
         Entity target = e.getEntity();
-        if (!(target instanceof Interaction) && !(target instanceof ItemDisplay) && !(target instanceof ArmorStand)) return;
+        if (!(target instanceof ArmorStand) && !(target instanceof Interaction) && !(target instanceof ItemDisplay)) return;
 
         PlantedCrop found = entityUuidToCrop.get(target.getUniqueId());
         if (found == null) return;
@@ -623,6 +785,7 @@ public final class CropService implements Listener, AutoCloseable {
 
         Location loc = crop.getLocation();
         World w = loc.getWorld();
+        if (w == null) return;
         Location dropLoc = loc.add(0.5, 0.3, 0.5);
 
         // Hoe handling
@@ -667,6 +830,7 @@ public final class CropService implements Listener, AutoCloseable {
                 if (display != null) {
                     display.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), 0), true);
                 }
+                scheduleGrowth(crop);
                 dirty.set(true);
                 return;
             }
@@ -681,6 +845,7 @@ public final class CropService implements Listener, AutoCloseable {
         }
 
         // Cleanup entities and mapping
+        removeCropFromChunkIndex(crop);
         removeEntities(crop);
         loc.getBlock().setType(Material.AIR, false);
         plantedCrops.remove(locKey(loc));
@@ -688,21 +853,21 @@ public final class CropService implements Listener, AutoCloseable {
     }
 
     private void removeEntities(PlantedCrop crop) {
-        if (crop.getItemDisplayUuid() != null) {
-            entityUuidToCrop.remove(crop.getItemDisplayUuid());
-            Entity ent = Bukkit.getEntity(crop.getItemDisplayUuid());
+        if (crop.getStandUuid() != null) {
+            entityUuidToCrop.remove(crop.getStandUuid());
+            Entity ent = Bukkit.getEntity(crop.getStandUuid());
             if (ent != null) ent.remove();
-        }
-        if (crop.getInteractionUuid() != null) {
-            entityUuidToCrop.remove(crop.getInteractionUuid());
-            Entity ent = Bukkit.getEntity(crop.getInteractionUuid());
-            if (ent != null) ent.remove();
+            crop.setStandUuid(null);
         }
         Location center = crop.getLocation().add(0.5, 0.45, 0.5);
-        for (Entity nearby : crop.getLocation().getWorld().getNearbyEntities(center, 0.9, 1.3, 0.9)) {
-            if ((nearby instanceof ItemDisplay || nearby instanceof ArmorStand || nearby instanceof Interaction) &&
-                ownsCropEntity(nearby, crop)) {
-                nearby.remove();
+        World world = crop.getLocation().getWorld();
+        if (world != null && world.isChunkLoaded(crop.getLocation().getBlockX() >> 4, crop.getLocation().getBlockZ() >> 4)) {
+            for (Entity nearby : world.getNearbyEntities(center, 0.9, 1.3, 0.9)) {
+                if ((nearby instanceof ItemDisplay || nearby instanceof ArmorStand || nearby instanceof Interaction) &&
+                    ownsCropEntity(nearby, crop)) {
+                    entityUuidToCrop.remove(nearby.getUniqueId());
+                    nearby.remove();
+                }
             }
         }
     }
@@ -737,11 +902,8 @@ public final class CropService implements Listener, AutoCloseable {
                 cfg.set(key + ".type", c.getType().id);
                 cfg.set(key + ".stage", c.getStage());
                 cfg.set(key + ".plantedAt", c.getPlantedAt());
-                if (c.getItemDisplayUuid() != null) {
-                    cfg.set(key + ".display", c.getItemDisplayUuid().toString());
-                }
-                if (c.getInteractionUuid() != null) {
-                    cfg.set(key + ".interaction", c.getInteractionUuid().toString());
+                if (c.getStandUuid() != null) {
+                    cfg.set(key + ".display", c.getStandUuid().toString());
                 }
             }
             File tmp = new File(saveFile.getParentFile(), "crops.yml.tmp");
@@ -755,6 +917,10 @@ public final class CropService implements Listener, AutoCloseable {
     public void loadCrops() {
         plantedCrops.clear();
         entityUuidToCrop.clear();
+        cropsByChunk.clear();
+        synchronized (this) {
+            growthQueue.clear();
+        }
         if (!saveFile.exists()) return;
         try {
             YamlConfiguration cfg = YamlConfiguration.loadConfiguration(saveFile);
@@ -768,25 +934,47 @@ public final class CropService implements Listener, AutoCloseable {
                 int stage = cfg.getInt(key + ".stage", 0);
                 long plantedAt = cfg.getLong(key + ".plantedAt", System.currentTimeMillis());
                 String dUuidStr = cfg.getString(key + ".display");
-                String iUuidStr = cfg.getString(key + ".interaction");
-                UUID displayUuid;
-                UUID interactUuid;
-                try {
-                    displayUuid = dUuidStr != null ? UUID.fromString(dUuidStr) : null;
-                    interactUuid = iUuidStr != null ? UUID.fromString(iUuidStr) : null;
-                } catch (IllegalArgumentException badUuid) {
-                    plugin.getLogger().warning("Skipping crop with invalid entity UUID: " + key);
-                    continue;
+                UUID displayUuid = null;
+                if (dUuidStr != null) {
+                    try {
+                        displayUuid = UUID.fromString(dUuidStr);
+                    } catch (IllegalArgumentException ignored) {}
                 }
 
-                PlantedCrop crop = new PlantedCrop(loc, type, stage, plantedAt, displayUuid, interactUuid);
+                PlantedCrop crop = new PlantedCrop(loc, type, stage, plantedAt, displayUuid);
                 plantedCrops.put(key, crop);
+                addCropToChunkIndex(crop);
                 if (displayUuid != null) entityUuidToCrop.put(displayUuid, crop);
-                if (interactUuid != null) entityUuidToCrop.put(interactUuid, crop);
+
+                // Catch-up stage or schedule growth
+                if (!crop.isMature()) {
+                    int targetStage = crop.calculateTargetStage();
+                    if (targetStage > crop.getStage()) {
+                        crop.setStage(targetStage);
+                        dirty.set(true);
+                    }
+                    if (!crop.isMature()) {
+                        scheduleGrowth(crop);
+                    }
+                }
             }
             plugin.getLogger().info("Loaded " + plantedCrops.size() + " planted crops from crops.yml");
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to load crops.yml: " + e.getMessage());
+        }
+
+        // Restore/spawn displays for crops in already loaded chunks
+        for (World world : Bukkit.getWorlds()) {
+            for (Chunk chunk : world.getLoadedChunks()) {
+                ChunkCoord coord = ChunkCoord.of(chunk);
+                Set<PlantedCrop> crops = cropsByChunk.get(coord);
+                if (crops != null && !crops.isEmpty()) {
+                    cleanOrphanCropEntities(chunk);
+                    for (PlantedCrop crop : crops) {
+                        getOrSpawnDisplay(crop);
+                    }
+                }
+            }
         }
     }
 
@@ -795,5 +983,9 @@ public final class CropService implements Listener, AutoCloseable {
         // Always flush the complete in-memory set before entities are removed.
         saveCropsSync();
         for (PlantedCrop crop : plantedCrops.values()) removeEntities(crop);
+        cropsByChunk.clear();
+        synchronized (this) {
+            growthQueue.clear();
+        }
     }
 }

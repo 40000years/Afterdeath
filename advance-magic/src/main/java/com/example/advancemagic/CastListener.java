@@ -99,7 +99,7 @@ public final class CastListener implements Listener {
             if(!success){account.refund(spell.id(),spell.mana);actionbar(p,"No valid target or safe destination.");}
             else {
                 Bukkit.getPluginManager().callEvent(new com.example.advancemagic.api.MagicCastSuccessEvent(p, spell));
-                if(spell!=Spell.INVISIBILITY_SHROUD)plugin.statuses().reveal(p);
+                plugin.statuses().reveal(p);
                 int casts=wandItem!=null?plugin.wands().recordCast(wandItem,spell):0;
                 String cdStr=String.format(Locale.ROOT,"%.1f",effectiveCd);
                 actionbar(p,spell.title+" | CD "+cdStr+"s"+(casts>0?" ("+casts+" casts)":""));

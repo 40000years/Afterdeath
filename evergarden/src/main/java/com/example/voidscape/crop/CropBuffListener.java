@@ -367,7 +367,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 addPlayerMana(p, 100.0);
 
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.6f, 1.6f);
-                p.getWorld().spawnParticle(Particle.DRAGON_BREATH, p.getLocation().add(0, 1, 0), 35, 0.4, 0.6, 0.4, 0.05);
+                p.getWorld().spawnParticle(Particle.DRAGON_BREATH, p.getLocation().add(0, 1, 0), 35, 0.4, 0.6, 0.4, 0.05, 1.0f);
                 p.sendTitle(ChatColor.LIGHT_PURPLE + "✦ MANA OVERCHARGE ✦", ChatColor.AQUA + "+100 Overcharge Mana (45 วินาที)!", 5, 40, 10);
             }
             case ETHEREAL_MINT -> {
@@ -905,25 +905,23 @@ public final class CropBuffListener implements Listener, AutoCloseable {
             }
         }
 
-        // 5. Flora Aura Ticker (using safe location clone)
+        // 5. Flora Aura Ticker (using spatial chunk lookup)
         for (Map.Entry<UUID, Integer> entry : floraAuraCharges.entrySet()) {
             if (entry.getValue() > 0) {
                 Player p = Bukkit.getPlayer(entry.getKey());
                 if (p != null && p.isOnline()) {
-                    for (PlantedCrop crop : cropService.getPlantedCrops()) {
-                        Location cLoc = crop.getLocation();
-                        if (!crop.isMature() && cLoc.getWorld().equals(p.getWorld()) &&
-                            cLoc.distanceSquared(p.getLocation()) <= 16.0) {
-                            crop.accelerate(crop.getType().tier.growthSeconds / 2);
-                            cLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, cLoc.clone().add(0.5, 0.5, 0.5), 10, 0.3, 0.3, 0.3, 0.05);
-                            int remaining = entry.getValue() - 1;
-                            if (remaining <= 0) {
-                                floraAuraCharges.remove(entry.getKey());
-                                p.sendMessage(ChatColor.GREEN + "[Flora Aura] พลังเร่งโตพืชพรรณหมดแล้ว");
-                            } else {
-                                floraAuraCharges.put(entry.getKey(), remaining);
-                            }
-                            break;
+                    PlantedCrop crop = cropService.findNearestUnripeCrop(p.getLocation(), 4.0);
+                    if (crop != null) {
+                        crop.accelerate(crop.getType().tier.growthSeconds / 2);
+                        cropService.onCropAccelerated(crop);
+                        Location cLoc = crop.getLocation().add(0.5, 0.5, 0.5);
+                        cLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, cLoc, 10, 0.3, 0.3, 0.3, 0.05);
+                        int remaining = entry.getValue() - 1;
+                        if (remaining <= 0) {
+                            floraAuraCharges.remove(entry.getKey());
+                            p.sendMessage(ChatColor.GREEN + "[Flora Aura] พลังเร่งโตพืชพรรณหมดแล้ว");
+                        } else {
+                            floraAuraCharges.put(entry.getKey(), remaining);
                         }
                     }
                 }

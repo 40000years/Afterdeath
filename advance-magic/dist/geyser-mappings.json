@@ -135,12 +135,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "advance_magic:invisibility_shroud"
+          "value": "advance_magic:sonic_boom"
         },
-        "bedrock_identifier": "advance_magic:invisibility_shroud",
-        "display_name": "Invisibility Shroud Wand",
+        "bedrock_identifier": "advance_magic:sonic_boom",
+        "display_name": "Sonic Boom Wand",
         "bedrock_options": {
-          "icon": "advance_magic.invisibility_shroud",
+          "icon": "advance_magic.sonic_boom",
           "allow_offhand": true,
           "display_handheld": true,
           "creative_category": "equipment"
@@ -153,12 +153,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "advance_magic:poison_spores"
+          "value": "advance_magic:blaze_barrage"
         },
-        "bedrock_identifier": "advance_magic:poison_spores",
-        "display_name": "Poison Spores Wand",
+        "bedrock_identifier": "advance_magic:blaze_barrage",
+        "display_name": "Blaze Barrage Wand",
         "bedrock_options": {
-          "icon": "advance_magic.poison_spores",
+          "icon": "advance_magic.blaze_barrage",
           "allow_offhand": true,
           "display_handheld": true,
           "creative_category": "equipment"
@@ -243,12 +243,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "advance_magic:time_dilation"
+          "value": "advance_magic:vex_legion"
         },
-        "bedrock_identifier": "advance_magic:time_dilation",
-        "display_name": "Time Dilation Wand",
+        "bedrock_identifier": "advance_magic:vex_legion",
+        "display_name": "Vex Legion Wand",
         "bedrock_options": {
-          "icon": "advance_magic.time_dilation",
+          "icon": "advance_magic.vex_legion",
           "allow_offhand": true,
           "display_handheld": true,
           "creative_category": "equipment"
@@ -261,12 +261,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "advance_magic:soul_drain"
+          "value": "advance_magic:guardian_beam"
         },
-        "bedrock_identifier": "advance_magic:soul_drain",
-        "display_name": "Soul Drain Wand",
+        "bedrock_identifier": "advance_magic:guardian_beam",
+        "display_name": "Guardian Beam Wand",
         "bedrock_options": {
-          "icon": "advance_magic.soul_drain",
+          "icon": "advance_magic.guardian_beam",
           "allow_offhand": true,
           "display_handheld": true,
           "creative_category": "equipment"
@@ -407,12 +407,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "advance_magic:core_invisibility_shroud"
+          "value": "advance_magic:core_sonic_boom"
         },
-        "bedrock_identifier": "advance_magic:core_invisibility_shroud",
-        "display_name": "Core of Invisibility",
+        "bedrock_identifier": "advance_magic:core_sonic_boom",
+        "display_name": "Core of the Warden",
         "bedrock_options": {
-          "icon": "advance_magic.core_invisibility_shroud",
+          "icon": "advance_magic.core_sonic_boom",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -425,12 +425,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "advance_magic:core_poison_spores"
+          "value": "advance_magic:core_blaze_barrage"
         },
-        "bedrock_identifier": "advance_magic:core_poison_spores",
-        "display_name": "Core of Poison",
+        "bedrock_identifier": "advance_magic:core_blaze_barrage",
+        "display_name": "Core of the Blaze",
         "bedrock_options": {
-          "icon": "advance_magic.core_poison_spores",
+          "icon": "advance_magic.core_blaze_barrage",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -515,12 +515,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "advance_magic:core_time_dilation"
+          "value": "advance_magic:core_vex_legion"
         },
-        "bedrock_identifier": "advance_magic:core_time_dilation",
-        "display_name": "Core of Time",
+        "bedrock_identifier": "advance_magic:core_vex_legion",
+        "display_name": "Core of Evocation",
         "bedrock_options": {
-          "icon": "advance_magic.core_time_dilation",
+          "icon": "advance_magic.core_vex_legion",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -533,12 +533,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "advance_magic:core_soul_drain"
+          "value": "advance_magic:core_guardian_beam"
         },
-        "bedrock_identifier": "advance_magic:core_soul_drain",
-        "display_name": "Core of Souls",
+        "bedrock_identifier": "advance_magic:core_guardian_beam",
+        "display_name": "Core of the Guardian",
         "bedrock_options": {
-          "icon": "advance_magic.core_soul_drain",
+          "icon": "advance_magic.core_guardian_beam",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"

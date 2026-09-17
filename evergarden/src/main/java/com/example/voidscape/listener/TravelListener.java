@@ -56,6 +56,22 @@ public final class TravelListener implements Listener {
     public void interact(PlayerInteractEvent e) {
         Player p=e.getPlayer();
         if(!e.getAction().isRightClick())return;
+
+        ItemStack hand=p.getInventory().getItem(e.getHand());
+        // Guide book interaction (both Java & Bedrock, clicking block or air)
+        if(hand!=null && hand.getType()==Material.WRITTEN_BOOK && isGuideBook(hand)) {
+            e.setCancelled(true);
+            if(e.getHand()==org.bukkit.inventory.EquipmentSlot.HAND) {
+                var bookType = plugin.relics().getGuideBookType(hand);
+                if (bookType != null) {
+                    com.example.voidscape.guide.BedrockGuideService.openGuide(plugin, p, bookType, 0);
+                } else {
+                    com.example.voidscape.guide.BedrockGuideService.openMenu(plugin, p);
+                }
+            }
+            return;
+        }
+
         Block clicked=e.getClickedBlock();
         if(clicked==null) clicked=p.getTargetBlockExact(5);
         if(clicked==null)return;
@@ -64,22 +80,12 @@ public final class TravelListener implements Listener {
         if(clicked.getWorld()==plugin.world()&&clicked.getType()==Material.LECTERN&&clicked.getX()==0&&clicked.getZ()==4) {
             e.setCancelled(true);
             if(e.getHand()==org.bukkit.inventory.EquipmentSlot.HAND) {
-                com.example.voidscape.guide.BedrockGuideService.openGuide(plugin, p, 0);
+                com.example.voidscape.guide.BedrockGuideService.openMenu(plugin, p);
             }
             return;
         }
 
-        ItemStack hand=p.getInventory().getItem(e.getHand());
         if(hand==null)return;
-
-        // Bedrock player right-clicking held guide book
-        if(hand.getType()==Material.WRITTEN_BOOK&&isGuideBook(hand)&&com.example.voidscape.guide.BedrockGuideService.isBedrock(p)) {
-            e.setCancelled(true);
-            if(e.getHand()==org.bukkit.inventory.EquipmentSlot.HAND) {
-                com.example.voidscape.guide.BedrockGuideService.openGuide(plugin, p, 0);
-            }
-            return;
-        }
 
         // Anti-Boat Cheese: prevent placing boats/minecarts near shrines in the void
         if(clicked.getWorld()==plugin.world()&&isVehicleItem(hand.getType())) {
@@ -307,7 +313,7 @@ public final class TravelListener implements Listener {
     public void breakLecternOrFrame(BlockBreakEvent e) {
         Block b=e.getBlock();
         if(b.getWorld()==plugin.world()&&b.getX()==0&&b.getY()==97&&b.getZ()==4) {
-            if(e.getPlayer().getGameMode()!=GameMode.CREATIVE||!e.getPlayer().hasPermission("voidscape.admin")) {
+            if(e.getPlayer().getGameMode()!=GameMode.CREATIVE||!(e.getPlayer().hasPermission("voidscape.admin")||e.getPlayer().isOp())) {
                 e.setCancelled(true);
                 return;
             }
@@ -326,6 +332,12 @@ public final class TravelListener implements Listener {
         if(item==null||!item.hasItemMeta())return false;
         if(item.getItemMeta().getPersistentDataContainer().has(plugin.key("guide_book"),PersistentDataType.BYTE))return true;
         if(item.getItemMeta() instanceof org.bukkit.inventory.meta.BookMeta bm) {
+            String title = bm.getTitle();
+            if (title != null) {
+                for (var t : com.example.voidscape.guide.GuideBookType.values()) {
+                    if (title.equals(t.bookTitle)) return true;
+                }
+            }
             return "คู่มือมิติ Evergarden".equals(bm.getTitle());
         }
         return false;
@@ -363,16 +375,17 @@ public final class TravelListener implements Listener {
         teleport(p,new Location(plugin.world(),0.5,97.0,0.5),()->{
             p.getPersistentDataContainer().set(plugin.key("return_location"),PersistentDataType.STRING,
                 from.getWorld().getUID()+","+from.getX()+","+from.getY()+","+from.getZ()+","+from.getYaw()+","+from.getPitch());
-            // Deliver guide book if first time
+            // Deliver guide books if first time
             if(!p.getPersistentDataContainer().has(plugin.key("has_guide"),PersistentDataType.BYTE)) {
                 p.getPersistentDataContainer().set(plugin.key("has_guide"),PersistentDataType.BYTE,(byte)1);
-                ItemStack book=plugin.relics().createGuideBook();
-                var leftover=p.getInventory().addItem(book);
-                if(!leftover.isEmpty()) p.getWorld().dropItemNaturally(p.getLocation(),book);
-                plugin.message(p,"ยินดีต้อนรับสู่มิติความว่างเปล่า! มอบคู่มือสำรวจให้แล้ว");
+                for (com.example.voidscape.guide.GuideBookType gType : com.example.voidscape.guide.GuideBookType.values()) {
+                    ItemStack book = plugin.relics().createGuideBook(gType);
+                    var leftover = p.getInventory().addItem(book);
+                    if(!leftover.isEmpty()) p.getWorld().dropItemNaturally(p.getLocation(), book);
+                }
+                plugin.message(p,"ยินดีต้อนรับสู่ Evergarden! มอบชุดคู่มือแนะนำการเล่นครบทั้ง 3 เล่มให้แล้ว");
             }
-            plugin.message(p,"✦ เดินตามทางแสงไปวิหารทั้ง 3 · ทุ่งนอกวิหารสร้างบ้านได้ · ใช้ Elytra สำรวจต่อ!");
-            plugin.message(p,"✦ วิหารใกล้สุด: ทิศเหนือ Z=-250, ต.อ. X=220 Z=130, ต.ต. X=-220 Z=130 · /evergarden guide");
+            plugin.message(p,"✦ เดินตามสะพานแสงหรือใช้ Elytra สำรวจเพื่อค้นหาวิหารทั้ง 3 · /evergarden guide");
             p.playSound(p.getLocation(),Sound.BLOCK_PORTAL_TRAVEL,0.7f,1.0f);
         });
     }

@@ -16,16 +16,12 @@ public final class AreaSpells implements Listener {
     private final Set<UUID> wallBlocks=new HashSet<>();
     private final Map<UUID,BoundingBox> walls=new HashMap<>();
     private final Map<UUID,World> wallWorlds=new HashMap<>();
-    private final Map<UUID,Location> domes=new HashMap<>();
-    private static final class Slowed {
-        final Projectile projectile;
-        Vector natural,last;
-        Slowed(Projectile projectile){this.projectile=projectile;natural=projectile.getVelocity();last=natural.clone();}
-        void update(){natural.add(projectile.getVelocity().subtract(last));last=natural.clone().multiply(0.1);projectile.setVelocity(last);}
-        void restore(){if(projectile.isValid())projectile.setVelocity(natural.add(projectile.getVelocity().subtract(last)));}
+    private final NamespacedKey vexKey;
+    private final List<Vex> activeVexes=new ArrayList<>();
+    public AreaSpells(MagicContext c){
+        this.c=c;
+        this.vexKey=new NamespacedKey(c.plugin,"allied_vex");
     }
-    private final Map<UUID,Slowed> slowed=new HashMap<>();
-    public AreaSpells(MagicContext c){this.c=c;}
     public boolean lightning(Player p) {
         Location at=c.targetPoint(p,30);if(at==null)return false;
         // The vanilla effect sends native lightning packets without uncontrolled fire or extra damage.
@@ -154,54 +150,159 @@ public final class AreaSpells implements Listener {
         return false;
     }
     @EventHandler(priority=EventPriority.HIGHEST) public void land(EntityChangeBlockEvent e){if(wallBlocks.contains(e.getEntity().getUniqueId()))e.setCancelled(true);}
-    public boolean time(Player p) {
-        Location center=p.getLocation();UUID id=UUID.randomUUID();
-        var effect=c.plugin.effects().start(p,300,(scope,age)->{
-            if(!c.loaded(center))return false;
-            if(age%5==0) {
-                c.ring(center,6,Spell.TIME_DILATION);
-                c.ring(center.clone().add(0,3,0),Math.sqrt(27),Spell.TIME_DILATION);
-                for(var e:c.nearby(p,center,6,false))if(c.affect(p,e,Spell.TIME_DILATION)) {
-                    c.potion(e,PotionEffectType.SLOWNESS,10,6);
-                    c.potion(e,PotionEffectType.MINING_FATIGUE,10,4);
-                    c.potion(e,PotionEffectType.WEAKNESS,10,2);
-                }
-                for(var ally:c.nearby(p,center,6,true)) {
-                    if(!c.affect(p,ally,Spell.TIME_DILATION))continue;
-                    c.potion(ally,PotionEffectType.SPEED,10,1);
-                    c.potion(ally,PotionEffectType.HASTE,10,1);
+    public boolean sonicBoom(Player p) {
+        Location eye = p.getEyeLocation();
+        Vector dir = eye.getDirection().normalize();
+        World world = eye.getWorld();
+        world.playSound(eye, Sound.ENTITY_WARDEN_SONIC_BOOM, 2.0f, 1.0f);
+
+        Set<LivingEntity> hitEnemies = new HashSet<>();
+        for(double d = 1.0; d <= 25.0; d += 1.0) {
+            Location point = eye.clone().add(dir.clone().multiply(d));
+            if(!c.loaded(point)) break;
+            world.spawnParticle(Particle.SONIC_BOOM, point, 1, 0, 0, 0, 0);
+            for(Entity entity : world.getNearbyEntities(point, 1.8, 1.8, 1.8)) {
+                if(entity instanceof LivingEntity living && !entity.equals(p) && !(living instanceof ArmorStand) && c.enemy(p, living)) {
+                    if(hitEnemies.add(living) && c.affect(p, living, Spell.SONIC_BOOM)) {
+                        c.damage(p, living, c.configuredDamage("damage.sonic-boom", 75.0), DamageType.SONIC_BOOM);
+                        Vector knock = dir.clone().multiply(1.8).setY(0.4);
+                        c.velocity(living, knock);
+                        c.potion(living, PotionEffectType.DARKNESS, 60, 0);
+                        living.getWorld().playSound(living.getLocation(), Sound.ENTITY_WARDEN_ATTACK_IMPACT, 1.2f, 1.0f);
+                    }
                 }
             }
-            // Stage 2: Temporal Shockwave Pulses every 50 ticks (2.5s)
-            if(age>0&&age%50==0) {
-                center.getWorld().playSound(center,Sound.BLOCK_BEACON_POWER_SELECT,1.0f,1.5f);
-                c.particles(center.clone().add(0,1,0),Particle.ENCHANT,30,2.5);
-                for(var e:c.nearby(p,center,6,false))if(c.affect(p,e,Spell.TIME_DILATION)) {
-                    c.damage(p,e,c.configuredDamage("follow-up.damage.time_dilation",12),DamageType.MAGIC);
-                    Vector push=e.getLocation().toVector().subtract(center.toVector()).setY(0);
-                    if(push.lengthSquared()>0.01)c.velocity(e,push.normalize().multiply(0.6).setY(0.2));
+        }
+        Location endPoint = eye.clone().add(dir.clone().multiply(15.0));
+        c.echo(p, endPoint, Spell.SONIC_BOOM, 14, 5.0, 25.0);
+        return true;
+    }
+
+    public boolean vexLegion(Player p) {
+        Location center = p.getLocation();
+        World world = center.getWorld();
+        if(!c.loaded(center)) return false;
+
+        world.playSound(center, Sound.ENTITY_EVOKER_PREPARE_SUMMON, 1.4f, 1.0f);
+        world.playSound(center, Sound.ENTITY_VEX_CHARGE, 1.2f, 1.2f);
+        c.particles(center.clone().add(0, 1, 0), Particle.ENCHANT, 35, 1.5);
+        c.particles(center.clone().add(0, 1, 0), Particle.SOUL, 25, 1.2);
+        c.ring(center, 3.5, Spell.VEX_LEGION);
+
+        List<Vex> summoned = new ArrayList<>();
+        for(int i = 0; i < 3; i++) {
+            double angle = i * (2 * Math.PI / 3);
+            Location spawnLoc = center.clone().add(Math.cos(angle) * 2.0, 1.0, Math.sin(angle) * 2.0);
+            if(!c.loaded(spawnLoc)) spawnLoc = center.clone().add(0, 1.0, 0);
+            Vex vex = world.spawn(spawnLoc, Vex.class, v -> {
+                v.setCustomName(ChatColor.AQUA + "✦ " + p.getName() + "'s Spirit Vex");
+                v.setCustomNameVisible(true);
+                v.getPersistentDataContainer().set(vexKey, org.bukkit.persistence.PersistentDataType.STRING, p.getUniqueId().toString());
+                v.getEquipment().setItemInMainHand(new org.bukkit.inventory.ItemStack(Material.IRON_SWORD));
+                v.getEquipment().setItemInMainHandDropChance(0.0f);
+                v.setCanPickupItems(false);
+            });
+            summoned.add(vex);
+            activeVexes.add(vex);
+        }
+
+        c.plugin.effects().start(p, 300, (effect, age) -> {
+            if(!p.isOnline() || p.isDead()) {
+                summoned.forEach(v -> { if(v.isValid()) v.remove(); });
+                return false;
+            }
+            if(age % 10 == 0) {
+                for(Vex vex : summoned) {
+                    if(!vex.isValid() || vex.isDead()) continue;
+                    LivingEntity target = vex.getTarget();
+                    if(target == null || !target.isValid() || target.isDead() || c.ally(p, target)) {
+                        List<LivingEntity> enemies = c.nearby(p, vex.getLocation(), 16.0, false);
+                        if(!enemies.isEmpty()) {
+                            vex.setTarget(enemies.get(0));
+                            vex.setCharging(true);
+                        }
+                    }
+                    if(age % 20 == 0) {
+                        vex.getWorld().spawnParticle(Particle.SOUL, vex.getLocation().add(0, 0.4, 0), 3, 0.2, 0.2, 0.2, 0.02);
+                    }
                 }
-                for(var ally:c.nearby(p,center,6,true)) {
-                    if(!c.affect(p,ally,Spell.TIME_DILATION))continue;
-                    c.potion(ally,PotionEffectType.ABSORPTION,60,1);
+            }
+            if(age == 300) {
+                for(Vex vex : summoned) {
+                    if(vex.isValid()) {
+                        vex.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, vex.getLocation(), 15, 0.3, 0.3, 0.3, 0.05);
+                        vex.getWorld().playSound(vex.getLocation(), Sound.ENTITY_VEX_DEATH, 0.8f, 1.2f);
+                        vex.remove();
+                    }
                 }
             }
             return true;
         });
-        domes.put(id,center);effect.onClose(()->domes.remove(id));return true;
+
+        c.echo(p, center, Spell.VEX_LEGION, 20, 6.0, 25.0);
+        return true;
     }
-    public void tick() {
-        Set<UUID> inside=new HashSet<>();
-        for(Location center:domes.values())if(c.loaded(center))
-            for(Entity e:center.getWorld().getNearbyEntities(center,6,6,6))
-                if(e instanceof Projectile projectile&&e.getLocation().distanceSquared(center)<=36&&inside.size()<512) {
-                    inside.add(e.getUniqueId());slowed.computeIfAbsent(e.getUniqueId(),key->new Slowed(projectile));
+
+    @EventHandler(ignoreCancelled = true)
+    public void onVexTarget(org.bukkit.event.entity.EntityTargetLivingEntityEvent e) {
+        if(e.getEntity() instanceof Vex vex && vex.getPersistentDataContainer().has(vexKey, org.bukkit.persistence.PersistentDataType.STRING)) {
+            String ownerId = vex.getPersistentDataContainer().get(vexKey, org.bukkit.persistence.PersistentDataType.STRING);
+            if(ownerId != null && e.getTarget() != null) {
+                if(e.getTarget().getUniqueId().toString().equals(ownerId)) {
+                    e.setCancelled(true);
+                    return;
                 }
-        for(var entry:List.copyOf(slowed.entrySet())) {
-            Slowed state=entry.getValue();
-            if(!state.projectile.isValid()||!inside.contains(entry.getKey())){state.restore();slowed.remove(entry.getKey());}
-            else state.update();
+                Player owner = Bukkit.getPlayer(UUID.fromString(ownerId));
+                if(owner != null && c.ally(owner, e.getTarget())) {
+                    e.setCancelled(true);
+                }
+            }
         }
     }
-    public void close(){slowed.values().forEach(Slowed::restore);slowed.clear();domes.clear();walls.clear();wallWorlds.clear();wallBlocks.clear();}
+
+    @EventHandler(ignoreCancelled = true)
+    public void onVexDamage(org.bukkit.event.entity.EntityDamageByEntityEvent e) {
+        if(e.getEntity() instanceof Vex vex && vex.getPersistentDataContainer().has(vexKey, org.bukkit.persistence.PersistentDataType.STRING)) {
+            String ownerId = vex.getPersistentDataContainer().get(vexKey, org.bukkit.persistence.PersistentDataType.STRING);
+            Entity damager = e.getDamager();
+            if(damager instanceof Projectile proj && proj.getShooter() instanceof Entity shooter) damager = shooter;
+            if(damager != null && ownerId != null) {
+                if(damager.getUniqueId().toString().equals(ownerId)) {
+                    e.setCancelled(true);
+                    return;
+                }
+                if(damager instanceof Player pl && c.ally(pl, vex)) {
+                    e.setCancelled(true);
+                    return;
+                }
+            }
+        }
+        Entity damager = e.getDamager();
+        if(damager instanceof Projectile proj && proj.getShooter() instanceof Entity shooter) damager = shooter;
+        if(damager instanceof Vex vex && vex.getPersistentDataContainer().has(vexKey, org.bukkit.persistence.PersistentDataType.STRING)) {
+            String ownerId = vex.getPersistentDataContainer().get(vexKey, org.bukkit.persistence.PersistentDataType.STRING);
+            if(ownerId != null && e.getEntity() instanceof LivingEntity victim) {
+                if(victim.getUniqueId().toString().equals(ownerId)) {
+                    e.setCancelled(true);
+                    return;
+                }
+                Player owner = Bukkit.getPlayer(UUID.fromString(ownerId));
+                if(owner != null && c.ally(owner, victim)) {
+                    e.setCancelled(true);
+                }
+            }
+        }
+    }
+
+    public void tick() {
+        activeVexes.removeIf(v -> !v.isValid());
+    }
+
+    public void close() {
+        for(Vex vex : activeVexes) if(vex.isValid()) vex.remove();
+        activeVexes.clear();
+        walls.clear();
+        wallWorlds.clear();
+        wallBlocks.clear();
+    }
 }

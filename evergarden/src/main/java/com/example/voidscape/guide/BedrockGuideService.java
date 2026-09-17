@@ -46,13 +46,31 @@ public final class BedrockGuideService {
         return false;
     }
 
-    public static void openGuide(VoidscapePlugin plugin, Player player, int pageIndex) {
+    public static void openMenu(VoidscapePlugin plugin, Player player) {
         if (player == null || !player.isOnline()) return;
+
+        if (isBedrock(player) && floodgateAvailable) {
+            try {
+                if (FloodgateGuideForm.sendBookSelector(plugin, player)) {
+                    player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 0.8f, 1.0f);
+                    return;
+                }
+            } catch (Throwable t) {
+                plugin.getLogger().warning("Could not send Floodgate book selector to " + player.getName() + ": " + t.getMessage());
+            }
+        }
+
+        plugin.guideMenu().open(player);
+    }
+
+    public static void openGuide(VoidscapePlugin plugin, Player player, GuideBookType type, int pageIndex) {
+        if (player == null || !player.isOnline()) return;
+        if (type == null) type = GuideBookType.CROPS;
 
         if (isBedrock(player)) {
             if (floodgateAvailable) {
                 try {
-                    if (FloodgateGuideForm.sendPage(plugin, player, pageIndex)) {
+                    if (FloodgateGuideForm.sendPage(plugin, player, type, pageIndex)) {
                         player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 0.8f, 1.0f);
                         return;
                     }
@@ -61,21 +79,26 @@ public final class BedrockGuideService {
                 }
             }
             // Fallback for Bedrock without Floodgate forms
-            ChestGuideGui.open(plugin, player, pageIndex);
+            ChestGuideGui.open(plugin, player, type, pageIndex);
         } else {
             // Java player: native virtual book
-            player.openBook(plugin.relics().createGuideBook());
+            player.openBook(plugin.relics().createGuideBook(type));
             player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 0.8f, 1.0f);
         }
     }
 
-    public static void openIndex(VoidscapePlugin plugin, Player player, int returnPageIndex) {
+    public static void openGuide(VoidscapePlugin plugin, Player player, int pageIndex) {
+        openGuide(plugin, player, GuideBookType.CROPS, pageIndex);
+    }
+
+    public static void openIndex(VoidscapePlugin plugin, Player player, GuideBookType type, int returnPageIndex) {
         if (player == null || !player.isOnline()) return;
+        if (type == null) type = GuideBookType.CROPS;
 
         if (isBedrock(player)) {
             if (floodgateAvailable) {
                 try {
-                    if (FloodgateGuideForm.sendIndex(plugin, player, returnPageIndex)) {
+                    if (FloodgateGuideForm.sendIndex(plugin, player, type, returnPageIndex)) {
                         player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 0.8f, 1.0f);
                         return;
                     }
@@ -83,10 +106,14 @@ public final class BedrockGuideService {
                     plugin.getLogger().warning("Could not send Floodgate guide index to " + player.getName() + ": " + t.getMessage());
                 }
             }
-            ChestGuideGui.openIndex(plugin, player, returnPageIndex);
+            ChestGuideGui.openIndex(plugin, player, type, returnPageIndex);
         } else {
-            player.openBook(plugin.relics().createGuideBook());
+            player.openBook(plugin.relics().createGuideBook(type));
             player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 0.8f, 1.0f);
         }
+    }
+
+    public static void openIndex(VoidscapePlugin plugin, Player player, int returnPageIndex) {
+        openIndex(plugin, player, GuideBookType.CROPS, returnPageIndex);
     }
 }

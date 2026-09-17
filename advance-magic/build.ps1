@@ -31,4 +31,11 @@ $distDir = Join-Path $moduleRoot 'dist'
 New-Item -ItemType Directory -Force -Path $distDir | Out-Null
 Copy-Item -LiteralPath $builtJar -Destination (Join-Path $distDir 'advance-magic-1.0.0.jar') -Force
 Copy-Item -LiteralPath $builtJar -Destination (Join-Path $workspaceRoot 'advance-magic.jar') -Force
+
+$testServerPlugin = 'C:\Users\User\Desktop\TestServer\plugins\advance-magic.jar'
+if (Test-Path (Split-Path $testServerPlugin -Parent)) {
+    Copy-Item -LiteralPath $builtJar -Destination $testServerPlugin -Force
+    Write-Output ("Deployed to: " + $testServerPlugin)
+}
+
 Write-Output ('Built: ' + (Join-Path $distDir 'advance-magic-1.0.0.jar'))

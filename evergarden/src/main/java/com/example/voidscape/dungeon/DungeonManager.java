@@ -325,6 +325,8 @@ public final class DungeonManager implements Listener {
                 attackDamage = 20.0;
             }
 
+            baseHp = Math.round(baseHp * 0.70);
+
             if (m.getAttribute(Attribute.MAX_HEALTH) != null) {
                 m.getAttribute(Attribute.MAX_HEALTH).setBaseValue(baseHp);
                 m.setHealth(baseHp);
@@ -408,7 +410,7 @@ public final class DungeonManager implements Listener {
                 if(plugin.getConfig().getBoolean("combat.apply-weakness",false))
                     victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,120,0));
                 victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,80,1));
-                if(species==Species.BOSS||species==Species.STALKER||(species==Species.MINION&&Math.random()<0.35)) {
+                if(Math.random() < 0.20) {
                     placeTemporaryWeb(victim.getLocation().getBlock(),6000L);
                 }
                 if (species == Species.BOSS) {
@@ -445,40 +447,35 @@ public final class DungeonManager implements Listener {
         victim.sendActionBar(Component.text("☠ True Death "+roman(progress.level())+"/"+trueDeathMaxLevel()+" · "+progress.hits()+"/"+trueDeathHitsPerLevel()+" hits",NamedTextColor.RED));
         if(!progress.triggered())return;
 
-        victim.showTitle(net.kyori.adventure.title.Title.title(
-                Component.text(progress.finalDeath()?"TRUE DEATH":"TRUE DEATH "+roman(progress.level()),NamedTextColor.DARK_RED),
-                Component.text(progress.finalDeath()?"คำสาปสมบูรณ์ · Totem ไม่อาจช่วยได้":"พลังชีวิตกำลังถูกชำระ · Totem ยังช่วยคุณได้",NamedTextColor.RED)));
-        victim.getWorld().playSound(victim.getLocation(),Sound.ENTITY_WARDEN_SONIC_BOOM,1.0f,0.55f);
-        victim.getWorld().spawnParticle(Particle.SCULK_SOUL,victim.getLocation().add(0,1,0),35,0.45,0.7,0.45,0.08);
         UUID id=victim.getUniqueId();int expectedLevel=progress.level();
-        Bukkit.getScheduler().runTask(plugin,()->{
-            Player current=Bukkit.getPlayer(id);
-            if(current==null||!current.isOnline()||current.isDead()||trueDeathLevel(current)!=expectedLevel)return;
-            if(progress.finalDeath()) {
-                current.setHealth(0.0); // Direct death deliberately bypasses Totem at the final stack.
-            } else if(!consumeTotem(current)) {
-                current.setHealth(0.0);
-            }
-        });
-    }
-
-    private boolean consumeTotem(Player p) {
-        PlayerInventory inv=p.getInventory();
-        EquipmentSlot used=null;
-        if(inv.getItemInMainHand().getType()==Material.TOTEM_OF_UNDYING)used=EquipmentSlot.HAND;
-        else if(inv.getItemInOffHand().getType()==Material.TOTEM_OF_UNDYING)used=EquipmentSlot.OFF_HAND;
-        if(used==null)return false;
-        ItemStack item=used==EquipmentSlot.HAND?inv.getItemInMainHand():inv.getItemInOffHand();
-        item=item.clone();item.subtract(1);
-        if(used==EquipmentSlot.HAND)inv.setItemInMainHand(item);else inv.setItemInOffHand(item);
-        for(PotionEffect effect:new ArrayList<>(p.getActivePotionEffects()))p.removePotionEffect(effect.getType());
-        p.setHealth(Math.min(1.0,p.getAttribute(Attribute.MAX_HEALTH).getValue()));
-        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION,900,1));
-        p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION,100,1));
-        p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE,800,0));
-        p.playSound(p.getLocation(),Sound.ITEM_TOTEM_USE,1.0f,1.0f);
-        p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,p.getLocation().add(0,1,0),60,0.5,0.8,0.5,0.3);
-        return true;
+        if(progress.finalDeath()) {
+            victim.showTitle(net.kyori.adventure.title.Title.title(
+                    Component.text("☠ TRUE DEATH "+roman(progress.level()),NamedTextColor.DARK_RED),
+                    Component.text("คำสาปสมบูรณ์ · ความตายกลืนกินวิญญาณ (ทะลวง Totem 100%)",NamedTextColor.RED)));
+            victim.getWorld().playSound(victim.getLocation(),Sound.ENTITY_WARDEN_SONIC_BOOM,1.0f,0.55f);
+            victim.getWorld().spawnParticle(Particle.SCULK_SOUL,victim.getLocation().add(0,1,0),50,0.5,1.0,0.5,0.1);
+            Bukkit.getScheduler().runTask(plugin,()->{
+                Player current=Bukkit.getPlayer(id);
+                if(current==null||!current.isOnline()||current.isDead()||trueDeathLevel(current)!=expectedLevel)return;
+                current.setHealth(0.0); // Direct death deliberately bypasses Totem at the final stack (Level 5).
+            });
+        } else {
+            victim.showTitle(net.kyori.adventure.title.Title.title(
+                    Component.text("☠ TRUE DEATH "+roman(progress.level()),NamedTextColor.RED),
+                    Component.text("คำสาประดับ "+roman(progress.level())+"/"+trueDeathMaxLevel()+" · ดื่มนมเพื่อชำระล้าง!",NamedTextColor.GOLD)));
+            victim.getWorld().playSound(victim.getLocation(),Sound.ENTITY_WARDEN_HEARTBEAT,1.0f,0.8f);
+            victim.getWorld().spawnParticle(Particle.SCULK_SOUL,victim.getLocation().add(0,1,0),25,0.3,0.6,0.3,0.06);
+            Bukkit.getScheduler().runTask(plugin,()->{
+                Player current=Bukkit.getPlayer(id);
+                if(current==null||!current.isOnline()||current.isDead()||trueDeathLevel(current)!=expectedLevel)return;
+                double pulseDamage = plugin.getConfig().getDouble("combat.true-death.pulse-damage-per-level", 4.0) * expectedLevel;
+                if(pulseDamage > 0.0) {
+                    current.damage(pulseDamage); // Normal damage: vanilla Totem protects if damage is lethal
+                }
+                current.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 80, 0));
+                current.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, Math.min(1, expectedLevel - 1)));
+            });
+        }
     }
 
     private String roman(int level){return switch(level){case 1->"I";case 2->"II";case 3->"III";case 4->"IV";case 5->"V";default->Integer.toString(level);};}
@@ -680,7 +677,9 @@ public final class DungeonManager implements Listener {
                         if(plugin.getConfig().getBoolean("combat.apply-weakness",false))
                             target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,160,0));
                         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,120,1));
-                        placeTemporaryWeb(targetLoc.getBlock(),6000L);
+                        if (Math.random() < 0.20) {
+                            placeTemporaryWeb(targetLoc.getBlock(),6000L);
+                        }
                         target.getWorld().spawnParticle(Particle.WITCH,targetLoc.clone().add(0,1,0),25,0.4,0.6,0.4,0.05);
                         target.getWorld().spawnParticle(Particle.ENCHANTED_HIT,targetLoc.clone().add(0,1,0),20,0.3,0.4,0.3,0.1);
                         target.playSound(targetLoc,Sound.ENTITY_SPLASH_POTION_BREAK,1.0f,0.8f);
@@ -735,7 +734,9 @@ public final class DungeonManager implements Listener {
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER,160,2));
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,60,0));
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,100,1));
-                                            placeTemporaryWeb(p.getLocation().getBlock(),6000L);
+                                            if (Math.random() < 0.20) {
+                                                placeTemporaryWeb(p.getLocation().getBlock(),6000L);
+                                            }
                                         }
                                         p.playSound(blastLoc,Sound.ENTITY_WITHER_SHOOT,0.9f,0.8f);
                                         p.playSound(blastLoc,Sound.ENTITY_WARDEN_SONIC_BOOM,0.7f,0.7f);
@@ -768,7 +769,9 @@ public final class DungeonManager implements Listener {
                                             p.setVelocity(dir);
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,100,3));
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE,140,2));
-                                            placeTemporaryWeb(p.getLocation().getBlock(),5000L);
+                                            if (Math.random() < 0.20) {
+                                                placeTemporaryWeb(p.getLocation().getBlock(),5000L);
+                                            }
                                         }
                                         p.playSound(blastLoc,Sound.BLOCK_BEACON_DEACTIVATE,0.9f,0.7f);
                                         p.playSound(blastLoc,Sound.ENTITY_WARDEN_SONIC_BOOM,0.8f,0.9f);
@@ -782,7 +785,24 @@ public final class DungeonManager implements Listener {
         }
     }
 
-    private boolean protectedBlock(Block b){return b.getWorld()==plugin.world()&&plugin.layout().at(b.getX(),b.getZ(),0)!=null&&b.getY()>=94&&b.getY()<=140;}
+    public boolean isSpawnIsland(Block b) {
+        if (b == null || b.getWorld() != plugin.world()) return false;
+        if (!plugin.getConfig().getBoolean("spawn-protection.enabled", true)) return false;
+        double radius = plugin.getConfig().getDouble("spawn-protection.radius", 80.0);
+        return (b.getX() * b.getX() + b.getZ() * b.getZ()) <= (radius * radius);
+    }
+
+    public boolean canBypassProtection(Player p) {
+        if (p == null) return false;
+        return p.getGameMode() == GameMode.CREATIVE && (p.isOp() || p.hasPermission("voidscape.admin") || p.hasPermission("evergarden.admin"));
+    }
+
+    private boolean protectedBlock(Block b) {
+        if (b == null || b.getWorld() != plugin.world()) return false;
+        if (isSpawnIsland(b)) return true;
+        return plugin.layout().at(b.getX(), b.getZ(), 0) != null && b.getY() >= 94 && b.getY() <= 140;
+    }
+
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void breakBlock(BlockBreakEvent e){
         Block b=e.getBlock();
@@ -791,10 +811,53 @@ public final class DungeonManager implements Listener {
             e.setDropItems(false);
             return;
         }
-        if(protectedBlock(b)&&!(e.getPlayer().getGameMode()==GameMode.CREATIVE&&e.getPlayer().hasPermission("voidscape.admin")))e.setCancelled(true);
+        if(protectedBlock(b)&&!canBypassProtection(e.getPlayer())) {
+            e.setCancelled(true);
+            if (isSpawnIsland(b)) {
+                e.getPlayer().sendActionBar(Component.text("✦ เกาะหลัก (Spawn Island) ได้รับการคุ้มครอง ไม่อนุญาตให้ขุดหรือทำลายบล็อก", NamedTextColor.RED));
+            }
+        }
     }
+
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void placeBlock(BlockPlaceEvent e){if(protectedBlock(e.getBlock())&&!(e.getPlayer().getGameMode()==GameMode.CREATIVE&&e.getPlayer().hasPermission("voidscape.admin")))e.setCancelled(true);}
+    public void placeBlock(BlockPlaceEvent e){
+        if(protectedBlock(e.getBlock())&&!canBypassProtection(e.getPlayer())) {
+            e.setCancelled(true);
+            if (isSpawnIsland(e.getBlock())) {
+                e.getPlayer().sendActionBar(Component.text("✦ เกาะหลัก (Spawn Island) ได้รับการคุ้มครอง ไม่อนุญาตให้วางบล็อก", NamedTextColor.RED));
+            }
+        }
+    }
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void bucketEmpty(PlayerBucketEmptyEvent e){
+        if(protectedBlock(e.getBlock())&&!canBypassProtection(e.getPlayer())) {
+            e.setCancelled(true);
+            if (isSpawnIsland(e.getBlock())) {
+                e.getPlayer().sendActionBar(Component.text("✦ เกาะหลัก (Spawn Island) ได้รับการคุ้มครอง ไม่อนุญาตให้เทของเหลว", NamedTextColor.RED));
+            }
+        }
+    }
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void bucketFill(PlayerBucketFillEvent e){
+        if(protectedBlock(e.getBlock())&&!canBypassProtection(e.getPlayer())) {
+            e.setCancelled(true);
+            if (isSpawnIsland(e.getBlock())) {
+                e.getPlayer().sendActionBar(Component.text("✦ เกาะหลัก (Spawn Island) ได้รับการคุ้มครอง ไม่อนุญาตให้ตักของเหลว", NamedTextColor.RED));
+            }
+        }
+    }
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void trample(PlayerInteractEvent e){
+        if(e.getAction()==Action.PHYSICAL&&e.getClickedBlock()!=null) {
+            if(protectedBlock(e.getClickedBlock())&&!canBypassProtection(e.getPlayer())) {
+                e.setCancelled(true);
+            }
+        }
+    }
+
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void explode(EntityExplodeEvent e){e.blockList().removeIf(this::protectedBlock);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)

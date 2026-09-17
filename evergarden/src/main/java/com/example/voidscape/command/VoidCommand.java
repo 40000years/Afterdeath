@@ -16,21 +16,43 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
     private final VoidscapePlugin plugin;
     private int generated,total,cursor,radius;
     private boolean generating,inFlight;
-    private boolean isAdmin(CommandSender s){return s.hasPermission("evergarden.admin")||s.hasPermission("voidscape.admin");}
-    private boolean canEnter(CommandSender s){return s.hasPermission("evergarden.enter")||s.hasPermission("voidscape.enter");}
+    private boolean isAdmin(CommandSender s){return s.isOp()||s.hasPermission("evergarden.admin")||s.hasPermission("voidscape.admin");}
+    private boolean canEnter(CommandSender s){return isAdmin(s);}
     public VoidCommand(VoidscapePlugin plugin){this.plugin=plugin;}
     @Override public boolean onCommand(CommandSender sender,Command command,String label,String[] args) {
         String sub=args.length==0?"help":args[0].toLowerCase(Locale.ROOT);
         Player p=sender instanceof Player player?player:null;
-        if(Set.of("give","pregen","reload","status","pack","test","dev","kit","crops","farm","crop","seeds").contains(sub)&&!isAdmin(sender)){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
+        if(Set.of("give","pregen","reload","status","pack","test","dev","kit","menu","enter","leave","tp","wands","wand","magic","cores","core","relics","relic","items","item").contains(sub)&&!isAdmin(sender)){
+            if(sub.equals("enter")) {
+                plugin.message(sender,"คำสั่งนี้สำหรับแอดมินเท่านั้น · กรุณาสร้างประตูควอตซ์ (Block of Quartz 4x5) แล้วโยนดอกไม้เพื่อเดินทางเข้าสู่ Evergarden");
+                return true;
+            }
+            if(sub.equals("leave")) {
+                plugin.message(sender,"คำสั่งนี้สำหรับแอดมินเท่านั้น · กรุณาใช้ประตูมิติกลับที่เกาะกลาง (Spawn Island) เพื่อเดินทางกลับ");
+                return true;
+            }
+            plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");
+            return true;
+        }
         switch(sub) {
-            case "test", "dev", "kit" -> {
+            case "test", "admin", "menu" -> {
+                if(!isAdmin(sender)){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
                 if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
                 plugin.testGui().open(p);
             }
             case "crops", "farm", "crop", "seeds" -> {
                 if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
                 plugin.cropGui().open(p);
+            }
+            case "wands", "wand", "magic", "cores", "core" -> {
+                if(!isAdmin(sender)){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
+                if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
+                if(plugin.wandGui() != null) plugin.wandGui().open(p);
+            }
+            case "relics", "relic", "items", "item" -> {
+                if(!isAdmin(sender)){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
+                if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
+                if(plugin.relicGui() != null) plugin.relicGui().open(p);
             }
             case "pack" -> {
                 if(args.length>1&&args[1].equalsIgnoreCase("resend")) {
@@ -42,13 +64,27 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             }
             case "guide" -> {
                 if(p!=null) {
-                    com.example.voidscape.guide.BedrockGuideService.openGuide(plugin, p, 0);
+                    if (args.length > 1) {
+                        var type = com.example.voidscape.guide.GuideBookType.fromId(args[1]);
+                        if (type != null) {
+                            com.example.voidscape.guide.BedrockGuideService.openGuide(plugin, p, type, 0);
+                            return true;
+                        }
+                    }
+                    com.example.voidscape.guide.BedrockGuideService.openMenu(plugin, p);
                 }
             }
-            case "enter" -> {if(p!=null&&canEnter(p)){if(p.getWorld()==plugin.world())plugin.travel().leave(p,false);else plugin.travel().enter(p);}}
+            case "enter" -> {
+                if(!isAdmin(sender)){
+                    plugin.message(sender,"คำสั่งนี้สำหรับแอดมินเท่านั้น · กรุณาสร้างประตูควอตซ์ (Block of Quartz 4x5) แล้วโยนดอกไม้เพื่อเดินทางเข้าสู่ Evergarden");
+                    return true;
+                }
+                if(p!=null){if(p.getWorld()==plugin.world())plugin.travel().leave(p,false);else plugin.travel().enter(p);}
+            }
             case "tp" -> {
-                if(p==null)return true;
-                if(args.length>1&&isAdmin(sender)) {
+                if(!isAdmin(sender)){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
+                if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
+                if(args.length>1) {
                     String dest=args[1].toLowerCase(Locale.ROOT);
                     if(dest.equals("spawn")) {
                         p.teleport(new Location(plugin.world(),0.5,97.0,0.5));
@@ -65,9 +101,16 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
                     plugin.message(p,"วาร์ปไปยัง "+s.kind().displayName+" พิกัด X="+s.x()+" Y=97 Z="+(s.z()+8));
                     return true;
                 }
-                if(canEnter(p)){if(p.getWorld()==plugin.world())plugin.travel().leave(p,false);else plugin.travel().enter(p);}
+                if(p.getWorld()==plugin.world())plugin.travel().leave(p,false);
+                else plugin.travel().enter(p);
             }
-            case "leave" -> {if(p!=null&&p.getWorld()==plugin.world())plugin.travel().leave(p,false);}
+            case "leave" -> {
+                if(!isAdmin(sender)){
+                    plugin.message(sender,"คำสั่งนี้สำหรับแอดมินเท่านั้น · กรุณาใช้ประตูมิติกลับที่เกาะกลาง (Spawn Island) เพื่อเดินทางกลับ");
+                    return true;
+                }
+                if(p!=null&&p.getWorld()==plugin.world())plugin.travel().leave(p,false);
+            }
             case "give" -> {
                 if(args.length < 2) {
                     plugin.message(sender, "วิธีใช้: /evergarden give <ชื่อไอเทม> [จำนวน] [ผู้เล่น/@a/@p/@s]");
@@ -187,9 +230,9 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             case "reload" -> {plugin.reloadConfig();plugin.message(sender,"โหลดการตั้งค่าแล้ว · ตำแหน่งวิหารคงเดิมตาม world-layout.yml");}
             case "status" -> plugin.message(sender,"Evergarden 3.0 · "+plugin.world().getName()+" · การต่อสู้ "+plugin.dungeons().activeCount()+" · มอน "+plugin.dungeons().mobCount()+" · pregen "+generated+"/"+total);
             default -> {
-                plugin.message(sender,"Evergarden 3.0 (Advance Magic Expansion) · /evergarden guide · /evergarden leave");
-                plugin.message(sender,"สร้างประตู Block of Quartz แล้วจุดด้วย Fire Charge หรือ Eye of Ender เพื่อเดินทาง");
-                if(isAdmin(sender))plugin.message(sender,"แอดมิน: test (เมนูทดสอบ) · tp [dark|astral|time|spawn] · give · status · pregen · reload");
+                plugin.message(sender,"Evergarden 3.0 · พิมพ์ /evergarden guide เพื่อดูคู่มือมิติ");
+                plugin.message(sender,"สร้างกรอบประตู Block of Quartz (ขนาด 4x5) แล้วโยนดอกไม้เข้าไปในช่องว่างเพื่อเปิดประตู");
+                if(isAdmin(sender))plugin.message(sender,"แอดมิน: enter · leave · tp [dark|astral|time|spawn] · menu · test · crops · wands · relics · give · status · pregen · reload");
             }
         }
         return true;
@@ -237,6 +280,20 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             ItemStack is = plugin.relics().createMagicCore("shulker_levitation");
             if(count > 1) is.setAmount(Math.min(count, 64));
             return is;
+        }
+
+        // 0. Guide books
+        if (clean.equals("guide_crops") || clean.equals("crop_guide") || clean.equals("guide_crop") || clean.equals("book_crops")) {
+            return plugin.relics().createCropGuideBook();
+        }
+        if (clean.equals("guide_relics") || clean.equals("relic_guide") || clean.equals("guide_relic") || clean.equals("book_relics")) {
+            return plugin.relics().createRelicGuideBook();
+        }
+        if (clean.equals("guide_magic") || clean.equals("magic_guide") || clean.equals("book_magic")) {
+            return plugin.relics().createMagicGuideBook();
+        }
+        if (clean.equals("guide") || clean.equals("guidebook") || clean.equals("guide_book")) {
+            return plugin.relics().createGuideBook();
         }
 
         // 1. Scroll of Eternity (Unbreakable)
@@ -402,7 +459,13 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
 
     @Override public List<String> onTabComplete(CommandSender sender,Command command,String alias,String[] args) {
         List<String> c=new ArrayList<>();
-        if(args.length==1){c.addAll(List.of("help","guide","enter","leave","crops"));if(isAdmin(sender))c.addAll(List.of("test","tp","give","status","reload","pregen","pack"));}
+        if(args.length==1){
+            c.addAll(List.of("help","guide"));
+            if(isAdmin(sender))c.addAll(List.of("enter","leave","tp","test","menu","crops","wands","magic","relics","items","give","status","reload","pregen","pack"));
+        }
+        if(args.length==2&&args[0].equalsIgnoreCase("guide")) {
+            c.addAll(List.of("1","2","3","crops","relics","magic"));
+        }
         if(args.length==2&&args[0].equalsIgnoreCase("tp")&&isAdmin(sender))c.addAll(List.of("dark","astral","time","spawn"));
         if(args.length==2&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
             // Relics & Equipment
@@ -431,7 +494,7 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
                 c.add("crop_"+crop.id);
             }
             // Shortcuts
-            c.addAll(List.of("eternity","key","shard","dust","repair","elixir","storm","nova","blade","aegis","shulker_levitation","shulker","wand","crops","seeds"));
+            c.addAll(List.of("smelter","pickaxe","eternity","key","shard","dust","repair","elixir","storm","nova","blade","aegis","shulker_levitation","shulker","wand","crops","seeds","guide","guide_crops","guide_relics","guide_magic"));
         }
         if(args.length==3&&args[0].equalsIgnoreCase("give")&&isAdmin(sender)) {
             c.addAll(List.of("@a","@p","@s","1","2","4","8","16","32","64"));

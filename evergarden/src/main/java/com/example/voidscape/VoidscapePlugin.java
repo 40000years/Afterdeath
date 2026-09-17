@@ -24,6 +24,9 @@ public final class VoidscapePlugin extends JavaPlugin {
 
     private com.example.voidscape.pack.ResourcePackService packs;
     private com.example.voidscape.gui.AdminTestGui testGui;
+    private com.example.voidscape.gui.WandShowcaseGui wandGui;
+    private com.example.voidscape.gui.RelicShowcaseGui relicGui;
+    private com.example.voidscape.guide.GuideMenuGui guideMenu;
     private com.example.voidscape.crop.CropService crops;
     private com.example.voidscape.crop.CropBuffListener cropBuffs;
     private com.example.voidscape.crop.CropShowcaseGui cropGui;
@@ -92,6 +95,9 @@ public final class VoidscapePlugin extends JavaPlugin {
             pm.registerEvents(new com.example.voidscape.enchant.EnchantApplyListener(this,relics),this);
             pm.registerEvents(new com.example.voidscape.enchant.UniqueAbilityListener(this),this);
             testGui=new com.example.voidscape.gui.AdminTestGui(this);pm.registerEvents(testGui,this);
+            wandGui=new com.example.voidscape.gui.WandShowcaseGui(this);pm.registerEvents(wandGui,this);
+            relicGui=new com.example.voidscape.gui.RelicShowcaseGui(this);pm.registerEvents(relicGui,this);
+            guideMenu=new com.example.voidscape.guide.GuideMenuGui(this);pm.registerEvents(guideMenu,this);
             packs.start();pm.registerEvents(packs,this);
             crops=new com.example.voidscape.crop.CropService(this);
             cropBuffs=new com.example.voidscape.crop.CropBuffListener(this,crops);
@@ -133,6 +139,9 @@ public final class VoidscapePlugin extends JavaPlugin {
     public World world(){return voidWorld;} public DungeonLayout layout(){return layout;}
     public RelicService relics(){return relics;} public DungeonManager dungeons(){return dungeons;} public TravelListener travel(){return travel;}
     public com.example.voidscape.gui.AdminTestGui testGui(){return testGui;}
+    public com.example.voidscape.gui.WandShowcaseGui wandGui(){return wandGui;}
+    public com.example.voidscape.gui.RelicShowcaseGui relicGui(){return relicGui;}
+    public com.example.voidscape.guide.GuideMenuGui guideMenu(){return guideMenu;}
     public com.example.voidscape.crop.CropService crops(){return crops;}
     public com.example.voidscape.crop.CropBuffListener cropBuffs(){return cropBuffs;}
     public com.example.voidscape.crop.CropShowcaseGui cropGui(){return cropGui;}

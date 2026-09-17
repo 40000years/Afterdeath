@@ -5,14 +5,43 @@ import zlib
 
 def register(java, bedrock, textures, mappings, selectors, write_json):
     rows=[]
+    tau = math.tau
     for frame in range(16):
+        phase = frame * tau / 16.0
         for y in range(32):
             row=bytearray([0])
             for x in range(32):
-                dx=(x-15.5)/16;dy=(y-15.5)/16
-                angle=math.atan2(dy,dx);radius=math.hypot(dx,dy)
-                wave=(math.sin(angle*3-radius*14-frame*math.tau/16)+1)/2
-                row.extend((int(20+70*wave),int(135+110*wave),255,220))
+                dx = (x - 15.5) / 16.0
+                dy = (y - 15.5) / 16.0
+                r = math.hypot(dx, dy)
+                theta = math.atan2(dy, dx)
+                # Nether-portal style multi-arm swirling vortex + counter-filaments + vertical plasma drift
+                s1 = math.sin(3.0 * theta - 4.2 * r + phase)
+                s2 = math.cos(2.0 * theta + 5.0 * r - 2.0 * phase)
+                s3 = math.sin(3.0 * dx + 4.0 * dy - phase)
+                s4 = math.sin(6.0 * r - 2.0 * phase + math.cos(2.0 * theta))
+                v = 0.42 * s1 + 0.28 * s2 + 0.18 * s3 + 0.12 * s4
+                t = max(0.0, min(1.0, (v + 1.0) / 2.0))
+                # High-contrast azure palette: deep abyss -> rich ocean -> electric cyan -> radiant white-cyan
+                if t < 0.35:
+                    p = t / 0.35
+                    r_col = int(8 + (18 - 8) * p)
+                    g_col = int(24 + (90 - 24) * p)
+                    b_col = int(80 + (175 - 80) * p)
+                    a_col = int(200 + (225 - 200) * p)
+                elif t < 0.72:
+                    p = (t - 0.35) / 0.37
+                    r_col = int(18 + (35 - 18) * p)
+                    g_col = int(90 + (210 - 90) * p)
+                    b_col = int(175 + (255 - 175) * p)
+                    a_col = int(225 + (248 - 225) * p)
+                else:
+                    p = (t - 0.72) / 0.28
+                    r_col = int(35 + (220 - 35) * (p ** 1.4))
+                    g_col = int(210 + (252 - 210) * p)
+                    b_col = 255
+                    a_col = int(248 + (255 - 248) * p)
+                row.extend((r_col, g_col, b_col, a_col))
             rows.append(bytes(row))
     def chunk(kind,data):
         return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
@@ -43,12 +72,13 @@ def register(java, bedrock, textures, mappings, selectors, write_json):
         'bones':[{'name':'head','pivot':[0,24,0],'cubes':[{'origin':[-8.1,23.9,-0.1],'size':[16.2,16.2,0.2],
             'uv':{f:{'uv':[0,0],'uv_size':[32,32]} for f in ('north','south')}}]}]}]})
     write_json(bedrock/'attachables/azure_portal.json',{'format_version':'1.10.0','minecraft:attachable':{'description':{
-        'identifier':'voidscape:azure_portal','materials':{'default':'entity_alphatest'},
+        'identifier':'voidscape:azure_portal','materials':{'default':'evergarden_portal'},
         'textures':{'default':'textures/items/azure_portal'},'geometry':{'default':'geometry.voidscape.azure_portal'},
-        'render_controllers':['controller.render.evergarden_mask']}}})
+        'render_controllers':['controller.render.evergarden_portal']}}})
     write_json(bedrock/'render_controllers/azure_portal.json',{'format_version':'1.8.0','render_controllers':{
         'controller.render.evergarden_portal':{'geometry':'Geometry.default','materials':[{'*':'Material.default'}],
-            'textures':['Texture.default'],'ignore_lighting':True}}})
+            'textures':['Texture.default'],'ignore_lighting':True,
+            'uv_anim':{'offset':[0.0,'math.mod(math.floor(query.life_time * 10.0), 16.0) / 16.0'],'scale':[1.0,1.0]}}}})
     mat_def={'materials':{'version':'1.0.0',
         'evergarden_portal:entity_alphablend':{'+defines':['USE_UV_ANIM'],'+states':['Blending']}}}
     write_json(bedrock/'materials/evergarden_portal.material',mat_def)

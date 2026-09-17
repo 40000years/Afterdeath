@@ -39,40 +39,38 @@ public final class ProjectileSpells implements Listener {
             if(c.plugin.areas().blocksProjectile(p.getWorld(),from,from.clone().add(p.getVelocity()))) {
                 p.remove();shots.remove(p.getUniqueId());continue;
             }
-            if(age%3==0)c.particles(p.getLocation(),shot.spell==Spell.POISON_SPORES?Particle.HAPPY_VILLAGER:Particle.PORTAL,2,0.06);
+            if(age%3==0)c.particles(p.getLocation(),shot.spell==Spell.BLAZE_BARRAGE?Particle.FLAME:Particle.PORTAL,2,0.06);
         }
         return true;
     }
-    public boolean spores(Player p) {
-        var effect=c.plugin.effects().start(p,60,this::flight);
-        launch(effect,Spell.POISON_SPORES,Snowball.class,p.getEyeLocation().getDirection().multiply(1.4),ball->{
-            ball.setGravity(false);ball.setItem(new org.bukkit.inventory.ItemStack(Material.SPORE_BLOSSOM));
-        },at->{
-            c.particles(at,Particle.HAPPY_VILLAGER,50,1.5);c.ring(at,4,Spell.POISON_SPORES);
-            at.getWorld().playSound(at,Sound.BLOCK_SPORE_BLOSSOM_PLACE,1.2f,0.7f);
-            for(var e:c.nearby(p,at,4,false))if(c.affect(p,e,Spell.POISON_SPORES)) {
-                c.damage(p,e,c.configuredDamage("damage.poison-impact",20),DamageType.MAGIC);
-                c.potion(e,PotionEffectType.POISON,140,1);c.potion(e,PotionEffectType.NAUSEA,140,0);
-            }
-            // Direct magic damage keeps this wand useful against poison-immune guardians.
-            c.echo(p,at,Spell.POISON_SPORES,20,5,30);
-            // Stage 2: 3 Cluster Sub-spores burst outwards
-            for(int i=0;i<3;i++) {
-                double angle=i*(2*Math.PI/3);
-                Location clusterLoc=at.clone().add(Math.cos(angle)*2.2,0.2,Math.sin(angle)*2.2);
-                if(!c.plugin.effects().hasCapacity())break;
-                c.plugin.effects().start(p,12,(subEffect,subAge)->{
-                    if(subAge==8&&c.loaded(clusterLoc)) {
-                        c.particles(clusterLoc,Particle.HAPPY_VILLAGER,25,1.0);
-                        clusterLoc.getWorld().playSound(clusterLoc,Sound.ENTITY_SLIME_SQUISH,0.8f,1.5f);
-                        for(var e:c.nearby(p,clusterLoc,2.5,false))if(c.affect(p,e,Spell.POISON_SPORES)) {
-                            c.potion(e,PotionEffectType.POISON,80,2);
-                            c.potion(e,PotionEffectType.HUNGER,100,1);
-                        }
+    public boolean blaze(Player p) {
+        c.plugin.effects().start(p,60,(effect,age)->{
+            if(age==0||age==4||age==8||age==12) {
+                boolean finisher=(age==12);
+                Vector dir=p.getEyeLocation().getDirection();
+                int idx=age/4;
+                Vector spread=dir.clone().add(new Vector(
+                    (idx%2==0?0.03:-0.03)*idx,
+                    (idx%3==0?0.02:-0.02),
+                    (idx%2!=0?0.03:-0.03)*idx
+                )).normalize().multiply(1.4);
+
+                p.getWorld().playSound(p.getLocation(),Sound.ENTITY_BLAZE_SHOOT,1.0f,1.0f+idx*0.1f);
+                launch(effect,Spell.BLAZE_BARRAGE,SmallFireball.class,spread,ball->{
+                    ball.setIsIncendiary(false);
+                },at->{
+                    at.getWorld().playSound(at,Sound.ITEM_FIRECHARGE_USE,1.2f,1.0f);
+                    at.getWorld().playSound(at,Sound.ENTITY_BLAZE_HURT,0.8f,1.2f);
+                    c.particles(at,Particle.FLAME,25,0.8);
+                    c.particles(at,Particle.EXPLOSION,1,0.2);
+                    if(finisher)c.echo(p,at,Spell.BLAZE_BARRAGE,14,4.5,20);
+                    for(var e:c.nearby(p,at,3.5,false))if(c.affect(p,e,Spell.BLAZE_BARRAGE)) {
+                        c.damage(p,e,c.configuredDamage("damage.blaze-barrage",25),DamageType.MAGIC);
+                        e.setFireTicks(Math.max(e.getFireTicks(),100));
                     }
-                    return true;
                 });
             }
+            return flight(effect,age);
         });return true;
     }
     public boolean voidPull(Player p) {
@@ -242,7 +240,9 @@ public final class ProjectileSpells implements Listener {
     private void createSculkWitherZone(Player p, Location center) {
         World world=center.getWorld();
         int cx=center.getBlockX(),cy=center.getBlockY(),cz=center.getBlockZ();
-        Map<Block,org.bukkit.block.data.BlockData> original=new HashMap<>();
+        Map<Block,org.bukkit.block.data.BlockData> fakeBlocks=new HashMap<>();
+        org.bukkit.block.data.BlockData catalystData=Material.SCULK_CATALYST.createBlockData();
+        org.bukkit.block.data.BlockData sculkData=Material.SCULK.createBlockData();
 
         for(int dx=-7;dx<=7;dx++) {
             for(int dz=-7;dz<=7;dz++) {
@@ -258,8 +258,16 @@ public final class ProjectileSpells implements Listener {
                     }
                 }
                 if(surface!=null&&!surface.getType().isAir()) {
-                    original.put(surface,surface.getBlockData());
-                    surface.setType(Math.abs(dx)<=1&&Math.abs(dz)<=1?Material.SCULK_CATALYST:Material.SCULK,false);
+                    fakeBlocks.put(surface,(Math.abs(dx)<=1&&Math.abs(dz)<=1)?catalystData:sculkData);
+                }
+            }
+        }
+
+        // Send visual block changes to nearby players without corrupting server blocks or containers
+        for(Player viewer:world.getPlayers()) {
+            if(viewer.getLocation().distanceSquared(center)<=2500) {
+                for(Map.Entry<Block,org.bukkit.block.data.BlockData> entry:fakeBlocks.entrySet()) {
+                    viewer.sendBlockChange(entry.getKey().getLocation(),entry.getValue());
                 }
             }
         }
@@ -301,10 +309,12 @@ public final class ProjectileSpells implements Listener {
         });
 
         sculkEffect.onClose(()->{
-            for(Map.Entry<Block,org.bukkit.block.data.BlockData> entry:original.entrySet()) {
-                Block b=entry.getKey();
-                if(b.getType()==Material.SCULK||b.getType()==Material.SCULK_CATALYST) {
-                    b.setBlockData(entry.getValue(),false);
+            // Restore visual blocks for all players
+            for(Player viewer:world.getPlayers()) {
+                if(viewer.getLocation().distanceSquared(center)<=2500) {
+                    for(Block b:fakeBlocks.keySet()) {
+                        viewer.sendBlockChange(b.getLocation(),b.getBlockData());
+                    }
                 }
             }
             if(c.loaded(center)) {

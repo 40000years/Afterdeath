@@ -9,6 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / 'art/cores'
 OUTPUT.mkdir(parents=True, exist_ok=True)
+EVERGARDEN_CORES = ROOT.parent / 'evergarden/art/cores'
+EVERGARDEN_CORES.mkdir(parents=True, exist_ok=True)
 
 SPELLS = [
     ('lightning_strike', 'Core of Lightning', (255, 230, 80), (255, 255, 190), (190, 150, 20), (255, 245, 120, 255)),
@@ -18,14 +20,14 @@ SPELLS = [
     ('earth_wall',        'Core of Earth',     (185, 145, 95),  (240, 215, 175), (100, 70, 40),  (173, 152, 119, 255)),
     ('dragons_breath',    'Core of Dragon',    (230, 95, 255),  (255, 200, 255), (120, 20, 150), (224, 127, 255, 255)),
     ('void_pull',         'Core of the Void',  (90, 75, 215),   (190, 175, 255), (35, 25, 110),  (102, 88, 201, 255)),
-    ('invisibility_shroud','Core of Invisibility',(190, 195, 230),(245, 248, 255), (95, 100, 140), (187, 190, 223, 255)),
-    ('poison_spores',     'Core of Poison',    (160, 225, 60),  (230, 255, 160), (70, 125, 20),  (165, 217, 87, 255)),
+    ('sonic_boom',        'Core of the Warden',(11, 232, 218),  (180, 255, 250), (5, 45, 60),    (11, 232, 218, 255)),
+    ('blaze_barrage',     'Core of the Blaze', (255, 165, 0),   (255, 240, 130), (160, 40, 0),   (255, 165, 0, 255)),
     ('wither_ray',        'Core of Wither',    (115, 105, 130), (230, 225, 240), (45, 38, 55),   (130, 122, 145, 255)),
     ('shulker_levitation','Core of Levitation',(225, 150, 240), (255, 220, 255), (130, 60, 150), (223, 164, 236, 255)),
     ('meteor_strike',     'Core of Meteor',    (255, 115, 40),  (255, 220, 120), (160, 40, 10),  (255, 133, 70, 255)),
     ('iron_armor',        'Core of Iron',      (200, 215, 228), (250, 252, 255), (110, 125, 140), (204, 216, 224, 255)),
-    ('time_dilation',     'Core of Time',      (95, 225, 210),  (210, 255, 250), (30, 130, 125), (106, 218, 210, 255)),
-    ('soul_drain',        'Core of Souls',     (65, 230, 205),  (190, 255, 245), (15, 110, 105), (81, 222, 204, 255)),
+    ('vex_legion',        'Core of Evocation', (180, 216, 231), (235, 245, 255), (55, 80, 110),  (180, 216, 231, 255)),
+    ('guardian_beam',     'Core of the Guardian',(86, 224, 181),(210, 255, 245), (20, 85, 75),   (86, 224, 181, 255)),
 ]
 
 
@@ -205,23 +207,28 @@ def generate_core(spell_id, title, primary, highlight, dark_shade, glow):
         for sx, sy in spiral:
             set_px(sx, sy, WHITE if (sx+sy)%2==0 else ACCENT)
 
-    elif spell_id == 'invisibility_shroud':
-        # Ghostly phantom cowl / cowl silhouette
-        for x in range(12, 20):
-            set_px(x, 12, ACCENT)
-        for y in range(13, 20):
-            set_px(12, y, ACCENT); set_px(19, y, ACCENT)
-            set_px(13, y, WHITE); set_px(18, y, WHITE)
-        set_px(15, 15, (60, 60, 90, 255)); set_px(16, 15, (60, 60, 90, 255))
+    elif spell_id == 'sonic_boom':
+        # Warden sonic shockwave rings and acoustic core
+        TEAL = (11, 232, 218, 255)
+        DARK_TEAL = (5, 45, 60, 255)
+        for dx in [-3, -2, -1, 0, 1, 2, 3]:
+            for dy in [-3, -2, -1, 0, 1, 2, 3]:
+                d = abs(dx) + abs(dy)
+                if d == 3: set_px(int(cx)+dx, int(cy)+dy, ACCENT)
+                elif d == 2: set_px(int(cx)+dx, int(cy)+dy, TEAL)
+                elif d <= 1: set_px(int(cx)+dx, int(cy)+dy, WHITE)
+        for y in [12, 14, 17, 19]:
+            set_px(11, y, DARK_TEAL); set_px(20, y, DARK_TEAL)
 
-    elif spell_id == 'poison_spores':
-        # Bubbling toxic spore triad
-        for sx, sy in [(15, 12), (12, 17), (18, 17)]:
-            for dx in [-1, 0, 1]:
-                for dy in [-1, 0, 1]:
-                    if abs(dx) + abs(dy) <= 1:
-                        set_px(sx+dx, sy+dy, ACCENT)
-            set_px(sx, sy, WHITE)
+    elif spell_id == 'blaze_barrage':
+        # Blaze rod triad and spinning fire core
+        ORANGE = (255, 120, 0, 255)
+        GOLD_FIRE = (255, 220, 50, 255)
+        for dx in [-1, 0, 1]:
+            for dy in [-1, 0, 1]:
+                set_px(int(cx)+dx, int(cy)+dy, WHITE if dx*dy==0 else GOLD_FIRE)
+        for r_x, r_y in [(15, 10), (11, 19), (20, 19)]:
+            set_px(r_x, r_y-1, GOLD_FIRE); set_px(r_x, r_y, ORANGE); set_px(r_x, r_y+1, ORANGE)
 
     elif spell_id == 'wither_ray':
         # Wither skull & Nether Star glow
@@ -278,24 +285,32 @@ def generate_core(spell_id, title, primary, highlight, dark_shade, glow):
         for x in range(12, 20): set_px(x, 14, (130, 145, 160, 255))
         set_px(15, 14, WHITE); set_px(16, 14, WHITE)
 
-    elif spell_id == 'time_dilation':
-        # Chronos gear & hourglass
-        for i in range(-4, 5):
-            set_px(int(cx)+i, 11, GOLD_LIGHT); set_px(int(cx)+i, 20, GOLD_DARK)
-            set_px(11, int(cy)+i, GOLD_LIGHT); set_px(20, int(cy)+i, GOLD_DARK)
-        # Hourglass sand
-        for dx in range(-2, 3):
-            set_px(int(cx)+dx, 13, WHITE)
-            set_px(int(cx)+dx, 18, (80, 230, 220, 255))
-        set_px(15, 15, WHITE); set_px(16, 16, WHITE)
+    elif spell_id == 'vex_legion':
+        # Vex winged ghost spirit
+        PALE = (210, 235, 250, 255)
+        for x in [14, 15, 16, 17]:
+            for y in [12, 13, 14]:
+                set_px(x, y, PALE)
+        set_px(14, 13, (220, 40, 40, 255)); set_px(17, 13, (220, 40, 40, 255))
+        set_px(15, 15, WHITE); set_px(16, 15, WHITE)
+        set_px(15, 16, PALE); set_px(16, 16, PALE)
+        set_px(15, 17, (120, 160, 190, 255))
+        for i in range(1, 5):
+            set_px(15 - i, 14 - i//2, ACCENT); set_px(16 + i, 14 - i//2, ACCENT)
+            set_px(15 - i, 15 - i//2, WHITE); set_px(16 + i, 15 - i//2, WHITE)
 
-    elif spell_id == 'soul_drain':
-        # Soul flame scream face
-        set_px(14, 13, ACCENT); set_px(17, 13, ACCENT)
-        set_px(14, 14, BLACK);  set_px(17, 14, BLACK)
-        for y in range(16, 19):
-            set_px(15, y, BLACK); set_px(16, y, BLACK)
-        set_px(15, 12, WHITE);  set_px(16, 12, WHITE)
+    elif spell_id == 'guardian_beam':
+        # Guardian eye with pupil and cyan laser ray
+        CORAL = (255, 110, 70, 255)
+        SEA = (86, 224, 181, 255)
+        for dx in range(-4, 5):
+            for dy in range(-3, 4):
+                if abs(dx) + abs(dy) * 1.3 <= 4:
+                    set_px(int(cx)+dx, int(cy)+dy, SEA)
+        set_px(15, 15, BLACK); set_px(16, 15, BLACK)
+        set_px(15, 14, CORAL); set_px(16, 14, CORAL)
+        set_px(15, 16, WHITE); set_px(16, 16, WHITE)
+        for x in range(17, 21): set_px(x, 15, ACCENT)
 
     # 6. Specular Glass Glint (top-left at x=11..13, y=9..11)
     set_px(11, 10, WHITE); set_px(12, 9, WHITE); set_px(12, 10, WHITE)
@@ -306,13 +321,25 @@ def generate_core(spell_id, title, primary, highlight, dark_shade, glow):
 
 
 def main():
-    print(f'Generating {len(SPELLS)} Core pixel art textures in {OUTPUT}...')
+    print(f'Generating {len(SPELLS)} Core pixel art textures in {OUTPUT} and {EVERGARDEN_CORES}...')
+    valid_names = {f'core_{spell_id}.png' for spell_id, _, _, _, _, _ in SPELLS}
+    
+    # Clean up legacy/unregistered cores
+    for d in (OUTPUT, EVERGARDEN_CORES):
+        if d.is_dir():
+            for p in d.glob('core_*.png'):
+                if p.name not in valid_names:
+                    print(f'  [CLEANUP] Removing obsolete core: {p}')
+                    p.unlink()
+
     for spell_id, title, primary, highlight, dark_shade, glow in SPELLS:
         pixels = generate_core(spell_id, title, primary, highlight, dark_shade, glow)
         pixels128 = scale_4x(pixels)
-        out_file = OUTPUT / f'core_{spell_id}.png'
-        png(out_file, pixels128, size=128)
-        print(f'  [OK] {out_file.name} ({title})')
+        out_file128 = OUTPUT / f'core_{spell_id}.png'
+        png(out_file128, pixels128, size=128)
+        out_file32 = EVERGARDEN_CORES / f'core_{spell_id}.png'
+        png(out_file32, pixels, size=32)
+        print(f'  [OK] {out_file128.name} & {out_file32.name} ({title})')
     print('All Core textures generated successfully!')
 
 

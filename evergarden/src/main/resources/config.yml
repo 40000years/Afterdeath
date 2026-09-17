@@ -19,6 +19,12 @@ performance:
 portal:
   # Build a Nether Portal shape from Block of Quartz, then throw any flower into the empty frame.
   entry-worlds: [world]
+spawn-protection:
+  # ป้องกันพื้นที่เกาะเกิด (Spawn Island) และบริเวณประตูมิติใน Evergarden
+  # ผู้เล่นทั่วไปจะไม่สามารถขุด วางบล็อก เทหรือตักของเหลวบนเกาะหลักได้ (แอดมินใน Creative สามารถทำได้ปกติ)
+  enabled: true
+  # รัศมีการคุ้มครองรอบจุดศูนย์กลาง (0, 0) ครอบคลุมทั้งเกาะหลัก ประตูมิติ และลานเกิด (ค่าเริ่มต้น: 80 บล็อก)
+  radius: 80
 combat:
   # Optional Weakness I from guardians/casters. Off so low-damage melee remains usable.
   apply-weakness: false
@@ -36,10 +42,12 @@ combat:
   # Preserve the 2.2-second warning; increase the configured base damage by 10%.
   boss-skill-power-percent: 110
   true-death:
-    # Every 10 successful boss hits adds one stack and forces a lethal pulse.
-    # Totems work on levels I-IV; level V kills directly through Totems.
+    # จำนวนครั้งที่บอสโจมตีโดนผู้เล่นเพื่อเลื่อนระดับคำสาปขึ้น 1 ขั้น
     hits-per-level: 10
+    # ระดับคำสาปสูงสุดที่จะ 'บังคับตาย (True Death ทะลวง Totem 100%)' ทันที
     max-level: 5
+    # ดาเมจคลื่นคำสาปต่อเลเวลเมื่อเลื่อนขั้นระดับ 1 ถึง 4 (ไม่บังคับตาย · Totem ช่วยชีวิตได้หากเลือดหมด)
+    pulse-damage-per-level: 4.0
 rewards:
   # Vault Loot Table Percentages:
   # One reward per vault; rates are defined in VaultLootTable.
@@ -64,7 +72,6 @@ resource-pack:
   url: ''
   sha1: ''
   required: false
-
 
 # No anticheat bypass permissions are granted. Restart after changing modes.
 compatibility:

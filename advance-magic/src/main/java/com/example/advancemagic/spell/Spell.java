@@ -12,14 +12,14 @@ public enum Spell {
     EARTH_WALL("Earth Wall", Material.REINFORCED_DEEPSLATE, 40, 10, 0xAD9877),
     DRAGONS_BREATH("Dragon's Breath", Material.DRAGON_BREATH, 75, 18, 0xE07FFF),
     VOID_PULL("Void Pull", Material.LODESTONE, 65, 14, 0x6658C9),
-    INVISIBILITY_SHROUD("Invisibility Shroud", Material.PHANTOM_MEMBRANE, 50, 30, 0xBBBEDF),
-    POISON_SPORES("Poison Spores", Material.SPORE_BLOSSOM, 45, 10, 0xA5D957),
+    SONIC_BOOM("Sonic Boom", Material.ECHO_SHARD, 65, 12, 0x0BE8DA),
+    BLAZE_BARRAGE("Blaze Barrage", Material.BLAZE_ROD, 55, 8, 0xFFA500),
     WITHER_RAY("Wither Ray", Material.NETHER_STAR, 85, 12, 0x827A91),
     SHULKER_LEVITATION("Shulker Levitation", Material.SHULKER_SHELL, 95, 35, 0x110822),
     METEOR_STRIKE("Meteor Strike", Material.MAGMA_BLOCK, 90, 20, 0xFF8546),
     IRON_ARMOR("Iron Armor", Material.IRON_BLOCK, 60, 35, 0xCCD8E0),
-    TIME_DILATION("Time Dilation", Material.CLOCK, 80, 25, 0x6ADAD2),
-    SOUL_DRAIN("Soul Drain", Material.SCULK_CATALYST, 70, 16, 0x51DECC);
+    VEX_LEGION("Vex Legion", Material.TOTEM_OF_UNDYING, 80, 25, 0xB4D8E7),
+    GUARDIAN_BEAM("Guardian Beam", Material.PRISMARINE_SHARD, 60, 10, 0x56E0B5);
 
     public final String title;
     public final Material core;
@@ -29,7 +29,13 @@ public enum Spell {
     }
     public String id() { return name().toLowerCase(Locale.ROOT); }
     public static Spell parse(String text) {
-        try { return valueOf(text.toUpperCase(Locale.ROOT)); }
+        if(text==null) return null;
+        String upper=text.toUpperCase(Locale.ROOT).trim();
+        if(upper.contains("INVISIBILITY")||upper.equals("SHROUD")) return SONIC_BOOM;
+        if(upper.contains("POISON")||upper.contains("SPORES")) return BLAZE_BARRAGE;
+        if(upper.contains("SOUL")||upper.equals("SOULS")||upper.contains("DRAIN")) return GUARDIAN_BEAM;
+        if(upper.contains("TIME")||upper.contains("DILATION")) return VEX_LEGION;
+        try { return valueOf(upper); }
         catch (IllegalArgumentException ex) { return null; }
     }
 }

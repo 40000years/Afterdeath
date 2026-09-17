@@ -15,14 +15,14 @@ public final class SpellRegistry {
         spells.put(Spell.EARTH_WALL,area::wall);
         spells.put(Spell.DRAGONS_BREATH,projectile::dragon);
         spells.put(Spell.VOID_PULL,projectile::voidPull);
-        spells.put(Spell.INVISIBILITY_SHROUD,mobility::shroud);
-        spells.put(Spell.POISON_SPORES,projectile::spores);
+        spells.put(Spell.SONIC_BOOM,area::sonicBoom);
+        spells.put(Spell.BLAZE_BARRAGE,projectile::blaze);
         spells.put(Spell.WITHER_RAY,projectile::wither);
         spells.put(Spell.SHULKER_LEVITATION,projectile::shulker);
         spells.put(Spell.METEOR_STRIKE,projectile::meteor);
         spells.put(Spell.IRON_ARMOR,mobility::armor);
-        spells.put(Spell.TIME_DILATION,area::time);
-        spells.put(Spell.SOUL_DRAIN,channel::soulDrain);
+        spells.put(Spell.VEX_LEGION,area::vexLegion);
+        spells.put(Spell.GUARDIAN_BEAM,channel::guardianBeam);
         if(spells.size()!=Spell.values().length)throw new IllegalStateException("Missing spell implementation");
     }
     public boolean cast(Player player,Spell spell){return spells.get(spell).test(player);}

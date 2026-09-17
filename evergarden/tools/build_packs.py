@@ -301,10 +301,10 @@ def main():
   'lightning_strike':'Core of Lightning','frost_nova':'Core of Frost',
   'shadow_step':'Core of Shadows','natures_bloom':'Core of Nature',
   'earth_wall':'Core of Earth','dragons_breath':'Core of Dragon',
-  'void_pull':'Core of the Void','invisibility_shroud':'Core of Invisibility',
-  'poison_spores':'Core of Poison','wither_ray':'Core of Wither',
+  'void_pull':'Core of the Void','sonic_boom':'Core of the Warden',
+  'blaze_barrage':'Core of the Blaze','wither_ray':'Core of Wither',
   'shulker_levitation':'Core of Levitation','meteor_strike':'Core of Meteor',
-  'iron_armor':'Core of Iron','time_dilation':'Core of Time','soul_drain':'Core of Souls'
+  'iron_armor':'Core of Iron','vex_legion':'Core of Evocation','guardian_beam':'Core of the Guardian'
  }
  for c_id,c_title in core_items.items():
   source=ROOT/f'art/cores/core_{c_id}.png'

@@ -106,9 +106,9 @@ public final class CropShowcaseGui implements InventoryHolder, Listener {
             "§7• คลิกซ้าย: รับเมล็ดพันธุ์ x16",
             "§7• คลิกขวา หรือ Shift+คลิก: รับผลผลิตอาหาร x16"
         )));
-        inv.setItem(49, createSeparator(Material.BLACK_STAINED_GLASS_PANE, "§8✦"));
-        inv.setItem(50, createSeparator(Material.BLACK_STAINED_GLASS_PANE, "§8✦"));
-        inv.setItem(51, createSeparator(Material.BLACK_STAINED_GLASS_PANE, "§8✦"));
+        inv.setItem(49, createAction(Material.BLAZE_ROD, "§d§l✨ คลังคทาเวทมนตร์ (Wands)", List.of("§7เปิดคลังคทาและแกนคทา 15 ชนิด", "§e🖱️ คลิกเพื่อสลับหน้าต่าง")));
+        inv.setItem(50, createAction(Material.NETHER_STAR, "§6§l🏆 คลังเรลิก & ไอเท็มพิเศษ (Relics)", List.of("§7เปิดคลังวัตถุโบราณและไอเท็มพระเจ้า", "§e🖱️ คลิกเพื่อสลับหน้าต่าง")));
+        inv.setItem(51, createAction(Material.COMPASS, "§c§l🛠️ แผงควบคุมแอดมิน (Test Menu)", List.of("§7เปิดเมนูทดสอบระบบ Evergarden", "§e🖱️ คลิกเพื่อเปิด")));
         inv.setItem(52, createSeparator(Material.BLACK_STAINED_GLASS_PANE, "§8✦"));
         inv.setItem(53, createAction(Material.BARRIER, "§c§l❌ ปิดเมนู (Close)", List.of("§7คลิกเพื่อปิดหน้าต่างนี้")));
 
@@ -163,6 +163,24 @@ public final class CropShowcaseGui implements InventoryHolder, Listener {
         if (slot < 0 || slot >= 54) return;
         if (slot == 53) {
             p.closeInventory();
+            return;
+        }
+
+        if (slot == 49) {
+            if (plugin.wandGui() != null) plugin.wandGui().open(p);
+            return;
+        }
+        if (slot == 50) {
+            if (plugin.relicGui() != null) plugin.relicGui().open(p);
+            return;
+        }
+        if (slot == 51) {
+            if (isAdmin(p)) {
+                if (plugin.testGui() != null) plugin.testGui().open(p);
+            } else {
+                p.sendMessage(ChatColor.RED + "✦ เมนูนี้สำหรับแอดมินเท่านั้น!");
+                p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            }
             return;
         }
 

@@ -1,6 +1,7 @@
 package com.example.voidscape.item;
 
 import com.example.voidscape.VoidscapePlugin;
+import com.example.voidscape.enchant.EnchantApplyListener;
 import com.example.voidscape.enchant.LimitBreakType;
 import com.example.voidscape.enchant.UniqueEnchant;
 import net.kyori.adventure.text.Component;
@@ -61,14 +62,14 @@ public final class RelicService implements Listener {
         new MagicCore("earth_wall", "Core of Earth", "Earth Wall"),
         new MagicCore("dragons_breath", "Core of Dragon", "Dragon's Breath"),
         new MagicCore("void_pull", "Core of the Void", "Void Pull"),
-        new MagicCore("invisibility_shroud", "Core of Invisibility", "Invisibility Shroud"),
-        new MagicCore("poison_spores", "Core of Poison", "Poison Spores"),
+        new MagicCore("sonic_boom", "Core of the Warden", "Sonic Boom"),
+        new MagicCore("blaze_barrage", "Core of the Blaze", "Blaze Barrage"),
         new MagicCore("wither_ray", "Core of Wither", "Wither Ray"),
         new MagicCore("shulker_levitation", "Core of Levitation", "Shulker Levitation"),
         new MagicCore("meteor_strike", "Core of Meteor", "Meteor Strike"),
         new MagicCore("iron_armor", "Core of Iron", "Iron Armor"),
-        new MagicCore("time_dilation", "Core of Time", "Time Dilation"),
-        new MagicCore("soul_drain", "Core of Souls", "Soul Drain")
+        new MagicCore("vex_legion", "Core of Evocation", "Vex Legion"),
+        new MagicCore("guardian_beam", "Core of the Guardian", "Guardian Beam")
     );
 
     public RelicService(VoidscapePlugin plugin) {
@@ -144,6 +145,13 @@ public final class RelicService implements Listener {
     }
 
     public ItemStack createMagicCore(String id) {
+        if(id != null) {
+            String lower = id.toLowerCase(Locale.ROOT);
+            if(lower.contains("invisibility") || lower.equals("shroud")) id = "sonic_boom";
+            else if(lower.contains("poison") || lower.contains("spores")) id = "blaze_barrage";
+            else if(lower.contains("soul") || lower.equals("souls") || lower.contains("drain")) id = "guardian_beam";
+            else if(lower.contains("time") || lower.contains("dilation")) id = "vex_legion";
+        }
         for(MagicCore c : MAGIC_CORES) {
             if(c.id().equalsIgnoreCase(id)||c.id().replace("_","").equalsIgnoreCase(id.replace("_",""))) return createMagicCore(c);
         }
@@ -446,40 +454,136 @@ public final class RelicService implements Listener {
                 yield create(equipment[random.nextInt(equipment.length)],1);
             }
             case CONSUMABLE -> {
-                int sub = random.nextInt(6);
+                int sub = random.nextInt(4);
                 yield switch(sub) {
                     case 0 -> createKeyShard(random.nextInt(2) + 1);
-                    case 1 -> createAstralDust(random.nextInt(3) + 2);
-                    case 2 -> createRepairStone(1);
-                    case 3 -> createVoidElixir(1);
-                    case 4 -> new ItemStack(Material.ECHO_SHARD, random.nextInt(2) + 1);
-                    default -> new ItemStack(Material.AMETHYST_SHARD, random.nextInt(4) + 2);
+                    case 1 -> createRepairStone(1);
+                    case 2 -> createVoidElixir(1);
+                    default -> new ItemStack(Material.ECHO_SHARD, random.nextInt(2) + 1);
                 };
             }
         };
     }
 
-    public ItemStack createGuideBook() {
-        ItemStack book=new ItemStack(Material.WRITTEN_BOOK);
-        org.bukkit.inventory.meta.BookMeta meta=(org.bukkit.inventory.meta.BookMeta)book.getItemMeta();
-        meta.setTitle("คู่มือมิติ Evergarden");
-        meta.setAuthor("ผู้พิทักษ์มิติ");
+    public ItemStack createGuideBook(com.example.voidscape.guide.GuideBookType type) {
+        if (type == null) type = com.example.voidscape.guide.GuideBookType.CROPS;
+        ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+        org.bukkit.inventory.meta.BookMeta meta = (org.bukkit.inventory.meta.BookMeta) book.getItemMeta();
+        meta.setTitle(type.bookTitle);
+        meta.setAuthor(type.author);
         List<Component> pages = new java.util.ArrayList<>();
-        for (com.example.voidscape.guide.GuidePage page : com.example.voidscape.guide.GuideData.PAGES) {
-            // GuideData uses § formatting. Parse it instead of displaying the
-            // codes as literal text, so headings and rare-item highlights work.
+        for (com.example.voidscape.guide.GuidePage page : com.example.voidscape.guide.GuideData.pagesFor(type)) {
             pages.add(LegacyComponentSerializer.legacySection().deserialize(page.content()));
         }
         meta.pages(pages);
         meta.getPersistentDataContainer().set(plugin.key("guide_book"), PersistentDataType.BYTE, (byte) 1);
+        meta.getPersistentDataContainer().set(plugin.key("guide_book_type"), PersistentDataType.STRING, type.name());
+
+        List<Component> lore = new java.util.ArrayList<>();
+        lore.add(LegacyComponentSerializer.legacySection().deserialize("§7" + type.englishTitle));
+        lore.add(LegacyComponentSerializer.legacySection().deserialize(type.description));
+        lore.add(Component.empty());
+        lore.add(LegacyComponentSerializer.legacySection().deserialize("§eคลิกขวาเพื่อเปิดอ่าน"));
+        meta.lore(lore);
+
         book.setItemMeta(meta);
         return book;
     }
 
+    public ItemStack createCropGuideBook() {
+        return createGuideBook(com.example.voidscape.guide.GuideBookType.CROPS);
+    }
+
+    public ItemStack createRelicGuideBook() {
+        return createGuideBook(com.example.voidscape.guide.GuideBookType.RELICS);
+    }
+
+    public ItemStack createMagicGuideBook() {
+        return createGuideBook(com.example.voidscape.guide.GuideBookType.MAGIC);
+    }
+
+    public ItemStack createGuideBook() {
+        return createGuideBook(com.example.voidscape.guide.GuideBookType.CROPS);
+    }
+
+    public com.example.voidscape.guide.GuideBookType getGuideBookType(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return null;
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        String typeName = pdc.get(plugin.key("guide_book_type"), PersistentDataType.STRING);
+        if (typeName != null) {
+            try { return com.example.voidscape.guide.GuideBookType.valueOf(typeName); } catch (Exception ignored) {}
+        }
+        if (item.getItemMeta() instanceof org.bukkit.inventory.meta.BookMeta bm) {
+            String title = bm.getTitle();
+            if (title != null) {
+                for (var t : com.example.voidscape.guide.GuideBookType.values()) {
+                    if (title.equals(t.bookTitle)) return t;
+                }
+            }
+        }
+        return pdc.has(plugin.key("guide_book"), PersistentDataType.BYTE) ? com.example.voidscape.guide.GuideBookType.CROPS : null;
+    }
+
     public Relic type(ItemStack item) {
         if(item==null||!item.hasItemMeta()) return null;
-        String id=item.getItemMeta().getPersistentDataContainer().get(type,PersistentDataType.STRING);
-        try { Relic r=Relic.valueOf(id==null?"":id);return item.getType()==r.material?r:null; } catch(IllegalArgumentException e){return null;}
+        ItemMeta meta = item.getItemMeta();
+        var pdc = meta.getPersistentDataContainer();
+
+        // 1. Primary PDC key (voidscape:relic_v2)
+        String id = pdc.get(type, PersistentDataType.STRING);
+
+        // 2. Legacy / alternative PDC keys (voidscape:relic, evergarden:relic_v2, evergarden:relic)
+        if (id == null) id = pdc.get(new NamespacedKey("voidscape", "relic"), PersistentDataType.STRING);
+        if (id == null) id = pdc.get(new NamespacedKey("evergarden", "relic_v2"), PersistentDataType.STRING);
+        if (id == null) id = pdc.get(new NamespacedKey("evergarden", "relic"), PersistentDataType.STRING);
+
+        if (id != null) {
+            String clean = id.trim().toUpperCase(Locale.ROOT);
+            for (Relic r : Relic.values()) {
+                if (r.name().equals(clean) || r.name().replace("_", "").equals(clean.replace("_", ""))) {
+                    if (item.getType() == r.material) {
+                        // Auto-heal to canonical voidscape:relic_v2 tag
+                        if (!pdc.has(type, PersistentDataType.STRING)) {
+                            pdc.set(type, PersistentDataType.STRING, r.name());
+                            item.setItemMeta(meta);
+                        }
+                        return r;
+                    }
+                }
+            }
+        }
+
+        // 3. CustomModelData string check (Critical for Bedrock/Geyser custom items and 1.21 component models)
+        var cmdComp = meta.getCustomModelDataComponent();
+        if (cmdComp != null && !cmdComp.getStrings().isEmpty()) {
+            for (String str : cmdComp.getStrings()) {
+                for (Relic r : Relic.values()) {
+                    if (str.equalsIgnoreCase("voidscape:" + r.id()) || str.equalsIgnoreCase("evergarden:" + r.id()) || str.equalsIgnoreCase(r.id())) {
+                        if (item.getType() == r.material) {
+                            pdc.set(type, PersistentDataType.STRING, r.name());
+                            item.setItemMeta(meta);
+                            return r;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Display name fallback
+        if (meta.hasDisplayName()) {
+            String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(meta.displayName());
+            for (Relic r : Relic.values()) {
+                if (item.getType() == r.material) {
+                    if (plain.contains(r.title) || (r == Relic.SMELTER_PICKAXE && (plain.contains("อีเต้อหลอม") || plain.toLowerCase(Locale.ROOT).contains("smelter")))) {
+                        pdc.set(type, PersistentDataType.STRING, r.name());
+                        item.setItemMeta(meta);
+                        return r;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
     public boolean immune(Player p) {
         return p.getPersistentDataContainer().getOrDefault(shieldUntil,PersistentDataType.LONG,0L)>System.currentTimeMillis();
@@ -856,7 +960,7 @@ public final class RelicService implements Listener {
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void smeltMine(BlockBreakEvent e) {
         Player p=e.getPlayer();
-        if(p.getGameMode()!=GameMode.SURVIVAL)return;
+        if(p.getGameMode()!=GameMode.SURVIVAL && p.getGameMode()!=GameMode.CREATIVE && p.getGameMode()!=GameMode.ADVENTURE)return;
         ItemStack held=p.getInventory().getItemInMainHand();
         if(type(held)!=Relic.SMELTER_PICKAXE)return;
         Block block=e.getBlock();
@@ -872,10 +976,20 @@ public final class RelicService implements Listener {
         e.setDropItems(false);
         e.setExpToDrop(Math.max(e.getExpToDrop(),1));
         Location loc=block.getLocation().add(0.5,0.5,0.5);
-        block.getWorld().dropItemNaturally(loc,smelted);
-        block.getWorld().spawnParticle(Particle.FLAME,loc,6,0.2,0.2,0.2,0.02);
-        block.getWorld().spawnParticle(Particle.SMOKE,loc,3,0.1,0.1,0.1,0.01);
-        p.playSound(loc,Sound.BLOCK_FURNACE_FIRE_CRACKLE,0.6f,1.2f);
+
+        // Telepathy support: if tool has Telepathy enchant, put directly into player inventory
+        boolean hasTelepathy = EnchantApplyListener.hasUnique(held, UniqueEnchant.TELEPATHY);
+        if (hasTelepathy) {
+            var leftover = p.getInventory().addItem(smelted);
+            leftover.values().forEach(rem -> block.getWorld().dropItemNaturally(loc, rem));
+        } else {
+            block.getWorld().dropItemNaturally(loc,smelted);
+        }
+
+        block.getWorld().spawnParticle(Particle.FLAME,loc,8,0.2,0.2,0.2,0.03);
+        block.getWorld().spawnParticle(Particle.SMOKE,loc,4,0.1,0.1,0.1,0.01);
+        p.playSound(loc,Sound.BLOCK_FURNACE_FIRE_CRACKLE,0.7f,1.2f);
+        p.sendActionBar(Component.text("✦ อีเต้อหลอมเพลิงมิติ: หลอมผลิตผลสำเร็จ!", NamedTextColor.GOLD));
     }
     private boolean isFortuneOre(Material m) {
         return switch(m) {
@@ -888,19 +1002,29 @@ public final class RelicService implements Listener {
     }
     private ItemStack smeltResult(Material m) {
         return switch(m) {
-            case SAND, RED_SAND -> new ItemStack(Material.GLASS,1);
-            case IRON_ORE, DEEPSLATE_IRON_ORE, RAW_IRON_BLOCK -> new ItemStack(Material.IRON_INGOT,m==Material.RAW_IRON_BLOCK?9:1);
-            case GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE, RAW_GOLD_BLOCK -> new ItemStack(Material.GOLD_INGOT,m==Material.RAW_GOLD_BLOCK?9:1);
-            case COPPER_ORE, DEEPSLATE_COPPER_ORE, RAW_COPPER_BLOCK -> new ItemStack(Material.COPPER_INGOT,m==Material.RAW_COPPER_BLOCK?9:1);
+            case SAND, RED_SAND, SUSPICIOUS_SAND -> new ItemStack(Material.GLASS,1);
+            case IRON_ORE, DEEPSLATE_IRON_ORE -> new ItemStack(Material.IRON_INGOT,1);
+            case RAW_IRON_BLOCK -> new ItemStack(Material.IRON_INGOT,9);
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE -> new ItemStack(Material.GOLD_INGOT,1);
+            case RAW_GOLD_BLOCK -> new ItemStack(Material.GOLD_INGOT,9);
+            case COPPER_ORE, DEEPSLATE_COPPER_ORE -> new ItemStack(Material.COPPER_INGOT,java.util.concurrent.ThreadLocalRandom.current().nextInt(2,6));
+            case RAW_COPPER_BLOCK -> new ItemStack(Material.COPPER_INGOT,9);
             case ANCIENT_DEBRIS -> new ItemStack(Material.NETHERITE_SCRAP,1);
             case COBBLESTONE -> new ItemStack(Material.STONE,1);
-            case COBBLED_DEEPSLATE -> new ItemStack(Material.DEEPSLATE,1);
             case STONE -> new ItemStack(Material.SMOOTH_STONE,1);
+            case COBBLED_DEEPSLATE, DEEPSLATE -> new ItemStack(Material.DEEPSLATE,1);
+            case BASALT -> new ItemStack(Material.SMOOTH_BASALT,1);
+            case SANDSTONE -> new ItemStack(Material.SMOOTH_SANDSTONE,1);
+            case RED_SANDSTONE -> new ItemStack(Material.SMOOTH_RED_SANDSTONE,1);
+            case QUARTZ_BLOCK -> new ItemStack(Material.SMOOTH_QUARTZ,1);
             case CLAY -> new ItemStack(Material.TERRACOTTA,1);
             case NETHERRACK -> new ItemStack(Material.NETHER_BRICK,1);
             case WET_SPONGE -> new ItemStack(Material.SPONGE,1);
             case CACTUS -> new ItemStack(Material.GREEN_DYE,1);
-            case OAK_LOG, SPRUCE_LOG, BIRCH_LOG, JUNGLE_LOG, ACACIA_LOG, DARK_OAK_LOG, MANGROVE_LOG, CHERRY_LOG -> new ItemStack(Material.CHARCOAL,1);
+            case OAK_LOG, SPRUCE_LOG, BIRCH_LOG, JUNGLE_LOG, ACACIA_LOG, DARK_OAK_LOG, MANGROVE_LOG, CHERRY_LOG,
+                 STRIPPED_OAK_LOG, STRIPPED_SPRUCE_LOG, STRIPPED_BIRCH_LOG, STRIPPED_JUNGLE_LOG,
+                 STRIPPED_ACACIA_LOG, STRIPPED_DARK_OAK_LOG, STRIPPED_MANGROVE_LOG, STRIPPED_CHERRY_LOG,
+                 OAK_WOOD, SPRUCE_WOOD, BIRCH_WOOD, JUNGLE_WOOD, ACACIA_WOOD, DARK_OAK_WOOD, MANGROVE_WOOD, CHERRY_WOOD -> new ItemStack(Material.CHARCOAL,1);
             default -> null;
         };
     }

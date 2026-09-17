@@ -49,5 +49,20 @@ if ($LASTEXITCODE -ne 0) { throw 'JAR packaging failed.' }
 
 Copy-Item -LiteralPath $builtJar -Destination (Join-Path $distDir 'evergarden-3.0.0.jar') -Force
 Copy-Item -LiteralPath $builtJar -Destination (Join-Path $workspaceRoot 'evergarden.jar') -Force
+
+$destinations = @(
+    'C:\Users\User\Desktop\TestServer\plugins\evergarden.jar',
+    (Join-Path $workspaceRoot 'output\compatibility-20260915\evergarden.jar'),
+    (Join-Path $workspaceRoot '.audit-plugins\garden-balance-server\plugins\evergarden.jar'),
+    (Join-Path $workspaceRoot '.audit-plugins\gardens-server\plugins\evergarden.jar')
+)
+foreach ($dst in $destinations) {
+    $parent = Split-Path $dst -Parent
+    if (Test-Path $parent) {
+        Copy-Item -LiteralPath $builtJar -Destination $dst -Force
+        Write-Output ("Deployed to: " + $dst)
+    }
+}
+
 Write-Output ('Built Evergarden 3.0 (with embedded resource-packs): ' + (Join-Path $distDir 'evergarden-3.0.0.jar'))
 Write-Output ('Classes: ' + $classesDir)

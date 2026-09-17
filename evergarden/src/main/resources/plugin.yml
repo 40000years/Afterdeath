@@ -13,7 +13,7 @@ commands:
     usage: /evergarden help
 permissions:
   evergarden.enter:
-    default: true
+    default: op
     children:
       voidscape.enter: true
   evergarden.admin:
@@ -21,6 +21,6 @@ permissions:
     children:
       voidscape.admin: true
   voidscape.enter:
-    default: true
+    default: op
   voidscape.admin:
     default: op

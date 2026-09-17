@@ -36,14 +36,14 @@ public final class WandService implements Listener {
             case EARTH_WALL -> "Earth";
             case DRAGONS_BREATH -> "Dragon";
             case VOID_PULL -> "the Void";
-            case INVISIBILITY_SHROUD -> "Invisibility";
-            case POISON_SPORES -> "Poison";
+            case SONIC_BOOM -> "the Warden";
+            case BLAZE_BARRAGE -> "the Blaze";
             case WITHER_RAY -> "Wither";
             case SHULKER_LEVITATION -> "Levitation";
             case METEOR_STRIKE -> "Meteor";
             case IRON_ARMOR -> "Iron";
-            case TIME_DILATION -> "Time";
-            case SOUL_DRAIN -> "Souls";
+            case VEX_LEGION -> "Evocation";
+            case GUARDIAN_BEAM -> "the Guardian";
         };
     }
     public ItemStack createCore(Spell spell) {

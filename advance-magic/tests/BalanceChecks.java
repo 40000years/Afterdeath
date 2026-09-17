@@ -91,8 +91,7 @@ public final class BalanceChecks extends JavaPlugin implements org.bukkit.event.
         check(plugin.casts().cast(player,spell,wand),"single input casts "+spell);
         check(account.manaExact()==100-spell.mana,"charges mana once "+spell);
         long cooldown=account.end(spell.id());
-        if(spell==Spell.INVISIBILITY_SHROUD)later(2,()->target.damage(1,player));
-        later(spell==Spell.TIME_DILATION?310:145,()->{
+        later(145,()->{
             check(hit,"automatic extra damage stage reaches enemy "+spell);
             check(account.end(spell.id())==cooldown,"extra stage does not restart cooldown "+spell);
             check(plugin.wands().casts(wand)==1,"extra stage does not add mastery casts "+spell);
@@ -108,8 +107,8 @@ public final class BalanceChecks extends JavaPlugin implements org.bukkit.event.
             blocked=true;plugin.context().echo(player,anchor,Spell.FROST_NOVA,14,5,expected);
             later(20,()->{
                 check(!hit,"MagicAffectEvent cancellation blocks extra damage");blocked=false;
-                reset();plugin.getConfig().set("follow-up.damage.soul_drain",expected);target.setHealth(10);
-                check(plugin.spells().cast(player,Spell.SOUL_DRAIN),"Soul Drain starts against low-health target");
+                reset();plugin.getConfig().set("follow-up.damage.guardian_beam",expected);target.setHealth(10);
+                check(plugin.spells().cast(player,Spell.GUARDIAN_BEAM),"Guardian Beam starts against low-health target");
                 later(24,()->{
                     check(target.isDead(),"Soul Drain kills before channel completion");
                     target=world.spawn(anchor,WitherSkeleton.class,m->{m.setAI(false);m.setGravity(false);});
@@ -120,8 +119,8 @@ public final class BalanceChecks extends JavaPlugin implements org.bukkit.event.
         });
     }
     void cancelledAmbush() {
-        reset();plugin.getConfig().set("follow-up.damage.invisibility_shroud",expected);
-        check(plugin.spells().cast(player,Spell.INVISIBILITY_SHROUD),"shroud starts for cancelled-hit check");
+        reset();plugin.getConfig().set("follow-up.damage.shadow_step",expected);
+        check(plugin.spells().cast(player,Spell.SHADOW_STEP),"shadow step starts for cancelled-hit check");
         cancelDamage=true;target.damage(1,player);cancelDamage=false;
         later(20,()->{
             check(!hit,"cancelled ambush does not release follow-up damage");

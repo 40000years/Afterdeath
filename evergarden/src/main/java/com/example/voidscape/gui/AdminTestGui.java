@@ -41,7 +41,16 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         return null;
     }
 
+    private boolean isAdmin(Player p) {
+        return p != null && (p.isOp() || p.hasPermission("evergarden.admin") || p.hasPermission("voidscape.admin"));
+    }
+
     public void open(Player player) {
+        if (!isAdmin(player)) {
+            player.sendMessage(ChatColor.RED + "✦ เมนูนี้สำหรับแอดมินเท่านั้น!");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
         Inventory inv = Bukkit.createInventory(this, 54, title);
 
         // ==========================================
@@ -54,9 +63,13 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         inv.setItem(4, plugin.relics().createVoidElixir(1));
         inv.setItem(5, plugin.relics().createAstralDust(16));
         inv.setItem(6, plugin.relics().createMagicCore("shulker_levitation"));
-        inv.setItem(7, plugin.relics().createGuideBook());
-        inv.setItem(8, createActionItem(Material.ENDER_CHEST, "§e§l🎲 สุ่มเปิด Vault (Test Roll)",
-            List.of("§7คลิกเพื่อจำลองการเปิด Evergarden Vault", "§7รับรางวัลสุ่มจากตาราง 10,000 ตั๋วทันที")));
+        inv.setItem(7, createActionItem(Material.BOOK, "§a§l📚 ชุดคู่มือมิติ Evergarden (3 เล่ม)",
+            List.of("§eคลิกซ้าย: §aเปิดเมนูเลือกคู่มือ (Guide Menu)",
+                    "§6Shift+คลิก: §7รับคู่มือครบทั้ง 3 เล่มลงกระเป๋าทันที")));
+        inv.setItem(8, createActionItem(Material.NETHER_STAR, "§6§l🏆 คลังเรลิก & วัตถุโบราณ (Relics Showcase)",
+            List.of("§eคลิกซ้าย: §aเปิดคลังวัตถุโบราณและอาวุธเทพ (Showcase GUI)",
+                    "§6คลิกขวา: §7จำลองการเปิด Evergarden Vault สุ่มของ",
+                    "§cShift+คลิก: §7รับยุทธภัณฑ์โบราณครบ 6 ชิ้นทันที")));
 
         // ==========================================
         // Row 1 (9-17): Limit Break Scrolls
@@ -67,8 +80,9 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         inv.setItem(12, plugin.relics().createScrollLimitBreak(LimitBreakType.EFFICIENCY));
         inv.setItem(13, plugin.relics().createScrollLimitBreak(LimitBreakType.FORTUNE));
         inv.setItem(14, plugin.relics().createScrollLimitBreak(LimitBreakType.LOOTING));
-        inv.setItem(15, createActionItem(Material.CARROT_ON_A_STICK, "§d§l✨ รับคทาเวทมนตร์ครบ 15 เล่ม",
-            List.of("§7คลิกเพื่อรับ Magic Wand ครบทั้ง 15 สาย", "§7ลงในกระเป๋าทันที")));
+        inv.setItem(15, createActionItem(Material.BLAZE_ROD, "§d§l✨ คลังคทาเวทมนตร์ (Wands Showcase)",
+            List.of("§eคลิกซ้าย: §aเปิดคลังคทาและแกนคทา 15 ชนิด (Showcase GUI)",
+                    "§dShift+คลิก: §7รับ Magic Wand ครบทั้ง 15 สายลงกระเป๋าทันที")));
         inv.setItem(16, createActionItem(Material.CHEST, "§b§l📦 รับ Limit Break x5 ทุกชนิด",
             List.of("§7คลิกเพื่อรับคัมภีร์ Limit Break ทุกสาย", "§7สายละ 5 เล่มลงในกระเป๋า")));
         inv.setItem(17, createActionItem(Material.BOOKSHELF, "§d§l📜 รับ Unique Enchants ครบ 22 ใบ",
@@ -147,6 +161,11 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         if (!(event.getInventory().getHolder() instanceof AdminTestGui)) return;
 
         event.setCancelled(true);
+        if (!isAdmin(player)) {
+            player.closeInventory();
+            player.sendMessage(ChatColor.RED + "✦ ไม่มีสิทธิ์แอดมิน!");
+            return;
+        }
         if (event.getRawSlot() < 0 || event.getRawSlot() >= 54) return;
 
         ItemStack clicked = event.getCurrentItem();
@@ -155,15 +174,45 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         int slot = event.getRawSlot();
 
         switch (slot) {
-            case 8 -> { // Vault Test Roll
-                ItemStack reward = plugin.relics().rollVaultReward();
-                giveOrDrop(player, reward);
-                player.playSound(player.getLocation(), Sound.BLOCK_VAULT_OPEN_SHUTTER, 1.0f, 1.0f);
-                player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.3f);
-                String name = reward.getItemMeta() != null && reward.getItemMeta().hasDisplayName()
-                    ? net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(reward.getItemMeta().displayName())
-                    : reward.getType().name();
-                plugin.message(player, "สุ่มเปิด Vault ได้รับ: " + name + " ×" + reward.getAmount());
+            case 8 -> { // Vault Test Roll / Relic Showcase
+                if (event.isShiftClick()) {
+                    for (RelicService.Relic r : new RelicService.Relic[]{
+                        RelicService.Relic.SMELTER_PICKAXE,
+                        RelicService.Relic.RIFT_PICKAXE,
+                        RelicService.Relic.RIFT_BLADE,
+                        RelicService.Relic.ETERNAL_AEGIS,
+                        RelicService.Relic.STORM_BOW,
+                        RelicService.Relic.NOVA_BOW
+                    }) {
+                        giveOrDrop(player, plugin.relics().create(r, 1));
+                    }
+                    player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
+                    plugin.message(player, "ได้รับชุดยุทธภัณฑ์โบราณครบทั้ง 6 ชิ้น (รวม Smelter Pickaxe) ลงกระเป๋าเรียบร้อยแล้ว!");
+                } else if (event.isRightClick()) {
+                    ItemStack reward = plugin.relics().rollVaultReward();
+                    giveOrDrop(player, reward);
+                    player.playSound(player.getLocation(), Sound.BLOCK_VAULT_OPEN_SHUTTER, 1.0f, 1.0f);
+                    player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.3f);
+                    String name = reward.getItemMeta() != null && reward.getItemMeta().hasDisplayName()
+                        ? net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(reward.getItemMeta().displayName())
+                        : reward.getType().name();
+                    plugin.message(player, "สุ่มเปิด Vault ได้รับ: " + name + " ×" + reward.getAmount());
+                } else {
+                    if (plugin.relicGui() != null) {
+                        plugin.relicGui().open(player);
+                    }
+                }
+            }
+            case 7 -> {
+                if (event.isShiftClick()) {
+                    for (com.example.voidscape.guide.GuideBookType gType : com.example.voidscape.guide.GuideBookType.values()) {
+                        giveOrDrop(player, plugin.relics().createGuideBook(gType));
+                    }
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.9f, 1.2f);
+                    plugin.message(player, "ได้รับชุดคู่มือแนะนำการเล่นครบทั้ง 3 เล่ม!");
+                } else {
+                    plugin.guideMenu().open(player);
+                }
             }
             case 40 -> plugin.cropGui().open(player);
             case 16 -> { // Limit Break All x5
@@ -192,10 +241,20 @@ public final class AdminTestGui implements InventoryHolder, Listener {
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_NETHERITE, 1.0f, 1.2f);
                 plugin.message(player, "ได้รับ ธนูเทพล่าไททัน (Power VIII + Colossus Slayer + Ricochet + Unbreakable)!");
             }
-            case 43 -> { // God Pickaxe
-                giveOrDrop(player, createGodPickaxe());
-                player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_NETHERITE, 1.0f, 1.2f);
-                plugin.message(player, "ได้รับ จอบเจาะมิติทลายแผ่นดิน (Efficiency VIII + Fortune V + Seismic Slam + Vein Smelter + Telepathy + Unbreakable)!");
+            case 43 -> { // God Pickaxe / Smelter Pickaxe
+                if (event.isRightClick()) {
+                    giveOrDrop(player, plugin.relics().create(RelicService.Relic.SMELTER_PICKAXE, 1));
+                    player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_NETHERITE, 1.0f, 1.2f);
+                    plugin.message(player, "ได้รับ อีเต้อหลอมเพลิงมิติ (Smelter Pickaxe - Auto Smelt)!");
+                } else if (event.isShiftClick()) {
+                    giveOrDrop(player, plugin.relics().create(RelicService.Relic.RIFT_PICKAXE, 1));
+                    player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_NETHERITE, 1.0f, 1.2f);
+                    plugin.message(player, "ได้รับ อีเต้อแยกพิภพ (Rift Pickaxe 3×3)!");
+                } else {
+                    giveOrDrop(player, createGodPickaxe());
+                    player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_NETHERITE, 1.0f, 1.2f);
+                    plugin.message(player, "ได้รับ จอบเจาะมิติทลายแผ่นดิน (Efficiency VIII + Fortune V + Seismic Slam + Vein Smelter + Telepathy + Unbreakable)!");
+                }
             }
             case 44 -> { // God Armor Set
                 giveGodArmorSet(player);
@@ -217,13 +276,19 @@ public final class AdminTestGui implements InventoryHolder, Listener {
                 player.playSound(spawnLoc, Sound.ENTITY_WITHER_SPAWN, 0.8f, 1.0f);
                 plugin.message(player, "เสกบอสทดสอบ (Shadow Overlord) ตรงหน้าแล้ว!");
             }
-            case 15 -> { // 15 Magic Wands
-                for (RelicService.MagicCore c : RelicService.MAGIC_CORES) {
-                    ItemStack wand = com.example.voidscape.command.VoidCommand.createWandViaAdvanceMagic(c.id());
-                    if (wand != null) giveOrDrop(player, wand);
+            case 15 -> { // 15 Magic Wands & Showcase
+                if (event.isShiftClick()) {
+                    for (RelicService.MagicCore c : RelicService.MAGIC_CORES) {
+                        ItemStack wand = com.example.voidscape.command.VoidCommand.createWandViaAdvanceMagic(c.id());
+                        if (wand != null) giveOrDrop(player, wand);
+                    }
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.9f, 1.2f);
+                    plugin.message(player, "ได้รับ Ancient Magic Wands ครบทั้ง 15 เล่ม!");
+                } else {
+                    if (plugin.wandGui() != null) {
+                        plugin.wandGui().open(player);
+                    }
                 }
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.9f, 1.2f);
-                plugin.message(player, "ได้รับ Ancient Magic Wands ครบทั้ง 15 เล่ม!");
             }
             case 50 -> { // 15 Magic Cores
                 for (RelicService.MagicCore c : RelicService.MAGIC_CORES) {
@@ -269,14 +334,6 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         }
     }
 
-    private void giveOrDrop(Player player, ItemStack item) {
-        var leftover = player.getInventory().addItem(item);
-        if (!leftover.isEmpty()) {
-            leftover.values().forEach(drop -> player.getWorld().dropItemNaturally(player.getLocation(), drop));
-        }
-        player.updateInventory();
-    }
-
     private void warpToSanctum(Player player, DungeonLayout.Kind kind) {
         int x = player.getWorld() == plugin.world() ? player.getLocation().getBlockX() : 0;
         int z = player.getWorld() == plugin.world() ? player.getLocation().getBlockZ() : 0;
@@ -313,10 +370,10 @@ public final class AdminTestGui implements InventoryHolder, Listener {
     }
 
     // ==========================================
-    // Pre-made God Test Weapons
+    // Pre-made God Test Weapons & Armor
     // ==========================================
 
-    private ItemStack createGodSword() {
+    public static ItemStack createGodSword() {
         ItemStack sword = new ItemStack(Material.NETHERITE_SWORD);
         ItemMeta meta = sword.getItemMeta();
         meta.displayName(Component.text("✦ ดาบเทพแห่งความว่างเปล่า (Dev God Sword)", NamedTextColor.GOLD, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
@@ -345,7 +402,7 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         return sword;
     }
 
-    private ItemStack createGodBow() {
+    public static ItemStack createGodBow() {
         ItemStack bow = new ItemStack(Material.BOW);
         ItemMeta meta = bow.getItemMeta();
         meta.displayName(Component.text("✦ ธนูเทพล่าไททัน (Dev God Bow)", NamedTextColor.GOLD, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
@@ -369,7 +426,7 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         return bow;
     }
 
-    private ItemStack createGodPickaxe() {
+    public static ItemStack createGodPickaxe() {
         ItemStack pick = new ItemStack(Material.NETHERITE_PICKAXE);
         ItemMeta meta = pick.getItemMeta();
         meta.displayName(Component.text("✦ จอบเจาะมิติทลายแผ่นดิน (Dev God Pickaxe)", NamedTextColor.GOLD, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
@@ -393,14 +450,14 @@ public final class AdminTestGui implements InventoryHolder, Listener {
             Component.text("✦ Bedrock Resonance · เรดาร์ส่องแร่", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
             Component.text("   §7คลิกขวาปล่อยคลื่นโซนาร์ส่องตรวจจับและชี้ทิศทางแร่หายาก").decoration(TextDecoration.ITALIC, false),
             Component.text("✦ Telepathy · จิตสื่อสาร", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7แร่และของที่ขุดได้ทุกชิ้นวาร์ปเข้าตัวผู้เล่น 100%").decoration(TextDecoration.ITALIC, false)
+            Component.text("   §7แร่และของที่ขุดได้ทุกชิ้นวาร์ปเข้าตัวผู้เล่น 100%").decoration(TextDecoration.ITALIC, false),
+            Component.text("§e[คลิกซ้าย: รับ God Pickaxe | คลิกขวา: รับ Smelter Pickaxe | Shift+คลิก: รับ Rift Pickaxe]", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
         ));
         pick.setItemMeta(meta);
         return pick;
     }
 
-    private void giveGodArmorSet(Player player) {
-        // Helmet
+    public static ItemStack createGodHelmet() {
         ItemStack helm = new ItemStack(Material.NETHERITE_HELMET);
         ItemMeta hMeta = helm.getItemMeta();
         hMeta.displayName(Component.text("✦ หมวกเทพพิทักษ์มิติ (God Helmet)", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
@@ -408,8 +465,10 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         hMeta.addEnchant(Enchantment.PROTECTION, 8, true);
         hMeta.lore(List.of(Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false), Component.text("§7Protection VIII")));
         helm.setItemMeta(hMeta);
+        return helm;
+    }
 
-        // Chestplate
+    public static ItemStack createGodChestplate() {
         ItemStack chest = new ItemStack(Material.NETHERITE_CHESTPLATE);
         ItemMeta cMeta = chest.getItemMeta();
         cMeta.displayName(Component.text("✦ เกราะอกฟีนิกซ์นิรันดร์ (God Chestplate)", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
@@ -423,8 +482,10 @@ public final class AdminTestGui implements InventoryHolder, Listener {
             Component.text("   §7เมื่อตาย คืนชีพ 50% HP + คลื่นไฟ (คูลดาวน์ 10 นาที)").decoration(TextDecoration.ITALIC, false)
         ));
         chest.setItemMeta(cMeta);
+        return chest;
+    }
 
-        // Leggings
+    public static ItemStack createGodLeggings() {
         ItemStack legs = new ItemStack(Material.NETHERITE_LEGGINGS);
         ItemMeta lMeta = legs.getItemMeta();
         lMeta.displayName(Component.text("✦ สนับเพลาศิลาไร้พ่าย (God Leggings)", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
@@ -438,8 +499,10 @@ public final class AdminTestGui implements InventoryHolder, Listener {
             Component.text("   §7ต้านทาน Knockback 100% และลดดาเมจแรงระเบิด 40%").decoration(TextDecoration.ITALIC, false)
         ));
         legs.setItemMeta(lMeta);
+        return legs;
+    }
 
-        // Boots
+    public static ItemStack createGodBoots() {
         ItemStack boots = new ItemStack(Material.NETHERITE_BOOTS);
         ItemMeta bMeta = boots.getItemMeta();
         bMeta.displayName(Component.text("✦ รองเท้าก้าวพริบตามิติ (God Boots)", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
@@ -453,15 +516,28 @@ public final class AdminTestGui implements InventoryHolder, Listener {
             Component.text("   §7กดย่อ 2 ครั้ง พริบตาวาร์ปไปข้างหน้า 6 บล็อก (คูลดาวน์ 4 วิ)").decoration(TextDecoration.ITALIC, false)
         ));
         boots.setItemMeta(bMeta);
-
-        giveOrDrop(player, helm);
-        giveOrDrop(player, chest);
-        giveOrDrop(player, legs);
-        giveOrDrop(player, boots);
+        return boots;
     }
 
-    private void attachUnique(ItemMeta meta, UniqueEnchant ue) {
+    public static void giveGodArmorSet(Player player) {
+        giveOrDrop(player, createGodHelmet());
+        giveOrDrop(player, createGodChestplate());
+        giveOrDrop(player, createGodLeggings());
+        giveOrDrop(player, createGodBoots());
+    }
+
+    public static void attachUnique(ItemMeta meta, UniqueEnchant ue) {
         NamespacedKey key = new NamespacedKey("evergarden", "ue_" + ue.id().toLowerCase(Locale.ROOT));
         meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
+    }
+
+    public static void giveOrDrop(Player player, ItemStack item) {
+        if (item == null) return;
+        var leftovers = player.getInventory().addItem(item);
+        if (!leftovers.isEmpty()) {
+            for (ItemStack drop : leftovers.values()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), drop);
+            }
+        }
     }
 }

@@ -107,10 +107,10 @@ def main():
             'lightning_strike': 'Core of Lightning', 'frost_nova': 'Core of Frost',
             'shadow_step': 'Core of Shadows', 'natures_bloom': 'Core of Nature',
             'earth_wall': 'Core of Earth', 'dragons_breath': 'Core of Dragon',
-            'void_pull': 'Core of the Void', 'invisibility_shroud': 'Core of Invisibility',
-            'poison_spores': 'Core of Poison', 'wither_ray': 'Core of Wither',
+            'void_pull': 'Core of the Void', 'sonic_boom': 'Core of the Warden',
+            'blaze_barrage': 'Core of the Blaze', 'wither_ray': 'Core of Wither',
             'shulker_levitation': 'Core of Levitation', 'meteor_strike': 'Core of Meteor',
-            'iron_armor': 'Core of Iron', 'time_dilation': 'Core of Time', 'soul_drain': 'Core of Souls'
+            'iron_armor': 'Core of Iron', 'vex_legion': 'Core of Evocation', 'guardian_beam': 'Core of the Guardian'
         }
 
         # 1. Arcane Wands
@@ -169,6 +169,18 @@ def main():
         })
         shutil.copyfile(ROOT / 'art/wands/frost_nova.png', java / 'pack.png')
         shutil.copyfile(ROOT / 'art/wands/frost_nova.png', bedrock / 'pack_icon.png')
+        # Bedrock caches UUID + version. Update manifest version deterministically
+        # based on asset content while staying higher than legacy [1, 0, 1].
+        digest = hashlib.sha256()
+        for asset in sorted((p for p in bedrock.rglob('*') if p.is_file() and p.name != 'manifest.json'), key=lambda p: p.relative_to(bedrock).as_posix()):
+            digest.update(asset.relative_to(bedrock).as_posix().encode('utf8') + b'\0' + asset.read_bytes())
+        manifest = json.loads((bedrock / 'manifest.json').read_text(encoding='utf8'))
+        version = [1, 1, int(digest.hexdigest()[:7], 16) % 60000 + 1]
+        manifest['header']['version'] = version
+        for module in manifest['modules']:
+            module['version'] = version
+        write_json(bedrock / 'manifest.json', manifest)
+        print('Bedrock content version: ' + '.'.join(map(str, version)))
         archive(java, DIST / 'advance-magic-java.zip')
         archive(bedrock, DIST / 'advance-magic-bedrock.mcpack')
         cards = []

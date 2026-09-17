@@ -69,7 +69,7 @@ public final class StatusService implements Listener {
         loc.getWorld().playSound(loc,Sound.ENTITY_PHANTOM_BITE,1.0f,1.4f);
         plugin.context().particles(loc,Particle.CAMPFIRE_COSY_SMOKE,25,0.8);
         plugin.context().particles(loc,Particle.PORTAL,35,0.6);
-        plugin.context().ring(p.getLocation(),3.0,com.example.advancemagic.spell.Spell.INVISIBILITY_SHROUD);
+        plugin.context().ring(p.getLocation(),3.0,com.example.advancemagic.spell.Spell.SHADOW_STEP);
     }
     private void removeOwnedPotion(Player p,PotionEffectType type,int amp,long remaining) {
         var effect=p.getPotionEffect(type);
@@ -154,7 +154,7 @@ public final class StatusService implements Listener {
     @EventHandler(priority=EventPriority.MONITOR) public void ambushFollowUp(EntityDamageByEntityEvent e) {
         Player attacker=ambushHits.remove(e);
         if(attacker!=null&&!e.isCancelled()&&e.getFinalDamage()>0)
-            plugin.context().echo(attacker,e.getEntity().getLocation(),com.example.advancemagic.spell.Spell.INVISIBILITY_SHROUD,14,3.5,20);
+            plugin.context().echo(attacker,e.getEntity().getLocation(),com.example.advancemagic.spell.Spell.SHADOW_STEP,14,3.5,20);
     }
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true) public void reflect(EntityDamageByEntityEvent e) {
         if(!(e.getEntity() instanceof Player p)||!armored(p)||!(e.getDamager() instanceof LivingEntity attacker))return;
