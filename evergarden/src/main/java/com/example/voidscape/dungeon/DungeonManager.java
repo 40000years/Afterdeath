@@ -185,9 +185,19 @@ public final class DungeonManager implements Listener {
             return;
         }
 
-        ItemStack hand=p.getInventory().getItemInMainHand();
-        if(!plugin.relics().isVoidKey(hand)) {
-            if(hand.getType()==Material.TRIAL_KEY||hand.getType()==Material.OMINOUS_TRIAL_KEY) {
+        ItemStack main = p.getInventory().getItemInMainHand();
+        ItemStack off = p.getInventory().getItemInOffHand();
+        ItemStack keyItem = null;
+
+        if (plugin.relics().isVoidKey(main)) {
+            keyItem = main;
+        } else if (plugin.relics().isVoidKey(off)) {
+            keyItem = off;
+        }
+
+        if (keyItem == null) {
+            if (main.getType() == Material.TRIAL_KEY || main.getType() == Material.OMINOUS_TRIAL_KEY
+                || off.getType() == Material.TRIAL_KEY || off.getType() == Material.OMINOUS_TRIAL_KEY) {
                 plugin.message(p,"กุญแจ Trial จากโลกปกติไม่สามารถเปิด Evergarden Vault ได้! ต้องใช้ Evergarden Key จากวิหาร");
             } else {
                 plugin.message(p,"ต้องใช้ Evergarden Key ในการเปิดกล่องสมบัตินี้ (เปิดได้คนละ 1 ครั้ง)");
@@ -197,7 +207,8 @@ public final class DungeonManager implements Listener {
         }
 
         // Consume Evergarden Key
-        hand.subtract(1);
+        keyItem.subtract(1);
+        p.updateInventory();
         ledger.set(openedPath,true);
         save();
 

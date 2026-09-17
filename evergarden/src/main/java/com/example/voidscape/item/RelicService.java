@@ -699,6 +699,8 @@ public final class RelicService implements Listener {
         int keyShards = 0;
         int astralDust = 0;
         int repairStones = 0;
+        int amethystShards = 0;
+        int glassBottles = 0;
         int scrollCount = 0;
         int damagedEquipCount = 0;
 
@@ -708,44 +710,56 @@ public final class RelicService implements Listener {
             if (isKeyShard(it)) keyShards++;
             else if (isAstralDust(it)) astralDust++;
             else if (isRepairStone(it)) repairStones++;
+            else if (it.getType() == Material.AMETHYST_SHARD) amethystShards++;
+            else if (it.getType() == Material.GLASS_BOTTLE) glassBottles++;
             else if (isScrollEternity(it) || getLimitBreakType(it) != null || getUniqueEnchant(it) != null) scrollCount++;
             else if (it.hasItemMeta() && it.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg && dmg.getDamage() > 0) damagedEquipCount++;
         }
 
+        boolean isCustomEvergardenCraft = false;
+
         if (keyShards == 4 && totalItems == 4) {
+            isCustomEvergardenCraft = true;
             p.playSound(p.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.2f);
             p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.05);
             p.sendActionBar(Component.text("✦ ประกอบ Evergarden Key สำเร็จ!", NamedTextColor.LIGHT_PURPLE));
-            return;
-        }
-
-        if (repairStones == 1 && damagedEquipCount == 1 && totalItems == 2) {
-            consumeMatrixIngredients(inv);
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (p.isOnline()) {
-                    consumeMatrixIngredients(inv);
-                    p.updateInventory();
-                }
-            });
+        } else if (astralDust == 4 && amethystShards == 1 && totalItems == 5) {
+            isCustomEvergardenCraft = true;
+            p.playSound(p.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.2f);
+            p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.05);
+            p.sendActionBar(Component.text("✦ สร้างศิลาฟื้นฟูมิติ (Vault Repair Stone) สำเร็จ!", NamedTextColor.GREEN));
+        } else if (astralDust == 1 && glassBottles == 1 && totalItems == 2) {
+            isCustomEvergardenCraft = true;
+            p.playSound(p.getLocation(), Sound.ITEM_BOTTLE_FILL, 1.0f, 1.2f);
+            p.getWorld().spawnParticle(Particle.PORTAL, p.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.05);
+            p.sendActionBar(Component.text("✦ ปรุงน้ำยาเดินเวหา (Void Walker Elixir) สำเร็จ!", NamedTextColor.LIGHT_PURPLE));
+        } else if (repairStones == 1 && damagedEquipCount == 1 && totalItems == 2) {
+            isCustomEvergardenCraft = true;
             p.playSound(p.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 1.0f, 1.2f);
             p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.05);
             p.sendActionBar(Component.text("✦ ศิลาฟื้นฟูมิติ ซ่อมแซมความทนทาน 500 หน่วย!", NamedTextColor.GREEN));
-            return;
-        }
-
-        if (scrollCount == 1 && totalItems == 2) {
-            consumeMatrixIngredients(inv);
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (p.isOnline()) {
-                    consumeMatrixIngredients(inv);
-                    p.updateInventory();
-                }
-            });
+        } else if (scrollCount == 1 && totalItems == 2) {
+            isCustomEvergardenCraft = true;
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.25f);
             p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.35f);
             p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1.2, 0), 25, 0.35, 0.35, 0.35, 0.1);
             p.sendActionBar(Component.text("✦ ปลุกเสกมนตราผ่านโต๊ะคราฟต์สำเร็จ!", NamedTextColor.GREEN));
-            return;
+        }
+
+        if (isCustomEvergardenCraft) {
+            // Check if recipe is upgrade/repair: disable Shift-Click to prevent item dupes
+            if ((scrollCount == 1 || (repairStones == 1 && damagedEquipCount == 1)) && e.isShiftClick()) {
+                e.setCancelled(true);
+                p.sendActionBar(Component.text("⚠ การตีบวก/ซ่อมแซม ไม่รองรับการกด Shift-Click (กรุณาแตะหยิบทีละชิ้น)", NamedTextColor.YELLOW));
+                return;
+            }
+
+            consumeMatrixIngredients(inv);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (p.isOnline()) {
+                    p.updateInventory();
+                }
+            });
         }
     }
 
@@ -791,23 +805,41 @@ public final class RelicService implements Listener {
 
         ItemStack[] matrix = inv.getMatrix();
         int totalItems = 0;
-        int scrollCount = 0;
+        int keyShards = 0;
+        int astralDust = 0;
         int repairStones = 0;
+        int amethystShards = 0;
+        int glassBottles = 0;
+        int scrollCount = 0;
         int damagedEquipCount = 0;
 
         for (ItemStack it : matrix) {
             if (it == null || it.getType().isAir()) continue;
             totalItems++;
-            if (isRepairStone(it)) repairStones++;
+            if (isKeyShard(it)) keyShards++;
+            else if (isAstralDust(it)) astralDust++;
+            else if (isRepairStone(it)) repairStones++;
+            else if (it.getType() == Material.AMETHYST_SHARD) amethystShards++;
+            else if (it.getType() == Material.GLASS_BOTTLE) glassBottles++;
             else if (isScrollEternity(it) || getLimitBreakType(it) != null || getUniqueEnchant(it) != null) scrollCount++;
             else if (it.hasItemMeta() && it.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg && dmg.getDamage() > 0) damagedEquipCount++;
         }
 
-        if ((scrollCount == 1 && totalItems == 2) || (repairStones == 1 && damagedEquipCount == 1 && totalItems == 2)) {
+        boolean isCustom = (keyShards == 4 && totalItems == 4)
+            || (astralDust == 4 && amethystShards == 1 && totalItems == 5)
+            || (astralDust == 1 && glassBottles == 1 && totalItems == 2)
+            || (repairStones == 1 && damagedEquipCount == 1 && totalItems == 2)
+            || (scrollCount == 1 && totalItems == 2);
+
+        if (isCustom) {
+            if ((scrollCount == 1 || (repairStones == 1 && damagedEquipCount == 1)) && e.isShiftClick()) {
+                e.setCancelled(true);
+                p.sendActionBar(Component.text("⚠ การตีบวก/ซ่อมแซม ไม่รองรับการกด Shift-Click (กรุณาแตะหยิบทีละชิ้น)", NamedTextColor.YELLOW));
+                return;
+            }
             consumeMatrixIngredients(inv);
             Bukkit.getScheduler().runTask(plugin, () -> {
                 if (p.isOnline()) {
-                    consumeMatrixIngredients(inv);
                     p.updateInventory();
                 }
             });
@@ -933,6 +965,7 @@ public final class RelicService implements Listener {
         best.setItemMeta(dmg);
 
         item.subtract(1);
+        p.updateInventory();
         p.playSound(p.getLocation(),Sound.BLOCK_GRINDSTONE_USE,1.0f,1.2f);
         p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER,p.getLocation().add(0,1,0),15,0.3,0.3,0.3,0.05);
         p.sendActionBar(Component.text("✦ ศิลาฟื้นฟูมิติ ซ่อมแซมความทนทาน "+repaired+" หน่วย!",NamedTextColor.GREEN));

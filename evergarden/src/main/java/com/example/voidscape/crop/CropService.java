@@ -786,6 +786,10 @@ public final class CropService implements Listener, AutoCloseable {
     }
 
     public void harvest(PlantedCrop crop, Player player, boolean isBreak) {
+        if (crop == null) return;
+        String key = locKey(crop.getLocation());
+        if (!plantedCrops.containsKey(key)) return;
+
         if (player != null) {
             org.bukkit.event.block.BlockBreakEvent breakEvent = new org.bukkit.event.block.BlockBreakEvent(crop.getLocation().getBlock(), player);
             Bukkit.getPluginManager().callEvent(breakEvent);
@@ -854,10 +858,10 @@ public final class CropService implements Listener, AutoCloseable {
         }
 
         // Cleanup entities and mapping
+        plantedCrops.remove(key);
         removeCropFromChunkIndex(crop);
         removeEntities(crop);
         loc.getBlock().setType(Material.AIR, false);
-        plantedCrops.remove(locKey(loc));
         dirty.set(true);
     }
 

@@ -14,6 +14,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -197,6 +198,18 @@ public final class ChestUpgradeGui implements Listener {
             var leftover = p.getInventory().addItem(scroll);
             leftover.values().forEach(drop -> p.getWorld().dropItemNaturally(p.getLocation(), drop));
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onDrag(InventoryDragEvent e) {
+        if (!(e.getInventory().getHolder() instanceof UpgradeHolder)) return;
+        for (int slot : e.getRawSlots()) {
+            if (slot < 27 && slot != SLOT_EQUIP && slot != SLOT_SCROLL) {
+                e.setCancelled(true);
+                return;
+            }
+        }
+        Bukkit.getScheduler().runTask(plugin, () -> updateButton(plugin, e.getInventory()));
     }
 
     private static ItemStack createItem(Material mat, Component name, List<Component> lore) {
