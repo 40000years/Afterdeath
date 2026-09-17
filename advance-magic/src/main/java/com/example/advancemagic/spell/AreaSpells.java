@@ -18,6 +18,7 @@ public final class AreaSpells implements Listener {
     private final Map<UUID,World> wallWorlds=new HashMap<>();
     private final NamespacedKey vexKey;
     private final List<Vex> activeVexes=new ArrayList<>();
+    private final Map<UUID, Map<UUID, Long>> summonerAttackers = new java.util.concurrent.ConcurrentHashMap<>();
     public AreaSpells(MagicContext c){
         this.c=c;
         this.vexKey=new NamespacedKey(c.plugin,"allied_vex");
@@ -209,17 +210,37 @@ public final class AreaSpells implements Listener {
         c.plugin.effects().start(p, 300, (effect, age) -> {
             if(!p.isOnline() || p.isDead()) {
                 summoned.forEach(v -> { if(v.isValid()) v.remove(); });
+                summonerAttackers.remove(p.getUniqueId());
                 return false;
             }
             if(age % 10 == 0) {
+                Map<UUID, Long> attackers = summonerAttackers.get(p.getUniqueId());
+                LivingEntity validAttacker = null;
+                if(attackers != null && !attackers.isEmpty()) {
+                    long now = System.currentTimeMillis();
+                    attackers.entrySet().removeIf(entry -> entry.getValue() < now);
+                    for(UUID attId : attackers.keySet()) {
+                        Entity ent = Bukkit.getEntity(attId);
+                        if(ent instanceof LivingEntity living && living.isValid() && !living.isDead() && living.getWorld().equals(p.getWorld())) {
+                            if(living.getLocation().distanceSquared(p.getLocation()) <= 625.0 && c.enemy(p, living)) { // within 25 blocks
+                                validAttacker = living;
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 for(Vex vex : summoned) {
                     if(!vex.isValid() || vex.isDead()) continue;
-                    LivingEntity target = vex.getTarget();
-                    if(target == null || !target.isValid() || target.isDead() || c.ally(p, target)) {
-                        List<LivingEntity> enemies = c.nearby(p, vex.getLocation(), 16.0, false);
-                        if(!enemies.isEmpty()) {
-                            vex.setTarget(enemies.get(0));
-                            vex.setCharging(true);
+                    if(validAttacker != null) {
+                        vex.setTarget(validAttacker);
+                        vex.setCharging(true);
+                    } else {
+                        // Guarding mode: no attacker found, remain peaceful and hover near summoner
+                        vex.setTarget(null);
+                        vex.setCharging(false);
+                        if(vex.getLocation().distanceSquared(p.getLocation()) > 81.0) { // > 9 blocks away
+                            vex.teleport(p.getLocation().add((Math.random() - 0.5) * 3.0, 1.2, (Math.random() - 0.5) * 3.0));
                         }
                     }
                     if(age % 20 == 0) {
@@ -235,6 +256,7 @@ public final class AreaSpells implements Listener {
                         vex.remove();
                     }
                 }
+                summonerAttackers.remove(p.getUniqueId());
             }
             return true;
         });
@@ -248,12 +270,23 @@ public final class AreaSpells implements Listener {
         if(e.getEntity() instanceof Vex vex && vex.getPersistentDataContainer().has(vexKey, org.bukkit.persistence.PersistentDataType.STRING)) {
             String ownerId = vex.getPersistentDataContainer().get(vexKey, org.bukkit.persistence.PersistentDataType.STRING);
             if(ownerId != null && e.getTarget() != null) {
-                if(e.getTarget().getUniqueId().toString().equals(ownerId)) {
+                UUID ownerUUID = UUID.fromString(ownerId);
+                LivingEntity target = e.getTarget();
+
+                // Never target the owner or ally
+                if(target.getUniqueId().equals(ownerUUID)) {
                     e.setCancelled(true);
                     return;
                 }
-                Player owner = Bukkit.getPlayer(UUID.fromString(ownerId));
-                if(owner != null && c.ally(owner, e.getTarget())) {
+                Player owner = Bukkit.getPlayer(ownerUUID);
+                if(owner != null && c.ally(owner, target)) {
+                    e.setCancelled(true);
+                    return;
+                }
+
+                // Defensive Bodyguard AI: Only allow targeting entities that attacked the summoner
+                Map<UUID, Long> attackers = summonerAttackers.get(ownerUUID);
+                if(attackers == null || !attackers.containsKey(target.getUniqueId()) || attackers.get(target.getUniqueId()) < System.currentTimeMillis()) {
                     e.setCancelled(true);
                 }
             }
@@ -262,6 +295,7 @@ public final class AreaSpells implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onVexDamage(org.bukkit.event.entity.EntityDamageByEntityEvent e) {
+        // 1. Defend Vex from owner or allies
         if(e.getEntity() instanceof Vex vex && vex.getPersistentDataContainer().has(vexKey, org.bukkit.persistence.PersistentDataType.STRING)) {
             String ownerId = vex.getPersistentDataContainer().get(vexKey, org.bukkit.persistence.PersistentDataType.STRING);
             Entity damager = e.getDamager();
@@ -277,6 +311,8 @@ public final class AreaSpells implements Listener {
                 }
             }
         }
+
+        // 2. Prevent Vex from damaging owner or allies
         Entity damager = e.getDamager();
         if(damager instanceof Projectile proj && proj.getShooter() instanceof Entity shooter) damager = shooter;
         if(damager instanceof Vex vex && vex.getPersistentDataContainer().has(vexKey, org.bukkit.persistence.PersistentDataType.STRING)) {
@@ -289,6 +325,28 @@ public final class AreaSpells implements Listener {
                 Player owner = Bukkit.getPlayer(UUID.fromString(ownerId));
                 if(owner != null && c.ally(owner, victim)) {
                     e.setCancelled(true);
+                    return;
+                }
+            }
+        }
+
+        // 3. Track when a summoner/player is damaged by an enemy entity to trigger Vex counter-attack
+        if(e.getEntity() instanceof Player victimPlayer) {
+            if(damager instanceof LivingEntity attacker && !attacker.getUniqueId().equals(victimPlayer.getUniqueId())) {
+                if(c.enemy(victimPlayer, attacker)) {
+                    summonerAttackers.computeIfAbsent(victimPlayer.getUniqueId(), k -> new java.util.concurrent.ConcurrentHashMap<>())
+                        .put(attacker.getUniqueId(), System.currentTimeMillis() + 20000L);
+
+                    // Immediately command summoner's active vexes to retaliate
+                    String victimIdStr = victimPlayer.getUniqueId().toString();
+                    for(Vex activeVex : activeVexes) {
+                        if(!activeVex.isValid() || activeVex.isDead()) continue;
+                        String ownerStr = activeVex.getPersistentDataContainer().get(vexKey, org.bukkit.persistence.PersistentDataType.STRING);
+                        if(ownerStr != null && ownerStr.equals(victimIdStr)) {
+                            activeVex.setTarget(attacker);
+                            activeVex.setCharging(true);
+                        }
+                    }
                 }
             }
         }
@@ -301,6 +359,7 @@ public final class AreaSpells implements Listener {
     public void close() {
         for(Vex vex : activeVexes) if(vex.isValid()) vex.remove();
         activeVexes.clear();
+        summonerAttackers.clear();
         walls.clear();
         wallWorlds.clear();
         wallBlocks.clear();

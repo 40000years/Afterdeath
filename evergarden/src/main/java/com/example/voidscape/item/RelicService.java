@@ -784,14 +784,23 @@ public final class RelicService implements Listener {
         }
 
         if (isCustomEvergardenCraft) {
+            e.setCurrentItem(result);
+            inv.setResult(result);
+
             // Check if recipe is upgrade/repair: disable Shift-Click to prevent item dupes
-            if ((scrollCount == 1 || (repairStones == 1 && damagedEquipCount == 1)) && e.isShiftClick()) {
-                e.setCancelled(true);
-                p.sendActionBar(Component.text("⚠ การตีบวก/ซ่อมแซม ไม่รองรับการกด Shift-Click (กรุณาแตะหยิบทีละชิ้น)", NamedTextColor.YELLOW));
-                return;
+            // NOTE: Only unregistered dynamic recipes (scroll upgrade / repair stone on equipment)
+            // require manual ingredient consumption. Registered Bukkit recipes (Evergarden Key,
+            // Repair Stone craft, Void Elixir) are natively consumed by Minecraft! Calling
+            // consumeMatrixIngredients on registered recipes causes double-consumption (requiring 2 of each).
+            if (scrollCount == 1 || (repairStones == 1 && damagedEquipCount == 1)) {
+                if (e.isShiftClick()) {
+                    e.setCancelled(true);
+                    p.sendActionBar(Component.text("⚠ การตีบวก/ซ่อมแซม ไม่รองรับการกด Shift-Click (กรุณาแตะหยิบทีละชิ้น)", NamedTextColor.YELLOW));
+                    return;
+                }
+                consumeMatrixIngredients(inv);
             }
 
-            consumeMatrixIngredients(inv);
             Bukkit.getScheduler().runTask(plugin, () -> {
                 if (p.isOnline()) {
                     p.updateInventory();
@@ -869,12 +878,14 @@ public final class RelicService implements Listener {
             || (scrollCount == 1 && totalItems == 2);
 
         if (isCustom) {
-            if ((scrollCount == 1 || (repairStones == 1 && damagedEquipCount == 1)) && e.isShiftClick()) {
-                e.setCancelled(true);
-                p.sendActionBar(Component.text("⚠ การตีบวก/ซ่อมแซม ไม่รองรับการกด Shift-Click (กรุณาแตะหยิบทีละชิ้น)", NamedTextColor.YELLOW));
-                return;
+            if (scrollCount == 1 || (repairStones == 1 && damagedEquipCount == 1)) {
+                if (e.isShiftClick()) {
+                    e.setCancelled(true);
+                    p.sendActionBar(Component.text("⚠ การตีบวก/ซ่อมแซม ไม่รองรับการกด Shift-Click (กรุณาแตะหยิบทีละชิ้น)", NamedTextColor.YELLOW));
+                    return;
+                }
+                consumeMatrixIngredients(inv);
             }
-            consumeMatrixIngredients(inv);
             Bukkit.getScheduler().runTask(plugin, () -> {
                 if (p.isOnline()) {
                     p.updateInventory();
