@@ -24,9 +24,9 @@ import java.util.*;
 public final class TravelListener implements Listener {
     private final VoidscapePlugin plugin;
     private final Map<UUID,Long> standing=new HashMap<>(),pending=new HashMap<>(),fallGrace=new HashMap<>();
-    private final Map<UUID,FlowerOffering> flowerOfferings=new HashMap<>();
+    private final Map<UUID,UUID> flowerOfferingOwners=new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<UUID,Long> flowerOfferingExpires=new java.util.concurrent.ConcurrentHashMap<>();
     private final PortalVisuals visuals;
-    private record FlowerOffering(UUID playerId,long expiresAt) {}
     public TravelListener(VoidscapePlugin plugin){
         this.plugin=plugin;visuals=new PortalVisuals(plugin);
         // Upgrade the built-in return gate only when its expected frame exists.
@@ -103,7 +103,9 @@ public final class TravelListener implements Listener {
     public void offerFlower(PlayerDropItemEvent e) {
         Player p=e.getPlayer();
         if(p.getWorld()==plugin.world()||!allowedEntryWorld(p)||!isPortalFlower(e.getItemDrop().getItemStack().getType()))return;
-        flowerOfferings.put(e.getItemDrop().getUniqueId(),new FlowerOffering(p.getUniqueId(),System.currentTimeMillis()+10000));
+        UUID dropId=e.getItemDrop().getUniqueId();
+        flowerOfferingOwners.put(dropId,p.getUniqueId());
+        flowerOfferingExpires.put(dropId,System.currentTimeMillis()+10000L);
     }
 
     private boolean isPortalFlower(Material material) {
@@ -446,17 +448,26 @@ public final class TravelListener implements Listener {
         long now=System.currentTimeMillis();
         pending.values().removeIf(end->end<now);
         fallGrace.values().removeIf(end->end<now);
-        Iterator<Map.Entry<UUID,FlowerOffering>> iterator=flowerOfferings.entrySet().iterator();
-        while(iterator.hasNext()) {
-            var entry=iterator.next();
-            FlowerOffering offering=entry.getValue();
-            Entity entity=Bukkit.getEntity(entry.getKey());
-            if(now>offering.expiresAt()||!(entity instanceof Item item)||!item.isValid()) {iterator.remove();continue;}
-            Player owner=Bukkit.getPlayer(offering.playerId());
+        for(UUID dropId:new ArrayList<>(flowerOfferingExpires.keySet())) {
+            Long expire=flowerOfferingExpires.get(dropId);
+            UUID ownerId=flowerOfferingOwners.get(dropId);
+            if(expire==null||ownerId==null||now>expire) {
+                flowerOfferingExpires.remove(dropId);
+                flowerOfferingOwners.remove(dropId);
+                continue;
+            }
+            Entity entity=Bukkit.getEntity(dropId);
+            if(!(entity instanceof Item item)||!item.isValid()) {
+                flowerOfferingExpires.remove(dropId);
+                flowerOfferingOwners.remove(dropId);
+                continue;
+            }
+            Player owner=Bukkit.getPlayer(ownerId);
             if(owner==null||!owner.isOnline()||owner.getWorld()!=item.getWorld())continue;
             if(tryIgnitePortal(item.getLocation().getBlock(),owner)) {
                 consumeFlowerOffering(item);
-                iterator.remove();
+                flowerOfferingExpires.remove(dropId);
+                flowerOfferingOwners.remove(dropId);
             }
         }
     }
