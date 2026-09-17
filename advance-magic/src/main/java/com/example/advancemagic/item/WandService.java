@@ -110,8 +110,7 @@ public final class WandService implements Listener {
         var lore=new ArrayList<>(meta.getLore());
         lore.add(ChatColor.GREEN+"เอฟเฟกต์ต่อเนื่องอัตโนมัติ · ไม่เสียมานาเพิ่ม");
         meta.setLore(lore);
-        meta.setUnbreakable(true);
-        meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+        meta.setUnbreakable(false);
         // The vanilla model is a safe fallback when a client has no resource pack.
         var modelData=meta.getCustomModelDataComponent();
         modelData.setStrings(List.of("advance_magic:"+spell.id()));meta.setCustomModelDataComponent(modelData);
@@ -377,6 +376,13 @@ public final class WandService implements Listener {
             e.setResult(create(s));
         } else if(ours(e.getRecipe())||containsCore(crafter.getInventory().getContents())) {
             e.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority=EventPriority.LOWEST,ignoreCancelled=true)
+    public void onWandDamage(org.bukkit.event.player.PlayerItemDamageEvent event) {
+        if(spell(event.getItem())!=null) {
+            event.setCancelled(true);
         }
     }
 

@@ -660,8 +660,8 @@ public final class UniqueAbilityListener implements Listener {
                 }
                 curr.getWorld().spawnParticle(Particle.FLAME, curr.getLocation().add(0.5, 0.5, 0.5), 4, 0.2, 0.2, 0.2, 0.02);
 
-                // Tool durability damage (if not unbreakable)
-                if (count > 1 && player.getGameMode() == GameMode.SURVIVAL && tool.hasItemMeta() && !tool.getItemMeta().isUnbreakable()) {
+                // Tool durability damage (if not unbreakable / eternity)
+                if (count > 1 && player.getGameMode() == GameMode.SURVIVAL && tool.hasItemMeta() && !plugin.relics().isEternityItem(tool)) {
                     if (tool.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg) {
                         int unbreaking = tool.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.UNBREAKING);
                         if (Math.random() < (1.0 / (unbreaking + 1))) {

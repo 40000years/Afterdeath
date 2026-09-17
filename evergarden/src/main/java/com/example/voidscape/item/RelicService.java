@@ -175,8 +175,8 @@ public final class RelicService implements Listener {
         } else if(relic.material==Material.NETHERITE_PICKAXE||relic.material==Material.NETHERITE_SWORD||relic.material==Material.BOW||relic.material==Material.SHIELD) {
             meta.addEnchant(Enchantment.UNBREAKING,3,true);
             if(relic==Relic.RIFT_PICKAXE||relic==Relic.SMELTER_PICKAXE) {meta.addEnchant(Enchantment.EFFICIENCY,5,true);meta.addEnchant(Enchantment.FORTUNE,3,true);}
-            if(relic==Relic.RIFT_BLADE) meta.addEnchant(Enchantment.SHARPNESS,8,true);
-            if(relic==Relic.NOVA_BOW||relic==Relic.STORM_BOW) meta.addEnchant(Enchantment.POWER,6,true);
+            if(relic==Relic.RIFT_BLADE) applyLimitBreakMeta(meta, LimitBreakType.SHARPNESS, 8);
+            if(relic==Relic.NOVA_BOW||relic==Relic.STORM_BOW) applyLimitBreakMeta(meta, LimitBreakType.POWER, 6);
         }
         item.setItemMeta(meta); return item;
     }

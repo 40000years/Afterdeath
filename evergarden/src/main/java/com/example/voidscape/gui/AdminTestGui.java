@@ -377,9 +377,10 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         ItemStack sword = new ItemStack(Material.NETHERITE_SWORD);
         ItemMeta meta = sword.getItemMeta();
         meta.displayName(Component.text("✦ ดาบเทพแห่งความว่างเปล่า (Dev God Sword)", NamedTextColor.GOLD, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
-        meta.setUnbreakable(true);
-        meta.addEnchant(Enchantment.SHARPNESS, 8, true);
-        meta.addEnchant(Enchantment.LOOTING, 5, true);
+        VoidscapePlugin plugin = VoidscapePlugin.getPlugin(VoidscapePlugin.class);
+        plugin.relics().applyEternityMeta(meta);
+        plugin.relics().applyLimitBreakMeta(meta, LimitBreakType.SHARPNESS, 8);
+        plugin.relics().applyLimitBreakMeta(meta, LimitBreakType.LOOTING, 5);
         meta.addEnchant(Enchantment.UNBREAKING, 3, true);
 
         // Apply Unique Enchants PDC
@@ -387,17 +388,14 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         attachUnique(meta, UniqueEnchant.THUNDERLORD);
         attachUnique(meta, UniqueEnchant.VAMPIRIC);
 
-        meta.lore(List.of(
-            Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false),
-            Component.text("§7Sharpness VIII"),
-            Component.text("§7Looting V"),
-            Component.text("✦ Guillotine · กิโยตินปลิดชีพ", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7ฟันสังหารมอนสเตอร์เลือดต่ำกว่า 15% ทันที (Execute)").decoration(TextDecoration.ITALIC, false),
-            Component.text("✦ Thunderlord · สายฟ้าทัณฑ์สวรรค์", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7ฟันเป้าหมายเดิมครบ 3 ครั้ง ผ่าสายฟ้า True Damage").decoration(TextDecoration.ITALIC, false),
-            Component.text("✦ Vampiric · สูบโลหิต", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7แปลง 15% ของดาเมจที่ทำได้กลับมาฟื้นฟูเลือดผู้เล่น").decoration(TextDecoration.ITALIC, false)
-        ));
+        List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+        lore.add(Component.text("✦ Guillotine · กิโยตินปลิดชีพ", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7ฟันสังหารมอนสเตอร์เลือดต่ำกว่า 15% ทันที (Execute)").decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("✦ Thunderlord · สายฟ้าทัณฑ์สวรรค์", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7ฟันเป้าหมายเดิมครบ 3 ครั้ง ผ่าสายฟ้า True Damage").decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("✦ Vampiric · สูบโลหิต", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7แปลง 15% ของดาเมจที่ทำได้กลับมาฟื้นฟูเลือดผู้เล่น").decoration(TextDecoration.ITALIC, false));
+        meta.lore(lore);
         sword.setItemMeta(meta);
         return sword;
     }
@@ -406,22 +404,20 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         ItemStack bow = new ItemStack(Material.BOW);
         ItemMeta meta = bow.getItemMeta();
         meta.displayName(Component.text("✦ ธนูเทพล่าไททัน (Dev God Bow)", NamedTextColor.GOLD, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
-        meta.setUnbreakable(true);
-        meta.addEnchant(Enchantment.POWER, 8, true);
+        VoidscapePlugin plugin = VoidscapePlugin.getPlugin(VoidscapePlugin.class);
+        plugin.relics().applyEternityMeta(meta);
+        plugin.relics().applyLimitBreakMeta(meta, LimitBreakType.POWER, 8);
         meta.addEnchant(Enchantment.INFINITY, 1, true);
 
         attachUnique(meta, UniqueEnchant.COLOSSUS_SLAYER);
         attachUnique(meta, UniqueEnchant.RICOCHET);
 
-        meta.lore(List.of(
-            Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false),
-            Component.text("§7Power VIII"),
-            Component.text("§7Infinity I"),
-            Component.text("✦ Colossus Slayer · ล่าไททัน", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7ยิงแรงขึ้นตาม % Max HP ของบอสและมอนสเตอร์").decoration(TextDecoration.ITALIC, false),
-            Component.text("✦ Ricochet · กระสุนชิ่งสายฟ้า", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7ลูกธนูชิ่งหามอนสเตอร์รอบข้าง 3 ตัวพร้อมปล่อยสายฟ้า").decoration(TextDecoration.ITALIC, false)
-        ));
+        List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+        lore.add(Component.text("✦ Colossus Slayer · ล่าไททัน", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7ยิงแรงขึ้นตาม % Max HP ของบอสและมอนสเตอร์").decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("✦ Ricochet · กระสุนชิ่งสายฟ้า", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7ลูกธนูชิ่งหามอนสเตอร์รอบข้าง 3 ตัวพร้อมปล่อยสายฟ้า").decoration(TextDecoration.ITALIC, false));
+        meta.lore(lore);
         bow.setItemMeta(meta);
         return bow;
     }
@@ -430,29 +426,27 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         ItemStack pick = new ItemStack(Material.NETHERITE_PICKAXE);
         ItemMeta meta = pick.getItemMeta();
         meta.displayName(Component.text("✦ จอบเจาะมิติทลายแผ่นดิน (Dev God Pickaxe)", NamedTextColor.GOLD, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
-        meta.setUnbreakable(true);
-        meta.addEnchant(Enchantment.EFFICIENCY, 8, true);
-        meta.addEnchant(Enchantment.FORTUNE, 5, true);
+        VoidscapePlugin plugin = VoidscapePlugin.getPlugin(VoidscapePlugin.class);
+        plugin.relics().applyEternityMeta(meta);
+        plugin.relics().applyLimitBreakMeta(meta, LimitBreakType.EFFICIENCY, 8);
+        plugin.relics().applyLimitBreakMeta(meta, LimitBreakType.FORTUNE, 5);
 
         attachUnique(meta, UniqueEnchant.SEISMIC_SLAM);
         attachUnique(meta, UniqueEnchant.VEIN_SMELTER);
         attachUnique(meta, UniqueEnchant.ADVANCE_TOOL);
         attachUnique(meta, UniqueEnchant.TELEPATHY);
 
-        meta.lore(List.of(
-            Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false),
-            Component.text("§7Efficiency VIII"),
-            Component.text("§7Fortune V"),
-            Component.text("✦ Seismic Slam · ขุดทลาย 3x3", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7ขุด 1 ครั้งระเบิดเปิดโพรง 3×3×1 ทันที").decoration(TextDecoration.ITALIC, false),
-            Component.text("✦ Vein Smelter · หลอมสายแร่คู่", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7ขุดทั้งสายแร่ + เผาเป็นแท่งโลหะ + โบนัสแร่ทันที").decoration(TextDecoration.ITALIC, false),
-            Component.text("✦ Bedrock Resonance · เรดาร์ส่องแร่", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7คลิกขวาปล่อยคลื่นโซนาร์ส่องตรวจจับและชี้ทิศทางแร่หายาก").decoration(TextDecoration.ITALIC, false),
-            Component.text("✦ Telepathy · จิตสื่อสาร", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7แร่และของที่ขุดได้ทุกชิ้นวาร์ปเข้าตัวผู้เล่น 100%").decoration(TextDecoration.ITALIC, false),
-            Component.text("§e[คลิกซ้าย: รับ God Pickaxe | คลิกขวา: รับ Smelter Pickaxe | Shift+คลิก: รับ Rift Pickaxe]", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
-        ));
+        List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+        lore.add(Component.text("✦ Seismic Slam · ขุดทลาย 3x3", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7ขุด 1 ครั้งระเบิดเปิดโพรง 3×3×1 ทันที").decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("✦ Vein Smelter · หลอมสายแร่คู่", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7ขุดทั้งสายแร่ + เผาเป็นแท่งโลหะ + โบนัสแร่ทันที").decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("✦ Bedrock Resonance · เรดาร์ส่องแร่", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7คลิกขวาปล่อยคลื่นโซนาร์ส่องตรวจจับและชี้ทิศทางแร่หายาก").decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("✦ Telepathy · จิตสื่อสาร", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7แร่และของที่ขุดได้ทุกชิ้นวาร์ปเข้าตัวผู้เล่น 100%").decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("§e[คลิกซ้าย: รับ God Pickaxe | คลิกขวา: รับ Smelter Pickaxe | Shift+คลิก: รับ Rift Pickaxe]", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        meta.lore(lore);
         pick.setItemMeta(meta);
         return pick;
     }
@@ -461,9 +455,9 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         ItemStack helm = new ItemStack(Material.NETHERITE_HELMET);
         ItemMeta hMeta = helm.getItemMeta();
         hMeta.displayName(Component.text("✦ หมวกเทพพิทักษ์มิติ (God Helmet)", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-        hMeta.setUnbreakable(true);
-        hMeta.addEnchant(Enchantment.PROTECTION, 8, true);
-        hMeta.lore(List.of(Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false), Component.text("§7Protection VIII")));
+        VoidscapePlugin plugin = VoidscapePlugin.getPlugin(VoidscapePlugin.class);
+        plugin.relics().applyEternityMeta(hMeta);
+        plugin.relics().applyLimitBreakMeta(hMeta, LimitBreakType.PROTECTION, 8);
         helm.setItemMeta(hMeta);
         return helm;
     }
@@ -472,15 +466,14 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         ItemStack chest = new ItemStack(Material.NETHERITE_CHESTPLATE);
         ItemMeta cMeta = chest.getItemMeta();
         cMeta.displayName(Component.text("✦ เกราะอกฟีนิกซ์นิรันดร์ (God Chestplate)", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-        cMeta.setUnbreakable(true);
-        cMeta.addEnchant(Enchantment.PROTECTION, 8, true);
+        VoidscapePlugin plugin = VoidscapePlugin.getPlugin(VoidscapePlugin.class);
+        plugin.relics().applyEternityMeta(cMeta);
+        plugin.relics().applyLimitBreakMeta(cMeta, LimitBreakType.PROTECTION, 8);
         attachUnique(cMeta, UniqueEnchant.PHOENIX_REBIRTH);
-        cMeta.lore(List.of(
-            Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false),
-            Component.text("§7Protection VIII"),
-            Component.text("✦ Phoenix Rebirth · ฟีนิกซ์คืนชีพ", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7เมื่อตาย คืนชีพ 50% HP + คลื่นไฟ (คูลดาวน์ 10 นาที)").decoration(TextDecoration.ITALIC, false)
-        ));
+        List<Component> lore = cMeta.hasLore() ? new ArrayList<>(cMeta.lore()) : new ArrayList<>();
+        lore.add(Component.text("✦ Phoenix Rebirth · ฟีนิกซ์คืนชีพ", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7เมื่อตาย คืนชีพ 50% HP + คลื่นไฟ (คูลดาวน์ 10 นาที)").decoration(TextDecoration.ITALIC, false));
+        cMeta.lore(lore);
         chest.setItemMeta(cMeta);
         return chest;
     }
@@ -489,15 +482,14 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         ItemStack legs = new ItemStack(Material.NETHERITE_LEGGINGS);
         ItemMeta lMeta = legs.getItemMeta();
         lMeta.displayName(Component.text("✦ สนับเพลาศิลาไร้พ่าย (God Leggings)", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-        lMeta.setUnbreakable(true);
-        lMeta.addEnchant(Enchantment.PROTECTION, 8, true);
+        VoidscapePlugin plugin = VoidscapePlugin.getPlugin(VoidscapePlugin.class);
+        plugin.relics().applyEternityMeta(lMeta);
+        plugin.relics().applyLimitBreakMeta(lMeta, LimitBreakType.PROTECTION, 8);
         attachUnique(lMeta, UniqueEnchant.TITAN_STANCE);
-        lMeta.lore(List.of(
-            Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false),
-            Component.text("§7Protection VIII"),
-            Component.text("✦ Titan Stance · ร่างศิลาไร้พ่าย", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7ต้านทาน Knockback 100% และลดดาเมจแรงระเบิด 40%").decoration(TextDecoration.ITALIC, false)
-        ));
+        List<Component> lore = lMeta.hasLore() ? new ArrayList<>(lMeta.lore()) : new ArrayList<>();
+        lore.add(Component.text("✦ Titan Stance · ร่างศิลาไร้พ่าย", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7ต้านทาน Knockback 100% และลดดาเมจแรงระเบิด 40%").decoration(TextDecoration.ITALIC, false));
+        lMeta.lore(lore);
         legs.setItemMeta(lMeta);
         return legs;
     }
@@ -506,15 +498,14 @@ public final class AdminTestGui implements InventoryHolder, Listener {
         ItemStack boots = new ItemStack(Material.NETHERITE_BOOTS);
         ItemMeta bMeta = boots.getItemMeta();
         bMeta.displayName(Component.text("✦ รองเท้าก้าวพริบตามิติ (God Boots)", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-        bMeta.setUnbreakable(true);
-        bMeta.addEnchant(Enchantment.PROTECTION, 8, true);
+        VoidscapePlugin plugin = VoidscapePlugin.getPlugin(VoidscapePlugin.class);
+        plugin.relics().applyEternityMeta(bMeta);
+        plugin.relics().applyLimitBreakMeta(bMeta, LimitBreakType.PROTECTION, 8);
         attachUnique(bMeta, UniqueEnchant.SHADOW_STEP);
-        bMeta.lore(List.of(
-            Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false),
-            Component.text("§7Protection VIII"),
-            Component.text("✦ Shadow Step · ก้าวพริบตา", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-            Component.text("   §7กดย่อ 2 ครั้ง พริบตาวาร์ปไปข้างหน้า 6 บล็อก (คูลดาวน์ 4 วิ)").decoration(TextDecoration.ITALIC, false)
-        ));
+        List<Component> lore = bMeta.hasLore() ? new ArrayList<>(bMeta.lore()) : new ArrayList<>();
+        lore.add(Component.text("✦ Shadow Step · ก้าวพริบตา", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("   §7กดย่อ 2 ครั้ง พริบตาวาร์ปไปข้างหน้า 6 บล็อก (คูลดาวน์ 4 วิ)").decoration(TextDecoration.ITALIC, false));
+        bMeta.lore(lore);
         boots.setItemMeta(bMeta);
         return boots;
     }

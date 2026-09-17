@@ -100,7 +100,7 @@ public final class FloodgateUpgradeForm {
             boolean isUnbreakable = false;
             if (item.hasItemMeta()) {
                 if (item.getItemMeta() instanceof Damageable dmg) currentDmg = dmg.getDamage();
-                isUnbreakable = item.getItemMeta().isUnbreakable();
+                isUnbreakable = plugin.relics().isEternityItem(item);
             }
 
             String status = isUnbreakable ? "§6[สถิตนิรันดร์]" : "§7ความทนทาน: §f" + (maxDur - currentDmg) + "/" + maxDur;
