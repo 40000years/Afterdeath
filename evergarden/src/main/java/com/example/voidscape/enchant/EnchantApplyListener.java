@@ -5,7 +5,7 @@ import com.example.voidscape.item.RelicService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Material;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -31,6 +32,13 @@ public final class EnchantApplyListener implements Listener {
         this.relics = relics;
     }
 
+    public boolean isScroll(ItemStack item) {
+        if (item == null || item.getType().isAir()) return false;
+        return relics.isScrollEternity(item)
+            || relics.getLimitBreakType(item) != null
+            || relics.getUniqueEnchant(item) != null;
+    }
+
     @EventHandler(priority = EventPriority.HIGH)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
@@ -42,61 +50,61 @@ public final class EnchantApplyListener implements Listener {
             return;
         }
 
-        // 1. Scroll of Eternity (Unbreakable)
-        if (relics.isScrollEternity(cursor)) {
+        if (isScroll(cursor)) {
             event.setCancelled(true);
-            applyScrollEternity(player, cursor, target, true);
-            return;
-        }
-
-        // 2. Limit Break Scroll
-        LimitBreakType lbType = relics.getLimitBreakType(cursor);
-        if (lbType != null) {
-            event.setCancelled(true);
-            applyLimitBreak(player, cursor, target, lbType, true);
-            return;
-        }
-
-        // 3. Unique Enchant Scroll
-        UniqueEnchant unique = relics.getUniqueEnchant(cursor);
-        if (unique != null) {
-            event.setCancelled(true);
-            applyUniqueEnchant(player, cursor, target, unique, true);
-            return;
+            applyAnyScroll(player, cursor, target, null, event);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(org.bukkit.event.player.PlayerInteractEvent event) {
+        // Prevent double-firing: Paper fires PlayerInteractEvent for both HAND and OFF_HAND in the same tick
+        if (event.getHand() != EquipmentSlot.HAND) return;
         if (!event.getAction().isRightClick()) return;
+
         Player player = event.getPlayer();
         ItemStack main = player.getInventory().getItemInMainHand();
         ItemStack off = player.getInventory().getItemInOffHand();
 
-        if (main == null || main.getType().isAir() || off == null || off.getType().isAir()) return;
+        if (main.getType().isAir() || off.getType().isAir()) return;
 
-        if (relics.isScrollEternity(main)) {
+        // Case 1: Scroll in main hand, target item in off hand
+        if (isScroll(main)) {
             event.setCancelled(true);
-            applyScrollEternity(player, main, off, false);
+            applyAnyScroll(player, main, off, EquipmentSlot.HAND, null);
             return;
         }
 
-        LimitBreakType lbType = relics.getLimitBreakType(main);
-        if (lbType != null) {
+        // Case 2: Scroll in off hand, target item in main hand
+        if (isScroll(off)) {
             event.setCancelled(true);
-            applyLimitBreak(player, main, off, lbType, false);
-            return;
-        }
-
-        UniqueEnchant unique = relics.getUniqueEnchant(main);
-        if (unique != null) {
-            event.setCancelled(true);
-            applyUniqueEnchant(player, main, off, unique, false);
+            applyAnyScroll(player, off, main, EquipmentSlot.OFF_HAND, null);
             return;
         }
     }
 
-    private void applyScrollEternity(Player player, ItemStack source, ItemStack target, boolean isCursor) {
+    private void applyAnyScroll(Player player, ItemStack source, ItemStack target, EquipmentSlot hand, InventoryClickEvent clickEvent) {
+        boolean isCursor = (clickEvent != null);
+
+        if (relics.isScrollEternity(source)) {
+            applyScrollEternity(player, source, target, isCursor, hand, clickEvent);
+            return;
+        }
+
+        LimitBreakType lbType = relics.getLimitBreakType(source);
+        if (lbType != null) {
+            applyLimitBreak(player, source, target, lbType, isCursor, hand, clickEvent);
+            return;
+        }
+
+        UniqueEnchant unique = relics.getUniqueEnchant(source);
+        if (unique != null) {
+            applyUniqueEnchant(player, source, target, unique, isCursor, hand, clickEvent);
+            return;
+        }
+    }
+
+    private void applyScrollEternity(Player player, ItemStack source, ItemStack target, boolean isCursor, EquipmentSlot hand, InventoryClickEvent clickEvent) {
         if (target.getType().getMaxDurability() <= 0) {
             fail(player, "ไอเทมนี้ไม่มีความทนทาน ไม่จำเป็นต้องใช้คัมภีร์ศิลานิรันดร์");
             return;
@@ -115,11 +123,15 @@ public final class EnchantApplyListener implements Listener {
         meta.lore(lore);
         target.setItemMeta(meta);
 
-        consumeSource(player, source, isCursor);
+        if (isCursor && clickEvent != null) {
+            clickEvent.setCurrentItem(target);
+        }
+
+        consumeSource(player, source, target, isCursor, hand, clickEvent);
         success(player, "✦ ปลุกเสกศิลานิรันดร์สำเร็จ! อุปกรณ์นี้จะไม่มีวันพังถาวร");
     }
 
-    private void applyLimitBreak(Player player, ItemStack source, ItemStack target, LimitBreakType type, boolean isCursor) {
+    private void applyLimitBreak(Player player, ItemStack source, ItemStack target, LimitBreakType type, boolean isCursor, EquipmentSlot hand, InventoryClickEvent clickEvent) {
         if (!type.category().matches(target.getType())) {
             fail(player, "คัมภีร์นี้ใช้ได้กับ " + type.targetDescription() + " เท่านั้น");
             return;
@@ -147,11 +159,15 @@ public final class EnchantApplyListener implements Listener {
         meta.lore(lore);
         target.setItemMeta(meta);
 
-        consumeSource(player, source, isCursor);
+        if (isCursor && clickEvent != null) {
+            clickEvent.setCurrentItem(target);
+        }
+
+        consumeSource(player, source, target, isCursor, hand, clickEvent);
         success(player, "✦ ทลายขีดจำกัดสำเร็จ! " + type.title() + " ระดับ " + toRoman(next));
     }
 
-    private void applyUniqueEnchant(Player player, ItemStack source, ItemStack target, UniqueEnchant enchant, boolean isCursor) {
+    private void applyUniqueEnchant(Player player, ItemStack source, ItemStack target, UniqueEnchant enchant, boolean isCursor, EquipmentSlot hand, InventoryClickEvent clickEvent) {
         if (!enchant.category().matches(target.getType())) {
             fail(player, "คัมภีร์นี้ใช้ได้กับ " + enchant.category().name() + " เท่านั้น");
             return;
@@ -172,24 +188,75 @@ public final class EnchantApplyListener implements Listener {
         meta.lore(lore);
         target.setItemMeta(meta);
 
-        consumeSource(player, source, isCursor);
+        if (isCursor && clickEvent != null) {
+            clickEvent.setCurrentItem(target);
+        }
+
+        consumeSource(player, source, target, isCursor, hand, clickEvent);
         success(player, "✦ สลักมนตราสำเร็จ! ได้รับ " + enchant.title());
     }
 
-    private void consumeSource(Player player, ItemStack source, boolean isCursor) {
+    private void consumeSource(Player player, ItemStack source, ItemStack target, boolean isCursor, EquipmentSlot hand, InventoryClickEvent clickEvent) {
         if (isCursor) {
             if (source.getAmount() <= 1) {
                 player.setItemOnCursor(null);
+                if (clickEvent != null) {
+                    try { clickEvent.setCursor(null); } catch (Throwable ignored) {}
+                    try { clickEvent.getView().setCursor(null); } catch (Throwable ignored) {}
+                }
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (player.isOnline()) {
+                        player.setItemOnCursor(null);
+                        if (clickEvent != null && clickEvent.getSlot() >= 0 && clickEvent.getClickedInventory() != null) {
+                            clickEvent.getClickedInventory().setItem(clickEvent.getSlot(), target);
+                        }
+                        player.updateInventory();
+                    }
+                });
             } else {
-                source.setAmount(source.getAmount() - 1);
-                player.setItemOnCursor(source);
+                ItemStack remaining = source.clone();
+                remaining.setAmount(source.getAmount() - 1);
+                player.setItemOnCursor(remaining);
+                if (clickEvent != null) {
+                    try { clickEvent.setCursor(remaining); } catch (Throwable ignored) {}
+                    try { clickEvent.getView().setCursor(remaining); } catch (Throwable ignored) {}
+                }
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (player.isOnline()) {
+                        player.setItemOnCursor(remaining);
+                        if (clickEvent != null && clickEvent.getSlot() >= 0 && clickEvent.getClickedInventory() != null) {
+                            clickEvent.getClickedInventory().setItem(clickEvent.getSlot(), target);
+                        }
+                        player.updateInventory();
+                    }
+                });
             }
         } else {
-            if (source.getAmount() <= 1) {
-                player.getInventory().setItemInMainHand(null);
-            } else {
-                source.setAmount(source.getAmount() - 1);
+            ItemStack remaining = null;
+            if (source.getAmount() > 1) {
+                remaining = source.clone();
+                remaining.setAmount(source.getAmount() - 1);
             }
+            if (hand == EquipmentSlot.OFF_HAND) {
+                player.getInventory().setItemInOffHand(remaining);
+                player.getInventory().setItemInMainHand(target);
+            } else {
+                player.getInventory().setItemInMainHand(remaining);
+                player.getInventory().setItemInOffHand(target);
+            }
+            final ItemStack finalRemaining = remaining;
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (player.isOnline()) {
+                    if (hand == EquipmentSlot.OFF_HAND) {
+                        player.getInventory().setItemInOffHand(finalRemaining);
+                        player.getInventory().setItemInMainHand(target);
+                    } else {
+                        player.getInventory().setItemInMainHand(finalRemaining);
+                        player.getInventory().setItemInOffHand(target);
+                    }
+                    player.updateInventory();
+                }
+            });
         }
         player.updateInventory();
     }
