@@ -1,5 +1,6 @@
 """Generates 32x32 pixel art textures, Java item/block models, and Bedrock/Geyser definitions for all 30 Evergarden crops."""
 import math
+from food_art import draw_crop_food
 
 TEXTURE_SIZE = 64
 
@@ -18,6 +19,11 @@ def detailed_pixels(source, info, kind):
     Alpha stays binary so both clients use the same cutout silhouette.
     """
     result = new_canvas(TEXTURE_SIZE)
+    if kind == 'food':
+        for y in range(TEXTURE_SIZE):
+            for x in range(TEXTURE_SIZE):
+                result[y][x] = source[y // 2][x // 2]
+        return result
     shape = info['shape']
     for y in range(TEXTURE_SIZE):
         for x in range(TEXTURE_SIZE):
@@ -184,249 +190,9 @@ def draw_seed(info):
     return p
 
 def draw_food(info):
-    """Draws a 32x32 fruit / vegetable / root / mushroom / crop."""
-    p = new_canvas()
-    pri, sec, acc = info['pri'], info['sec'], info['acc']
-    border = (20, 15, 25, 255)
-    shape = info['shape']
+    """Draws a handcrafted 32x32 pixel art produce item for the given crop."""
+    return draw_crop_food(info)
 
-    if shape == 'ROUND_FRUIT':
-        cx, cy, r = 16, 17, 8
-        for y in range(cy - r - 1, cy + r + 2):
-            for x in range(cx - r - 1, cx + r + 1):
-                d = (x - cx)**2 + (y - cy)**2
-                if d <= r * r:
-                    dx, dy = (x - (cx - 3)), (y - (cy - 3))
-                    f = 1.25 - (dx**2 + dy**2) / (2.2 * r * r)
-                    p[y][x] = shade(pri, f)
-        p[cy - r][cx] = (0, 0, 0, 0)
-        p[cy - r][cx - 1] = shade(sec, 0.7)
-        p[cy - r][cx + 1] = shade(sec, 0.7)
-        for y in range(cy - r - 4, cy - r):
-            p[y][cx] = (100, 70, 40, 255)
-        for lx, ly in ((cx + 1, cy - r - 3), (cx + 2, cy - r - 3), (cx + 3, cy - r - 4), (cx + 2, cy - r - 5)):
-            p[ly][lx] = (80, 180, 60, 255)
-        for ox, oy in ((-3, -2), (3, -1), (0, 3), (-2, 2)):
-            p[cy + oy][cx + ox] = acc
-
-    elif shape == 'BERRY_BUNCH':
-        berries = [(12, 18, 5), (20, 18, 5), (16, 13, 5)]
-        for bx, by, br in berries:
-            for y in range(by - br, by + br + 1):
-                for x in range(bx - br, bx + br + 1):
-                    if (x - bx)**2 + (y - by)**2 <= br * br:
-                        f = 1.3 - ((x - (bx - 1.5))**2 + (y - (by - 1.5))**2) / (br * br * 1.5)
-                        p[y][x] = shade(pri, f)
-            p[by - 2][bx - 1] = acc
-            p[by - 2][bx - 2] = acc
-        for y in range(6, 11):
-            p[y][16] = (90, 60, 30, 255)
-        p[10][14] = (90, 60, 30, 255)
-        p[10][18] = (90, 60, 30, 255)
-        p[6][14] = (70, 170, 50, 255)
-        p[5][13] = (70, 170, 50, 255)
-
-    elif shape == 'ROOT_TUBER':
-        for y in range(8, 27):
-            w = int(round(6.5 * (1.0 - (y - 8) / 20.0))) + 1
-            curv = int(math.sin(y * 0.35) * 1.5)
-            for x in range(16 + curv - w, 16 + curv + w + 1):
-                f = 1.2 - abs(x - (15 + curv)) / (w + 1.0)
-                p[y][x] = shade(pri, f)
-            if y % 4 == 0:
-                p[y][16 + curv] = sec
-        p[27][16] = sec; p[28][17] = sec; p[29][17] = acc
-        for y in range(4, 8):
-            p[y][15] = (60, 160, 50, 255)
-            p[y][17] = (70, 180, 55, 255)
-        p[3][14] = acc; p[3][18] = acc
-
-    elif shape == 'PEPPER_CHILI':
-        for y in range(8, 26):
-            curv = int((y - 8) * (y - 8) * 0.025)
-            w = 5 if 10 <= y <= 18 else (3 if y < 10 or y <= 22 else 1)
-            for x in range(14 + curv - w, 14 + curv + w + 1):
-                f = 1.25 - abs(x - (13 + curv)) / (w + 1.0)
-                p[y][x] = shade(pri, f)
-        for y in range(11, 20):
-            curv = int((y - 8) * (y - 8) * 0.025)
-            p[y][14 + curv] = acc
-        for y in range(4, 9):
-            p[y][14] = (60, 160, 45, 255)
-        p[5][13] = (60, 160, 45, 255); p[4][12] = (60, 160, 45, 255)
-
-    elif shape == 'MUSHROOM':
-        cx, cy, rx, ry = 16, 14, 9, 7
-        for y in range(cy - ry, cy + ry):
-            for x in range(cx - rx, cx + rx + 1):
-                if ((x - cx)**2) / (rx*rx) + ((y - cy)**2) / (ry*ry) <= 1.0:
-                    f = 1.2 - ((x - (cx - 2))**2 + (y - (cy - 2))**2) / 80.0
-                    p[y][x] = shade(pri, f)
-        for sx, sy in ((12, 11), (19, 11), (15, 9), (16, 14), (11, 15), (21, 15)):
-            p[sy][sx] = acc
-        for y in range(cy + 1, 26):
-            for x in range(14, 19):
-                p[y][x] = shade((240, 235, 220, 255), 1.1 - abs(x - 16) * 0.15)
-
-    elif shape == 'LEAF_FROND':
-        for y in range(6, 26):
-            w = int(round(7.5 * math.sin((y - 5) / 21.0 * math.pi)))
-            for x in range(16 - w, 16 + w + 1):
-                if (x + y) % 3 == 0 and (x in (16 - w, 16 + w)):
-                    continue
-                f = 1.2 - abs(x - 16) / (w + 1.0)
-                p[y][x] = shade(pri, f)
-        for y in range(7, 26):
-            p[y][16] = acc
-            if y % 3 == 0:
-                p[y][15] = sec; p[y][17] = sec
-        for y in range(25, 28):
-            p[y][16] = sec
-
-    elif shape == 'MELON_SQUASH':
-        cx, cy, r = 16, 17, 8
-        for y in range(cy - r, cy + r + 1):
-            for x in range(cx - r, cx + r + 1):
-                d = (x - cx)**2 + (y - cy)**2
-                if d <= r * r:
-                    rib = abs((x - cx) % 4 - 2)
-                    f = (1.1 if rib == 0 else 0.85) - ((y - cy)**2) / 120.0
-                    p[y][x] = shade(pri if rib != 0 else sec, f)
-        p[cy][cx] = acc; p[cy - 2][cx] = acc; p[cy + 2][cx] = acc
-        for y in range(cy - r - 3, cy - r + 1):
-            p[y][cx] = (80, 150, 50, 255)
-        p[cy - r - 2][cx + 1] = (80, 150, 50, 255)
-
-    elif shape == 'BULB_GARLIC':
-        cx, cy = 16, 17
-        for y in range(11, 23):
-            w = 7 if 13 <= y <= 19 else 5
-            for x in range(cx - w, cx + w + 1):
-                seg = abs(x - cx) in (0, 3, 6)
-                f = 1.15 if not seg else 0.85
-                p[y][x] = shade(pri if not seg else sec, f)
-        for y in range(6, 12):
-            p[y][16] = acc
-            if y <= 9: p[y][17] = sec
-        for y in range(23, 27):
-            p[y][14] = (160, 150, 130, 255); p[y][16] = (160, 150, 130, 255); p[y][18] = (160, 150, 130, 255)
-
-    elif shape == 'CORN_EAR':
-        for y in range(8, 24):
-            w = 4 if 10 <= y <= 21 else 3
-            for x in range(16 - w, 16 + w + 1):
-                kernel = (x + y) % 2 == 0
-                p[y][x] = shade(pri if kernel else sec, 1.1)
-                if (x * 7 + y * 13) % 9 == 0:
-                    p[y][x] = acc
-        for y in range(19, 27):
-            for x in range(16 - (y - 18), 16 + (y - 18) + 1):
-                if x in (16 - (y - 18), 16 + (y - 18)):
-                    p[y][x] = (60, 170, 50, 255)
-        for y in range(5, 9):
-            p[y][15] = acc; p[y][17] = acc
-
-    elif shape == 'POD':
-        for y in range(8, 25):
-            curv = int(math.sin(y * 0.25) * 2.5)
-            w = 4 if y % 4 in (1, 2) else 3
-            for x in range(16 + curv - w, 16 + curv + w + 1):
-                f = 1.2 if w == 4 else 0.95
-                p[y][x] = shade(pri, f)
-        for y in (11, 15, 19):
-            curv = int(math.sin(y * 0.25) * 2.5)
-            p[y][16 + curv] = acc; p[y][15 + curv] = acc
-        p[6][14] = (50, 140, 30, 255); p[7][15] = (50, 140, 30, 255)
-
-    elif shape == 'ACORN':
-        for y in range(14, 26):
-            w = int(round(7.0 * (1.0 - ((y - 14) / 12.0)**1.5)))
-            for x in range(16 - w, 16 + w + 1):
-                p[y][x] = shade(pri, 1.15 - abs(x - 16) * 0.08)
-        p[26][16] = acc
-        for y in range(8, 15):
-            w = 8 if y >= 11 else 6
-            for x in range(16 - w, 16 + w + 1):
-                hatch = (x + y) % 2 == 0
-                p[y][x] = shade(sec if hatch else acc, 1.0)
-        for y in range(4, 9):
-            p[y][16] = sec
-
-    elif shape == 'SPORE':
-        for y in range(7, 16):
-            w = int(round(9.0 * math.sin((y - 6) / 10.0 * math.pi)))
-            for x in range(16 - w, 16 + w + 1):
-                p[y][x] = shade(pri, 1.2 - abs(x - 16) * 0.06)
-        for y in range(16, 27):
-            for tx in (12, 14, 16, 18, 20):
-                if (y + tx) % 3 != 0:
-                    p[y][tx] = acc if y % 4 == 0 else sec
-
-    elif shape == 'STAR':
-        cx, cy = 16, 16
-        for angle in range(0, 360, 60):
-            rad = math.radians(angle)
-            for d in range(2, 9):
-                px = int(round(cx + math.cos(rad) * d))
-                py = int(round(cy + math.sin(rad) * d))
-                p[py][px] = pri
-                ox = int(round(-math.sin(rad) * 1.2))
-                oy = int(round(math.cos(rad) * 1.2))
-                if d <= 6:
-                    p[py + oy][px + ox] = sec
-                    p[py - oy][px - ox] = sec
-                if d == 5:
-                    p[py][px] = acc
-        p[cy][cx] = acc
-
-    elif shape == 'SPROUT_TREE':
-        for y in range(15, 27):
-            p[y][15] = sec; p[y][16] = sec; p[y][17] = (160, 110, 40, 255)
-        for y in range(6, 17):
-            w = int(round(8.0 * math.sin((y - 5) / 12.0 * math.pi)))
-            for x in range(16 - w, 16 + w + 1):
-                p[y][x] = shade(pri, 1.15 - ((x - 16)**2 + (y - 11)**2) / 80.0)
-        for sx, sy in ((12, 9), (19, 10), (16, 7), (14, 14), (18, 14)):
-            p[sy][sx] = acc
-
-    elif shape == 'BLOSSOM':
-        cx, cy = 16, 16
-        for y in range(cy - 8, cy + 9):
-            for x in range(cx - 8, cx + 9):
-                d = (x - cx)**2 + (y - cy)**2
-                if 9 <= d <= 64:
-                    p[y][x] = shade(pri, 1.1 - d / 80.0)
-        for y in range(cy - 2, cy + 3):
-            for x in range(cx - 2, cx + 3):
-                p[y][x] = acc
-        p[cy - 9][cx] = acc; p[cy + 9][cx] = acc; p[cy][cx - 9] = acc; p[cy][cx + 9] = acc
-
-    elif shape == 'BAMBOO_STALK':
-        for y in range(6, 27):
-            for x in range(14, 19):
-                ring = y % 7 == 0
-                p[y][x] = shade(acc if ring else pri, 1.1 - abs(x - 16) * 0.1)
-        for ly in (10, 17):
-            p[ly][19] = sec; p[ly - 1][20] = pri; p[ly - 2][21] = acc
-            p[ly][13] = sec; p[ly - 1][12] = pri; p[ly - 2][11] = acc
-
-    # Outline pass (collect first, then apply to avoid cascading smear)
-    border_pixels = []
-    for y in range(1, 31):
-        for x in range(1, 31):
-            if p[y][x][3] > 0:
-                for dy, dx in ((-1,0),(1,0),(0,-1),(0,1)):
-                    ny, nx = y + dy, x + dx
-                    if 0 <= ny < 32 and 0 <= nx < 32 and p[ny][nx][3] == 0:
-                        border_pixels.append((ny, nx))
-    for ny, nx in border_pixels:
-        p[ny][nx] = border
-
-    if info['tier'] >= 4:
-        p[3][5] = acc; p[4][6] = acc; p[28][26] = acc
-    if info['tier'] == 5:
-        p[3][26] = (255, 255, 255, 255); p[28][5] = (255, 255, 255, 255)
-    return p
 
 def draw_crop_stage(info, stage):
     """Draw a full-block, four-plane crop texture in the visual language of vanilla crops."""
