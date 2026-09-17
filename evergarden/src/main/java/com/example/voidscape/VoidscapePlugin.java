@@ -121,9 +121,14 @@ public final class VoidscapePlugin extends JavaPlugin {
                 }
             } catch (Throwable ignored) {}
             getServer().getOnlinePlayers().forEach(p->{relics.migrate(p.getInventory());relics.migrate(p.getEnderChest());packs.offer(p);});
-            getServer().getWorlds().forEach(w->w.getEntities().forEach(relics::migrateEntity));
+            pm.registerEvents(new com.example.voidscape.gui.ChestUpgradeGui(this),this);
+            pm.registerEvents(new com.example.voidscape.gui.UpgradeMenuService(this),this);
             VoidCommand command=new VoidCommand(this);
             getCommand("evergarden").setExecutor(command);getCommand("evergarden").setTabCompleter(command);
+            if (getCommand("upgrade") != null) {
+                getCommand("upgrade").setExecutor(command);
+                getCommand("upgrade").setTabCompleter(command);
+            }
             getServer().getScheduler().runTaskTimer(this,()->{dungeons.tick();travel.tick();relics.tick();crops.tick();cropBuffs.tick();botanist.tick();},20,10);
             getLogger().info("Evergarden 3.0 enabled in "+worldName);
         } catch(Exception e) {

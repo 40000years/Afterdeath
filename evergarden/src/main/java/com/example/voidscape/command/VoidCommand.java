@@ -20,8 +20,13 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
     private boolean canEnter(CommandSender s){return isAdmin(s);}
     public VoidCommand(VoidscapePlugin plugin){this.plugin=plugin;}
     @Override public boolean onCommand(CommandSender sender,Command command,String label,String[] args) {
-        String sub=args.length==0?"help":args[0].toLowerCase(Locale.ROOT);
         Player p=sender instanceof Player player?player:null;
+        if(label.equalsIgnoreCase("upgrade") || label.equalsIgnoreCase("up")) {
+            if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
+            com.example.voidscape.gui.UpgradeMenuService.open(plugin, p);
+            return true;
+        }
+        String sub=args.length==0?"help":args[0].toLowerCase(Locale.ROOT);
         if(Set.of("give","pregen","reload","status","pack","test","dev","kit","menu","enter","leave","tp","wands","wand","magic","cores","core","relics","relic","items","item").contains(sub)&&!isAdmin(sender)){
             if(sub.equals("enter")) {
                 plugin.message(sender,"คำสั่งนี้สำหรับแอดมินเท่านั้น · กรุณาสร้างประตูควอตซ์ (Block of Quartz 4x5) แล้วโยนดอกไม้เพื่อเดินทางเข้าสู่ Evergarden");
@@ -35,6 +40,10 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
             return true;
         }
         switch(sub) {
+            case "upgrade", "up", "enchant", "forge" -> {
+                if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
+                com.example.voidscape.gui.UpgradeMenuService.open(plugin, p);
+            }
             case "test", "admin", "menu" -> {
                 if(!isAdmin(sender)){plugin.message(sender,"ไม่มีสิทธิ์แอดมิน");return true;}
                 if(p==null){plugin.message(sender,"คำสั่งนี้ใช้ได้เฉพาะผู้เล่นในเกมเท่านั้น");return true;}
@@ -460,7 +469,7 @@ public final class VoidCommand implements CommandExecutor,TabCompleter {
     @Override public List<String> onTabComplete(CommandSender sender,Command command,String alias,String[] args) {
         List<String> c=new ArrayList<>();
         if(args.length==1){
-            c.addAll(List.of("help","guide"));
+            c.addAll(List.of("help","guide","upgrade"));
             if(isAdmin(sender))c.addAll(List.of("enter","leave","tp","test","menu","crops","wands","magic","relics","items","give","status","reload","pregen","pack"));
         }
         if(args.length==2&&args[0].equalsIgnoreCase("guide")) {

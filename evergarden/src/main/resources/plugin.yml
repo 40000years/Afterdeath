@@ -11,6 +11,10 @@ commands:
     aliases: [garden, void, voidscape]
     description: Explore Evergarden and claim dungeon relics
     usage: /evergarden help
+  upgrade:
+    aliases: [up, enchantgui]
+    description: Open the Evergarden Enchanting and Upgrade menu
+    usage: /upgrade
 permissions:
   evergarden.enter:
     default: op
