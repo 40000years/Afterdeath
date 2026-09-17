@@ -181,8 +181,19 @@ public final class UniqueAbilityListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        // Colossus Slayer bonus damage calculation
+        // Colossus Slayer bonus damage calculation and Virtual Power
         if (event.getDamager() instanceof AbstractArrow arrow) {
+            if (arrow.getShooter() instanceof Player shooter) {
+                ItemStack bow = shooter.getInventory().getItemInMainHand();
+                if (bow.getType() != Material.BOW && bow.getType() != Material.CROSSBOW) {
+                    bow = shooter.getInventory().getItemInOffHand();
+                }
+                int lbPower = plugin.relics().getLimitBreakLevel(bow, LimitBreakType.POWER);
+                if (lbPower > 5) {
+                    event.setDamage(event.getDamage() + (lbPower - 5) * 2.0);
+                }
+            }
+
             String rawUe = arrow.getPersistentDataContainer().get(arrowUniqueKey, PersistentDataType.STRING);
             if (rawUe != null && rawUe.equals(UniqueEnchant.COLOSSUS_SLAYER.name()) && event.getEntity() instanceof LivingEntity victim) {
                 var maxHpAttr = victim.getAttribute(Attribute.MAX_HEALTH);
@@ -202,6 +213,13 @@ public final class UniqueAbilityListener implements Listener {
         if (victim instanceof ArmorStand) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (weapon == null || !weapon.hasItemMeta()) return;
+
+        // Virtual Sharpness Bonus (Levels 6-10)
+        int lbSharp = plugin.relics().getLimitBreakLevel(weapon, LimitBreakType.SHARPNESS);
+        if (lbSharp > 5) {
+            double bonusSharp = (lbSharp - 5) * 1.5;
+            event.setDamage(event.getDamage() + bonusSharp);
+        }
 
         // Guillotine (Execute mobs under 15% HP)
         if (EnchantApplyListener.hasUnique(weapon, UniqueEnchant.GUILLOTINE)) {
@@ -387,6 +405,20 @@ public final class UniqueAbilityListener implements Listener {
         ItemStack tool = player.getInventory().getItemInMainHand();
         if (tool == null || !tool.hasItemMeta()) return;
 
+        // Virtual Fortune Bonus (Levels 4-10)
+        int lbFortune = plugin.relics().getLimitBreakLevel(tool, LimitBreakType.FORTUNE);
+        if (lbFortune > 3) {
+            int extra = lbFortune - 3;
+            for (Item itemEntity : event.getItems()) {
+                ItemStack dropStack = itemEntity.getItemStack();
+                if (dropStack.getMaxStackSize() > 1 && isFortuneDrop(dropStack.getType())) {
+                    int add = 1 + (int) (Math.random() * Math.min(extra, 3));
+                    dropStack.setAmount(Math.min(dropStack.getMaxStackSize(), dropStack.getAmount() + add));
+                    itemEntity.setItemStack(dropStack);
+                }
+            }
+        }
+
         if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.TELEPATHY)) {
             Iterator<Item> it = event.getItems().iterator();
             while (it.hasNext()) {
@@ -400,6 +432,13 @@ public final class UniqueAbilityListener implements Listener {
                 }
             }
         }
+    }
+
+    private boolean isFortuneDrop(Material mat) {
+        String name = mat.name();
+        return name.contains("RAW_") || name.endsWith("_INGOT") || name.equals("DIAMOND")
+            || name.equals("EMERALD") || name.equals("COAL") || name.equals("REDSTONE")
+            || name.equals("LAPIS_LAZULI") || name.equals("NETHER_QUARTZ") || name.equals("AMETHYST_SHARD");
     }
 
     private void triggerBedrockSonar(Player player, Block center, boolean manual) {
@@ -874,6 +913,56 @@ public final class UniqueAbilityListener implements Listener {
                 }
                 player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_NETHERITE, 1.0f, 1.0f);
             });
+        }
+    }
+
+    // Virtual Protection Bonus (Levels 5-10)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerDamageProtection(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        int totalExtraProt = 0;
+        if (player.getInventory().getArmorContents() != null) {
+            for (ItemStack armor : player.getInventory().getArmorContents()) {
+                if (armor != null && !armor.getType().isAir()) {
+                    int lbProt = plugin.relics().getLimitBreakLevel(armor, LimitBreakType.PROTECTION);
+                    if (lbProt > 4) {
+                        totalExtraProt += (lbProt - 4);
+                    }
+                }
+            }
+        }
+        if (totalExtraProt > 0) {
+            double reduction = Math.min(0.50, totalExtraProt * 0.04);
+            event.setDamage(event.getDamage() * (1.0 - reduction));
+        }
+    }
+
+    // Virtual Looting Bonus (Levels 4-10)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onEntityDeathLooting(EntityDeathEvent event) {
+        Player killer = event.getEntity().getKiller();
+        if (killer == null) return;
+        ItemStack weapon = killer.getInventory().getItemInMainHand();
+        int lbLoot = plugin.relics().getLimitBreakLevel(weapon, LimitBreakType.LOOTING);
+        if (lbLoot > 3) {
+            int extra = lbLoot - 3;
+            for (ItemStack drop : event.getDrops()) {
+                if (drop != null && drop.getMaxStackSize() > 1 && Math.random() < 0.40) {
+                    drop.setAmount(Math.min(drop.getMaxStackSize(), drop.getAmount() + Math.min(extra, 3)));
+                }
+            }
+        }
+    }
+
+    // Virtual Efficiency Bonus (Levels 6-10)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockDamageEfficiency(org.bukkit.event.block.BlockDamageEvent event) {
+        Player player = event.getPlayer();
+        ItemStack tool = player.getInventory().getItemInMainHand();
+        int lbEff = plugin.relics().getLimitBreakLevel(tool, LimitBreakType.EFFICIENCY);
+        if (lbEff > 5) {
+            int amp = lbEff >= 8 ? 1 : 0;
+            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 45, amp, false, false, false));
         }
     }
 }

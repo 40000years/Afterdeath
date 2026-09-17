@@ -15,6 +15,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -173,15 +174,12 @@ public final class EnchantApplyListener implements Listener {
         ItemMeta meta = target.getItemMeta();
         if (meta == null) return;
 
-        if (meta.isUnbreakable()) {
+        if (relics.isEternityItem(target)) {
             fail(player, "ไอเทมนี้สถิตนิรันดร์อยู่แล้ว (ไม่มีวันพัง)");
             return;
         }
 
-        meta.setUnbreakable(true);
-        List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
-        lore.add(0, Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-        meta.lore(lore);
+        relics.applyEternityMeta(meta);
         target.setItemMeta(meta);
 
         if (rawSlot >= 0) {
@@ -202,7 +200,7 @@ public final class EnchantApplyListener implements Listener {
         ItemMeta meta = target.getItemMeta();
         if (meta == null) return;
 
-        int current = meta.getEnchantLevel(type.enchantment());
+        int current = relics.getLimitBreakLevel(target, type);
         if (current <= 0) {
             fail(player, "อุปกรณ์ต้องมีเอนแชนต์ " + type.enchantment().getKey().getKey() + " อยู่ก่อนแล้ว");
             return;
@@ -213,13 +211,7 @@ public final class EnchantApplyListener implements Listener {
         }
 
         int next = current + 1;
-        meta.addEnchant(type.enchantment(), next, true);
-
-        // Add or update custom lore line for limit break
-        List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
-        lore.removeIf(line -> net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line).contains(type.thaiTitle()));
-        lore.add(Component.text("✦ " + type.thaiTitle() + " ระดับ " + toRoman(next), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
-        meta.lore(lore);
+        relics.applyLimitBreakMeta(meta, type, next);
         target.setItemMeta(meta);
 
         if (rawSlot >= 0) {
@@ -351,5 +343,12 @@ public final class EnchantApplyListener implements Listener {
         if (item == null || !item.hasItemMeta()) return false;
         NamespacedKey key = new NamespacedKey("evergarden", "ue_" + enchant.id().toLowerCase(Locale.ROOT));
         return item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.BYTE);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onItemDamage(PlayerItemDamageEvent event) {
+        if (relics.isEternityItem(event.getItem())) {
+            event.setCancelled(true);
+        }
     }
 }

@@ -160,7 +160,7 @@ public final class FloodgateUpgradeForm {
         boolean isUnbreakable = false;
         if (target.hasItemMeta()) {
             if (target.getItemMeta() instanceof Damageable dmg) currentDmg = dmg.getDamage();
-            isUnbreakable = target.getItemMeta().isUnbreakable();
+            isUnbreakable = plugin.relics().isEternityItem(target);
         }
 
         SimpleForm.Builder builder = SimpleForm.builder();
@@ -191,7 +191,7 @@ public final class FloodgateUpgradeForm {
             if (count > 0 && type.category().matches(target.getType())) {
                 ItemMeta meta = target.getItemMeta();
                 if (meta != null) {
-                    int currentLevel = meta.getEnchantLevel(type.enchantment());
+                    int currentLevel = plugin.relics().getLimitBreakLevel(target, type);
                     if (currentLevel > 0 && currentLevel < type.maxLevel()) {
                         availableOptions++;
                         builder.button("📜 ทลายขีดจำกัด: " + type.thaiTitle() + " (มี " + count + " ชิ้น)\n§bเพิ่ม " + type.title() + " เป็นระดับ " + toRoman(currentLevel + 1));
@@ -258,10 +258,7 @@ public final class FloodgateUpgradeForm {
 
         ItemMeta meta = target.getItemMeta();
         if (meta == null) return;
-        meta.setUnbreakable(true);
-        List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
-        lore.add(0, Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-        meta.lore(lore);
+        plugin.relics().applyEternityMeta(meta);
         target.setItemMeta(meta);
 
         player.getInventory().setItem(targetSlot, target);
@@ -275,7 +272,7 @@ public final class FloodgateUpgradeForm {
 
         ItemMeta meta = target.getItemMeta();
         if (meta == null) return;
-        int current = meta.getEnchantLevel(type.enchantment());
+        int current = plugin.relics().getLimitBreakLevel(target, type);
         if (current <= 0 || current >= type.maxLevel()) return;
 
         if (!consumeOne(player, it -> plugin.relics().getLimitBreakType(it) == type)) {
@@ -284,12 +281,7 @@ public final class FloodgateUpgradeForm {
         }
 
         int next = current + 1;
-        meta.addEnchant(type.enchantment(), next, true);
-
-        List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
-        lore.removeIf(line -> PlainTextComponentSerializer.plainText().serialize(line).contains(type.thaiTitle()));
-        lore.add(Component.text("✦ " + type.thaiTitle() + " ระดับ " + toRoman(next), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
-        meta.lore(lore);
+        plugin.relics().applyLimitBreakMeta(meta, type, next);
         target.setItemMeta(meta);
 
         player.getInventory().setItem(targetSlot, target);

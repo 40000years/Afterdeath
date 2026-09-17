@@ -338,18 +338,58 @@ public final class RelicService implements Listener {
         };
     }
 
+    public boolean isEternityItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        if (meta.isUnbreakable()) return true; // support legacy unbreakable items
+        return meta.getPersistentDataContainer().has(plugin.key("relic_eternity"), PersistentDataType.BYTE);
+    }
+
+    public int getLimitBreakLevel(ItemStack item, LimitBreakType type) {
+        if (item == null || !item.hasItemMeta() || type == null) return 0;
+        ItemMeta meta = item.getItemMeta();
+        NamespacedKey key = plugin.key("lb_" + type.name().toLowerCase(Locale.ROOT));
+        Integer custom = meta.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
+        if (custom != null) return custom;
+        return meta.getEnchantLevel(type.enchantment());
+    }
+
+    public void applyEternityMeta(ItemMeta meta) {
+        meta.getPersistentDataContainer().set(plugin.key("relic_eternity"), PersistentDataType.BYTE, (byte) 1);
+        if (meta instanceof org.bukkit.inventory.meta.Damageable d) {
+            d.setDamage(0);
+        }
+        // Do NOT setUnbreakable(true) so that Anti-Dupe / Anti-Illegal plugins won't flag it!
+        meta.setUnbreakable(false);
+
+        List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+        lore.removeIf(line -> net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line).contains("สถิตนิรันดร์"));
+        lore.add(0, Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+        meta.lore(lore);
+    }
+
+    public void applyLimitBreakMeta(ItemMeta meta, LimitBreakType type, int next) {
+        NamespacedKey key = plugin.key("lb_" + type.name().toLowerCase(Locale.ROOT));
+        meta.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, next);
+        int vanillaCap = Math.min(next, type.enchantment().getMaxLevel());
+        meta.addEnchant(type.enchantment(), vanillaCap, true);
+
+        List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+        lore.removeIf(line -> net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line).contains(type.thaiTitle()));
+        lore.add(Component.text("✦ " + type.thaiTitle() + " ระดับ " + toRoman(next), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+        meta.lore(lore);
+    }
+
     public ItemStack evaluateScrollCraft(ItemStack scroll, ItemStack target) {
         if (scroll == null || target == null || target.getType().isAir()) return null;
 
         // 1. Scroll of Eternity
         if (isScrollEternity(scroll)) {
             if (target.getType().getMaxDurability() <= 0) return null;
+            if (isEternityItem(target)) return null;
             ItemMeta meta = target.getItemMeta();
-            if (meta == null || meta.isUnbreakable()) return null;
-            meta.setUnbreakable(true);
-            List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
-            lore.add(0, Component.text("✦ สถิตนิรันดร์: ไม่มีวันพังเสียหาย", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-            meta.lore(lore);
+            if (meta == null) return null;
+            applyEternityMeta(meta);
             ItemStack result = target.clone();
             result.setItemMeta(meta);
             return result;
@@ -359,16 +399,12 @@ public final class RelicService implements Listener {
         LimitBreakType type = getLimitBreakType(scroll);
         if (type != null) {
             if (!type.category().matches(target.getType())) return null;
-            ItemMeta meta = target.getItemMeta();
-            if (meta == null) return null;
-            int current = meta.getEnchantLevel(type.enchantment());
+            int current = getLimitBreakLevel(target, type);
             if (current <= 0 || current >= type.maxLevel()) return null;
             int next = current + 1;
-            meta.addEnchant(type.enchantment(), next, true);
-            List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
-            lore.removeIf(line -> net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line).contains(type.thaiTitle()));
-            lore.add(Component.text("✦ " + type.thaiTitle() + " ระดับ " + toRoman(next), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
-            meta.lore(lore);
+            ItemMeta meta = target.getItemMeta();
+            if (meta == null) return null;
+            applyLimitBreakMeta(meta, type, next);
             ItemStack result = target.clone();
             result.setItemMeta(meta);
             return result;
