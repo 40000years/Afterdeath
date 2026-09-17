@@ -88,7 +88,7 @@ public final class VoidscapePlugin extends JavaPlugin {
             voidWorld.setGameRule(GameRule.DO_TRADER_SPAWNING,false);
             voidWorld.setStorm(false);voidWorld.setThundering(false);
             voidWorld.getWorldBorder().setCenter(0,0);
-            voidWorld.getWorldBorder().setSize(integer("dimension.border-size",24000,4096,60000));
+            voidWorld.getWorldBorder().setSize(integer("dimension.border-size",24000,4096,60000000));
             relics=new RelicService(this);dungeons=new DungeonManager(this);travel=new TravelListener(this);
             var pm=getServer().getPluginManager();pm.registerEvents(relics,this);pm.registerEvents(dungeons,this);pm.registerEvents(travel,this);
             pm.registerEvents(new com.example.voidscape.guide.ChestGuideGui(this),this);

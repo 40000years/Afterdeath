@@ -3,7 +3,10 @@ config-version: 2
 dimension:
   world-name: evergarden
   seed: 72819345
-  border-size: 24000
+  # ขอบเขตมิติ Evergarden (WorldBorder)
+  # - 500000 = เส้นผ่านศูนย์กลาง 500,000 บล็อก (เดินทางได้ถึงพิกัด ±250,000)
+  # - 1000000 = เส้นผ่านศูนย์กลาง 1,000,000 บล็อก (เดินทางได้ถึงพิกัด ±500,000 ตามที่ต้องการ)
+  border-size: 1000000
   # Fixed twilight: light gardens, dark sky, visible stars.
   time: 13000
 structures:
