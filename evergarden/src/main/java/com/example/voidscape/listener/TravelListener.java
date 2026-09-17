@@ -12,6 +12,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.*;
@@ -48,18 +49,29 @@ public final class TravelListener implements Listener {
     }
 
     private boolean allowedEntryWorld(Player p){
-        List<String> list=plugin.getConfig().getStringList("portal.entry-worlds");
-        return list.isEmpty() || list.contains(p.getWorld().getName()) || (p.getWorld().getEnvironment()==World.Environment.NORMAL && list.contains("world"));
+        if (p == null || p.getWorld() == plugin.world()) return false;
+        List<String> list = plugin.getConfig().getStringList("portal.entry-worlds");
+        if (list.isEmpty() || list.contains("*") || list.contains("all")) return true;
+        String name = p.getWorld().getName();
+        if (list.contains(name)) return true;
+        if (list.contains("world")) {
+            if (name.equals("world_nether") || name.equals("world_the_end")
+                || p.getWorld().getEnvironment() == World.Environment.NORMAL
+                || p.getWorld().getEnvironment() == World.Environment.NETHER) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
     public void interact(PlayerInteractEvent e) {
         Player p=e.getPlayer();
-        if(!e.getAction().isRightClick())return;
+        ItemStack hand=e.getItem();
+        if(hand==null && e.getHand()!=null) hand=p.getInventory().getItem(e.getHand());
 
-        ItemStack hand=p.getInventory().getItem(e.getHand());
         // Guide book interaction (both Java & Bedrock, clicking block or air)
-        if(hand!=null && hand.getType()==Material.WRITTEN_BOOK && isGuideBook(hand)) {
+        if(e.getAction().isRightClick() && hand!=null && hand.getType()==Material.WRITTEN_BOOK && isGuideBook(hand)) {
             e.setCancelled(true);
             if(e.getHand()==org.bukkit.inventory.EquipmentSlot.HAND) {
                 var bookType = plugin.relics().getGuideBookType(hand);
@@ -74,10 +86,10 @@ public final class TravelListener implements Listener {
 
         Block clicked=e.getClickedBlock();
         if(clicked==null) clicked=p.getTargetBlockExact(5);
-        if(clicked==null)return;
+        if(clicked==null) return;
 
         // Spawn Lectern Guide Book interaction
-        if(clicked.getWorld()==plugin.world()&&clicked.getType()==Material.LECTERN&&clicked.getX()==0&&clicked.getZ()==4) {
+        if(e.getAction().isRightClick() && clicked.getWorld()==plugin.world() && clicked.getType()==Material.LECTERN && clicked.getX()==0 && clicked.getZ()==4) {
             e.setCancelled(true);
             if(e.getHand()==org.bukkit.inventory.EquipmentSlot.HAND) {
                 com.example.voidscape.guide.BedrockGuideService.openMenu(plugin, p);
@@ -85,10 +97,10 @@ public final class TravelListener implements Listener {
             return;
         }
 
-        if(hand==null)return;
+        if(hand==null) return;
 
         // Anti-Boat Cheese: prevent placing boats/minecarts near shrines in the void
-        if(clicked.getWorld()==plugin.world()&&isVehicleItem(hand.getType())) {
+        if(e.getAction().isRightClick() && clicked.getWorld()==plugin.world() && isVehicleItem(hand.getType())) {
             Site site=plugin.layout().at(clicked.getX(),clicked.getZ(),8);
             if(site!=null) {
                 e.setCancelled(true);
@@ -97,16 +109,35 @@ public final class TravelListener implements Listener {
             }
         }
 
-        // Flower Ignition by Right-Click (convenient for Bedrock & Java players alike)
-        if(p.getWorld()!=plugin.world()&&allowedEntryWorld(p)&&isPortalFlower(hand.getType())) {
-            Block targetInner = clicked.getType()==Material.QUARTZ_BLOCK ? clicked.getRelative(e.getBlockFace()) : clicked;
-            if(tryIgnitePortal(targetInner, p) || (targetInner!=clicked && tryIgnitePortal(clicked, p))) {
-                e.setCancelled(true);
-                if(p.getGameMode()!=GameMode.CREATIVE) {
-                    hand.subtract(1);
-                    p.updateInventory();
+        // Flower Ignition by Hand (Both Right-Click and Left-Click / Mobile Tap on quartz frame or opening)
+        if(isPortalFlower(hand.getType()) && allowedEntryWorld(p) && p.getWorld()!=plugin.world()) {
+            BlockFace face = e.getBlockFace() != null ? e.getBlockFace() : BlockFace.UP;
+            Block[] candidates = new Block[] {
+                clicked.getRelative(face),
+                clicked,
+                clicked.getRelative(BlockFace.UP),
+                clicked.getRelative(BlockFace.DOWN),
+                clicked.getRelative(BlockFace.NORTH),
+                clicked.getRelative(BlockFace.SOUTH),
+                clicked.getRelative(BlockFace.EAST),
+                clicked.getRelative(BlockFace.WEST)
+            };
+            for(Block candidate : candidates) {
+                if(candidate.getType() == Material.AIR || candidate.getType() == Material.FIRE || candidate.getType() == Material.CAVE_AIR) {
+                    if(tryIgnitePortal(candidate, p)) {
+                        e.setCancelled(true);
+                        if(p.getGameMode() != GameMode.CREATIVE) {
+                            hand.subtract(1);
+                            p.updateInventory();
+                        }
+                        return;
+                    }
                 }
-                return;
+            }
+            if(clicked.getType() == Material.QUARTZ_BLOCK) {
+                p.sendActionBar(net.kyori.adventure.text.Component.text(
+                    "✦ กรอบประตูควอตซ์ต้องมีขนาดภายนอก 4x5 บล็อก และช่องว่างด้านใน 2x3 บล็อก",
+                    net.kyori.adventure.text.format.NamedTextColor.YELLOW));
             }
         }
     }
@@ -121,8 +152,41 @@ public final class TravelListener implements Listener {
     }
 
     private boolean isPortalFlower(Material material) {
-        return Tag.FLOWERS.isTagged(material)||material==Material.PINK_PETALS
-            ||material==Material.SPORE_BLOSSOM||material==Material.FLOWERING_AZALEA;
+        if(material == null) return false;
+        if(Tag.FLOWERS.isTagged(material)) return true;
+        String name = material.name();
+        return name.contains("FLOWER") || name.contains("ROSE") || name.contains("TULIP")
+            || name.contains("ORCHID") || name.contains("DAISY") || name.contains("POPPY")
+            || name.contains("DANDELION") || name.contains("BLOSSOM") || name.contains("LILAC")
+            || name.contains("PEONY") || name.contains("SUNFLOWER") || name.contains("PETAL")
+            || material == Material.PINK_PETALS || material == Material.SPORE_BLOSSOM 
+            || material == Material.FLOWERING_AZALEA || material == Material.FLOWERING_AZALEA_LEAVES;
+    }
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void onPlaceFlower(BlockPlaceEvent e) {
+        Player p = e.getPlayer();
+        if(p.getWorld()==plugin.world()||!allowedEntryWorld(p)) return;
+        Block placed = e.getBlockPlaced();
+        if(!isPortalFlower(placed.getType())) return;
+
+        Block[] candidates = new Block[] {
+            placed,
+            placed.getRelative(BlockFace.UP),
+            placed.getRelative(BlockFace.DOWN),
+            placed.getRelative(BlockFace.NORTH),
+            placed.getRelative(BlockFace.SOUTH),
+            placed.getRelative(BlockFace.EAST),
+            placed.getRelative(BlockFace.WEST)
+        };
+        for(Block candidate : candidates) {
+            Material orig = placed.getType();
+            placed.setType(Material.AIR, false);
+            if(tryIgnitePortal(candidate, p)) {
+                return;
+            }
+            placed.setType(orig, false);
+        }
     }
 
     private void consumeFlowerOffering(Item item) {
@@ -482,7 +546,22 @@ public final class TravelListener implements Listener {
             }
             Player owner=Bukkit.getPlayer(ownerId);
             if(owner==null||!owner.isOnline()||owner.getWorld()!=item.getWorld())continue;
-            if(tryIgnitePortal(item.getLocation().getBlock(),owner)) {
+            Block base = item.getLocation().getBlock();
+            boolean ignited = false;
+            for (int dx = -1; dx <= 1 && !ignited; dx++) {
+                for (int dy = 0; dy <= 2 && !ignited; dy++) {
+                    for (int dz = -1; dz <= 1 && !ignited; dz++) {
+                        Block candidate = base.getRelative(dx, dy, dz);
+                        if (candidate.getType() == Material.AIR || candidate.getType() == Material.FIRE || candidate.getType() == Material.CAVE_AIR) {
+                            if (tryIgnitePortal(candidate, owner)) {
+                                ignited = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if(ignited) {
                 consumeFlowerOffering(item);
                 flowerOfferingExpires.remove(dropId);
                 flowerOfferingOwners.remove(dropId);

@@ -18,7 +18,7 @@ performance:
   idle-reset-seconds: 60
 portal:
   # Build a Nether Portal shape from Block of Quartz, then throw any flower into the empty frame.
-  entry-worlds: [world]
+  entry-worlds: [world, world_nether, world_the_end]
 spawn-protection:
   # ป้องกันพื้นที่เกาะเกิด (Spawn Island) และบริเวณประตูมิติใน Evergarden
   # ผู้เล่นทั่วไปจะไม่สามารถขุด วางบล็อก เทหรือตักของเหลวบนเกาะหลักได้ (แอดมินใน Creative สามารถทำได้ปกติ)
