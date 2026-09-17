@@ -420,6 +420,9 @@ public final class RelicService implements Listener {
             NamespacedKey key = new NamespacedKey("evergarden", "ue_" + enchant.id().toLowerCase(Locale.ROOT));
             if (meta.getPersistentDataContainer().has(key)) return null;
             meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
+            if (enchant == UniqueEnchant.ADVANCE_TOOL) {
+                EnchantApplyListener.applyAdvanceToolComponent(meta);
+            }
             List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
             lore.add(Component.text("✦ " + enchant.title() + " · " + enchant.thaiTitle(), NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
             lore.add(Component.text("   §7" + enchant.description()).decoration(TextDecoration.ITALIC, false));
@@ -433,9 +436,19 @@ public final class RelicService implements Listener {
     }
 
     public boolean migrate(ItemStack item) {
-        Relic relic=type(item);if(relic==null)return false;
+        if (item == null || !item.hasItemMeta()) return false;
+        boolean changed = false;
+        if (EnchantApplyListener.hasUnique(item, UniqueEnchant.ADVANCE_TOOL)) {
+            var meta = item.getItemMeta();
+            if (meta != null && (!meta.hasTool() || meta.getTool().getRules().isEmpty())) {
+                EnchantApplyListener.applyAdvanceToolComponent(meta);
+                item.setItemMeta(meta);
+                changed = true;
+            }
+        }
+        Relic relic=type(item);if(relic==null)return changed;
         var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();String model="voidscape:"+relic.id();
-        if(!meta.hasItemModel()&&data.getStrings().equals(List.of(model)))return false;
+        if(!meta.hasItemModel()&&data.getStrings().equals(List.of(model)))return changed;
         meta.setItemModel(null);data.setStrings(List.of(model));meta.setCustomModelDataComponent(data);item.setItemMeta(meta);return true;
     }
     public void migrate(Inventory inventory){for(int i=0;i<inventory.getSize();i++){var item=inventory.getItem(i);if(migrate(item))inventory.setItem(i,item);}}

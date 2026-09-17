@@ -6,9 +6,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.Tag;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -239,6 +241,9 @@ public final class EnchantApplyListener implements Listener {
         }
 
         meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
+        if (enchant == UniqueEnchant.ADVANCE_TOOL) {
+            applyAdvanceToolComponent(meta);
+        }
         List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
         lore.add(Component.text("✦ " + enchant.title() + " · " + enchant.thaiTitle(), NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("   §7" + enchant.description()).decoration(TextDecoration.ITALIC, false));
@@ -343,6 +348,29 @@ public final class EnchantApplyListener implements Listener {
         if (item == null || !item.hasItemMeta()) return false;
         NamespacedKey key = new NamespacedKey("evergarden", "ue_" + enchant.id().toLowerCase(Locale.ROOT));
         return item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.BYTE);
+    }
+
+    public static void applyAdvanceToolComponent(ItemMeta meta) {
+        if (meta == null) return;
+        try {
+            org.bukkit.inventory.meta.components.ToolComponent tool = meta.getTool();
+            tool.setDefaultMiningSpeed(25.0f);
+            tool.setDamagePerBlock(1);
+            tool.addRule(Tag.MINEABLE_PICKAXE, 25.0f, true);
+            tool.addRule(Tag.MINEABLE_AXE, 25.0f, true);
+            tool.addRule(Tag.MINEABLE_SHOVEL, 25.0f, true);
+            tool.addRule(Tag.MINEABLE_HOE, 25.0f, true);
+            tool.addRule(List.of(
+                Material.DIRT, Material.COARSE_DIRT, Material.ROOTED_DIRT, Material.GRASS_BLOCK,
+                Material.PODZOL, Material.MYCELIUM, Material.SAND, Material.RED_SAND,
+                Material.GRAVEL, Material.CLAY, Material.SOUL_SAND, Material.SOUL_SOIL,
+                Material.MUD, Material.MUDDY_MANGROVE_ROOTS, Material.SNOW_BLOCK, Material.SNOW,
+                Material.OAK_LEAVES, Material.SPRUCE_LEAVES, Material.BIRCH_LEAVES, Material.JUNGLE_LEAVES,
+                Material.ACACIA_LEAVES, Material.DARK_OAK_LEAVES, Material.MANGROVE_LEAVES, Material.CHERRY_LEAVES
+            ), 25.0f, true);
+            meta.setTool(tool);
+        } catch (Throwable ignored) {
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

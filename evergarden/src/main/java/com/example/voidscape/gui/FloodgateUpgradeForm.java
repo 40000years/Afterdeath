@@ -304,6 +304,9 @@ public final class FloodgateUpgradeForm {
         }
 
         meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
+        if (ue == UniqueEnchant.ADVANCE_TOOL) {
+            com.example.voidscape.enchant.EnchantApplyListener.applyAdvanceToolComponent(meta);
+        }
         List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
         lore.add(Component.text("✦ " + ue.title() + " · " + ue.thaiTitle(), NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("   §7" + ue.description()).decoration(TextDecoration.ITALIC, false));

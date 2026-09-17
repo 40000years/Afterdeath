@@ -34,7 +34,6 @@ public final class UniqueAbilityListener implements Listener {
     private final Map<UUID, Long> lastSneakTime = new HashMap<>();
     private final Map<UUID, Long> bladeVortexCooldown = new HashMap<>();
     private final Map<UUID, Long> sonarCooldown = new HashMap<>();
-    private final Map<UUID, List<ItemStack>> soulboundStash = new HashMap<>();
     private final Set<UUID> recursiveBreaking = new HashSet<>();
 
     public UniqueAbilityListener(VoidscapePlugin plugin) {
@@ -56,23 +55,37 @@ public final class UniqueAbilityListener implements Listener {
         Entity proj = event.getProjectile();
         if (!(proj instanceof AbstractArrow arrow)) return;
 
+        List<String> activeEnchants = new ArrayList<>();
         for (UniqueEnchant ue : List.of(
             UniqueEnchant.COLOSSUS_SLAYER, UniqueEnchant.RICOCHET,
             UniqueEnchant.KINETIC_GRAPPLE, UniqueEnchant.ABSOLUTE_ZERO,
             UniqueEnchant.SINGULARITY, UniqueEnchant.METEOR_ARROW
         )) {
             if (EnchantApplyListener.hasUnique(bow, ue)) {
-                arrow.getPersistentDataContainer().set(arrowUniqueKey, PersistentDataType.STRING, ue.name());
-                arrow.getPersistentDataContainer().set(arrowShooterKey, PersistentDataType.STRING, player.getUniqueId().toString());
-                break;
+                activeEnchants.add(ue.name());
             }
         }
+        if (!activeEnchants.isEmpty()) {
+            arrow.getPersistentDataContainer().set(arrowUniqueKey, PersistentDataType.STRING, String.join(",", activeEnchants));
+            arrow.getPersistentDataContainer().set(arrowShooterKey, PersistentDataType.STRING, player.getUniqueId().toString());
+        }
+    }
+
+    private boolean arrowHasUnique(AbstractArrow arrow, UniqueEnchant ue) {
+        if (arrow == null) return false;
+        String raw = arrow.getPersistentDataContainer().get(arrowUniqueKey, PersistentDataType.STRING);
+        if (raw == null) return false;
+        for (String part : raw.split(",")) {
+            if (part.trim().equalsIgnoreCase(ue.name())) return true;
+        }
+        return false;
     }
 
     private boolean canDamage(Player damager, Entity victim) {
         if (!(victim instanceof LivingEntity) || victim instanceof ArmorStand || !victim.isValid() || victim.isDead()) return false;
-        if (damager.equals(victim)) return false;
+        if (damager != null && damager.equals(victim)) return false;
         if (victim instanceof Player p) {
+            if (damager == null) return false;
             return damager.getWorld().getPVP() && plugin.getConfig().getBoolean("relics.allow-pvp", false)
                 && p.getGameMode() != GameMode.CREATIVE && p.getGameMode() != GameMode.SPECTATOR;
         }
@@ -89,89 +102,92 @@ public final class UniqueAbilityListener implements Listener {
         Player shooter = rawShooter != null ? Bukkit.getPlayer(UUID.fromString(rawShooter)) : null;
         if (shooter == null || !shooter.isOnline()) return;
 
-        UniqueEnchant ue;
-        try { ue = UniqueEnchant.valueOf(rawUe); } catch (Exception ignored) { return; }
         Location at = arrow.getLocation();
 
-        switch (ue) {
-            case KINETIC_GRAPPLE -> {
-                Location targetLoc = event.getHitBlock() != null ? event.getHitBlock().getLocation().add(0.5, 1.0, 0.5)
-                    : event.getHitEntity() != null ? event.getHitEntity().getLocation() : at;
-                Vector pull = targetLoc.toVector().subtract(shooter.getLocation().toVector());
-                double dist = pull.length();
-                if (dist > 2.0) {
-                    pull.normalize().multiply(Math.min(1.8, 0.8 + dist * 0.05));
-                    pull.setY(Math.min(0.9, Math.max(0.35, pull.getY() + 0.25)));
-                    com.example.voidscape.compat.PlayerImpulse.apply(plugin,shooter,pull);
-                    shooter.setFallDistance(0);
-                    shooter.playSound(shooter.getLocation(), Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1.0f, 1.2f);
-                    shooter.getWorld().spawnParticle(Particle.CLOUD, shooter.getLocation(), 15, 0.3, 0.3, 0.3, 0.05);
-                }
-            }
-            case ABSOLUTE_ZERO -> {
-                at.getWorld().spawnParticle(Particle.SNOWFLAKE, at, 50, 1.5, 1.5, 1.5, 0.1);
-                at.getWorld().playSound(at, Sound.BLOCK_GLASS_BREAK, 1.0f, 0.8f);
-                for (Entity e : at.getNearbyEntities(5, 5, 5)) {
-                    if (canDamage(shooter, e) && e instanceof LivingEntity target) {
-                        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 70, 6)); // Slowness VII
-                        target.setFreezeTicks(300);
-                        target.damage(10, shooter);
+        for (String part : rawUe.split(",")) {
+            UniqueEnchant ue;
+            try { ue = UniqueEnchant.valueOf(part.trim().toUpperCase(Locale.ROOT)); } catch (Exception ignored) { continue; }
+
+            switch (ue) {
+                case KINETIC_GRAPPLE -> {
+                    Location targetLoc = event.getHitBlock() != null ? event.getHitBlock().getLocation().add(0.5, 1.0, 0.5)
+                        : event.getHitEntity() != null ? event.getHitEntity().getLocation() : at;
+                    Vector pull = targetLoc.toVector().subtract(shooter.getLocation().toVector());
+                    double dist = pull.length();
+                    if (dist > 2.0) {
+                        pull.normalize().multiply(Math.min(1.8, 0.8 + dist * 0.05));
+                        pull.setY(Math.min(0.9, Math.max(0.35, pull.getY() + 0.25)));
+                        com.example.voidscape.compat.PlayerImpulse.apply(plugin,shooter,pull);
+                        shooter.setFallDistance(0);
+                        shooter.playSound(shooter.getLocation(), Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1.0f, 1.2f);
+                        shooter.getWorld().spawnParticle(Particle.CLOUD, shooter.getLocation(), 15, 0.3, 0.3, 0.3, 0.05);
                     }
                 }
-            }
-            case SINGULARITY -> {
-                at.getWorld().playSound(at, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1.0f, 0.6f);
-                new org.bukkit.scheduler.BukkitRunnable() {
-                    int ticks = 0;
-                    @Override
-                    public void run() {
-                        if (++ticks > 12 || !shooter.isOnline()) { cancel(); return; }
-                        at.getWorld().spawnParticle(Particle.PORTAL, at, 40, 0.8, 0.8, 0.8, 0.5);
-                        at.getWorld().spawnParticle(Particle.REVERSE_PORTAL, at, 25, 0.5, 0.5, 0.5, 0.2);
-                        for (Entity e : at.getNearbyEntities(6.5, 4.0, 6.5)) {
-                            if (canDamage(shooter, e) && e instanceof LivingEntity m) {
-                                Vector v = at.toVector().subtract(m.getLocation().toVector()).normalize().multiply(0.45);
-                                com.example.voidscape.compat.PlayerImpulse.apply(plugin,m,v);
+                case ABSOLUTE_ZERO -> {
+                    at.getWorld().spawnParticle(Particle.SNOWFLAKE, at, 50, 1.5, 1.5, 1.5, 0.1);
+                    at.getWorld().playSound(at, Sound.BLOCK_GLASS_BREAK, 1.0f, 0.8f);
+                    for (Entity e : at.getNearbyEntities(5, 5, 5)) {
+                        if (canDamage(shooter, e) && e instanceof LivingEntity target) {
+                            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 70, 6)); // Slowness VII
+                            target.setFreezeTicks(300);
+                            target.damage(10, shooter);
+                        }
+                    }
+                }
+                case SINGULARITY -> {
+                    at.getWorld().playSound(at, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1.0f, 0.6f);
+                    new org.bukkit.scheduler.BukkitRunnable() {
+                        int ticks = 0;
+                        @Override
+                        public void run() {
+                            if (++ticks > 12 || !shooter.isOnline()) { cancel(); return; }
+                            at.getWorld().spawnParticle(Particle.PORTAL, at, 40, 0.8, 0.8, 0.8, 0.5);
+                            at.getWorld().spawnParticle(Particle.REVERSE_PORTAL, at, 25, 0.5, 0.5, 0.5, 0.2);
+                            for (Entity e : at.getNearbyEntities(6.5, 4.0, 6.5)) {
+                                if (canDamage(shooter, e) && e instanceof LivingEntity m) {
+                                    Vector v = at.toVector().subtract(m.getLocation().toVector()).normalize().multiply(0.45);
+                                    com.example.voidscape.compat.PlayerImpulse.apply(plugin,m,v);
+                                }
                             }
                         }
-                    }
-                }.runTaskTimer(plugin, 1L, 5L);
-            }
-            case METEOR_ARROW -> {
-                at.getWorld().spawnParticle(Particle.FLAME, at, 20, 0.5, 0.1, 0.5, 0.05);
-                at.getWorld().playSound(at, Sound.ENTITY_BLAZE_SHOOT, 1.0f, 0.7f);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    at.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, at, 2);
-                    at.getWorld().playSound(at, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.8f);
-                    for (Entity e : at.getNearbyEntities(5.0, 3.0, 5.0)) {
-                        if (canDamage(shooter, e) && e instanceof LivingEntity m) {
-                            m.damage(32.0, shooter);
-                            m.setFireTicks(100);
+                    }.runTaskTimer(plugin, 1L, 5L);
+                }
+                case METEOR_ARROW -> {
+                    at.getWorld().spawnParticle(Particle.FLAME, at, 20, 0.5, 0.1, 0.5, 0.05);
+                    at.getWorld().playSound(at, Sound.ENTITY_BLAZE_SHOOT, 1.0f, 0.7f);
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        at.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, at, 2);
+                        at.getWorld().playSound(at, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.8f);
+                        for (Entity e : at.getNearbyEntities(5.0, 3.0, 5.0)) {
+                            if (canDamage(shooter, e) && e instanceof LivingEntity m) {
+                                m.damage(32.0, shooter);
+                                m.setFireTicks(100);
+                            }
                         }
-                    }
-                }, 20L);
-            }
-            case RICOCHET -> {
-                if (event.getHitEntity() instanceof LivingEntity victim) {
-                    List<LivingEntity> nearby = new ArrayList<>();
-                    for (Entity e : victim.getNearbyEntities(7, 4, 7)) {
-                        if (canDamage(shooter, e) && !e.equals(victim) && e instanceof LivingEntity target) {
-                            nearby.add(target);
+                    }, 20L);
+                }
+                case RICOCHET -> {
+                    if (event.getHitEntity() instanceof LivingEntity victim) {
+                        List<LivingEntity> nearby = new ArrayList<>();
+                        for (Entity e : victim.getNearbyEntities(7, 4, 7)) {
+                            if (canDamage(shooter, e) && !e.equals(victim) && e instanceof LivingEntity target) {
+                                nearby.add(target);
+                            }
                         }
-                    }
-                    int chained = 0;
-                    for (LivingEntity next : nearby) {
-                        if (++chained > 3) break;
-                        next.getWorld().strikeLightningEffect(next.getLocation());
-                        next.damage(14.0, shooter);
-                        next.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, next.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.1);
-                    }
-                    if (chained > 0) {
-                        victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.8f, 1.6f);
+                        int chained = 0;
+                        for (LivingEntity next : nearby) {
+                            if (++chained > 3) break;
+                            next.getWorld().strikeLightningEffect(next.getLocation());
+                            next.damage(14.0, shooter);
+                            next.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, next.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.1);
+                        }
+                        if (chained > 0) {
+                            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.8f, 1.6f);
+                        }
                     }
                 }
+                default -> {}
             }
-            default -> {}
         }
     }
 
@@ -194,8 +210,7 @@ public final class UniqueAbilityListener implements Listener {
                 }
             }
 
-            String rawUe = arrow.getPersistentDataContainer().get(arrowUniqueKey, PersistentDataType.STRING);
-            if (rawUe != null && rawUe.equals(UniqueEnchant.COLOSSUS_SLAYER.name()) && event.getEntity() instanceof LivingEntity victim) {
+            if (arrowHasUnique(arrow, UniqueEnchant.COLOSSUS_SLAYER) && event.getEntity() instanceof LivingEntity victim) {
                 var maxHpAttr = victim.getAttribute(Attribute.MAX_HEALTH);
                 double maxHp = maxHpAttr != null ? maxHpAttr.getValue() : 20.0;
                 double bonus = Math.min(Math.max(12.0, maxHp * 0.08), 350.0);
@@ -221,12 +236,34 @@ public final class UniqueAbilityListener implements Listener {
             event.setDamage(event.getDamage() + bonusSharp);
         }
 
+        // Titan Breach (Armor breach + True Damage on Axe attacks)
+        if (EnchantApplyListener.hasUnique(weapon, UniqueEnchant.TITAN_BREACH) && canDamage(player, victim)) {
+            var armorAttr = victim.getAttribute(Attribute.ARMOR);
+            double armorVal = armorAttr != null ? armorAttr.getValue() : 0.0;
+            double trueDamage = 10.0 + (armorVal * 0.35); // Breaches high armor targets
+            
+            victim.setNoDamageTicks(0);
+            double oldHp = victim.getHealth();
+            double newHp = Math.max(0.0, oldHp - trueDamage);
+            victim.setHealth(newHp);
+            if (newHp <= 0.001) {
+                victim.damage(1.0, player);
+            }
+            
+            victim.getWorld().playSound(victim.getLocation(), Sound.ITEM_ARMOR_EQUIP_CHAIN, 1.0f, 0.6f);
+            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 0.8f, 1.8f);
+            victim.getWorld().spawnParticle(Particle.CRIT, victim.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, 0.15);
+            victim.getWorld().spawnParticle(Particle.BLOCK, victim.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, Bukkit.createBlockData(Material.IRON_BLOCK));
+            player.sendActionBar(Component.text("✦ ขวานเจาะเกราะ! (Titan Breach True Damage +" + (int) trueDamage + ")", NamedTextColor.GOLD));
+        }
+
         // Guillotine (Execute mobs under 15% HP)
         if (EnchantApplyListener.hasUnique(weapon, UniqueEnchant.GUILLOTINE)) {
             var maxHpAttr = victim.getAttribute(Attribute.MAX_HEALTH);
             double maxHp = maxHpAttr != null ? maxHpAttr.getValue() : 20.0;
             if (!(victim instanceof Player) && (victim.getHealth() / maxHp) <= 0.15) {
-                event.setDamage(victim.getHealth() * 3.0);
+                victim.setNoDamageTicks(0);
+                event.setDamage(Math.max(victim.getHealth() * 25.0, 5000.0));
                 victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.2f, 0.5f);
                 victim.getWorld().spawnParticle(Particle.BLOCK, victim.getLocation().add(0, 1, 0), 25, 0.3, 0.5, 0.3, Bukkit.createBlockData(Material.REDSTONE_BLOCK));
                 player.sendActionBar(Component.text("✦ กิโยตินปลิดชีพ! (Execute สังหารทันที)", NamedTextColor.RED));
@@ -234,12 +271,13 @@ public final class UniqueAbilityListener implements Listener {
             }
         }
 
-        // Echo Strike (35% chance to hit twice)
+        // Echo Strike (35% chance to hit twice with 100% damage)
         if (EnchantApplyListener.hasUnique(weapon, UniqueEnchant.ECHO_STRIKE) && canDamage(player, victim)) {
             if (Math.random() < 0.35) {
                 double damage = event.getFinalDamage();
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     if (victim.isValid() && !victim.isDead() && canDamage(player, victim)) {
+                        victim.setNoDamageTicks(0); // Critical: bypass invulnerability tick so 100% damage registers!
                         victim.damage(damage, player);
                         victim.getWorld().spawnParticle(Particle.SWEEP_ATTACK, victim.getLocation().add(0, 1, 0), 1);
                         victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.8f, 1.6f);
@@ -257,13 +295,28 @@ public final class UniqueAbilityListener implements Listener {
             if (hits >= 3) {
                 thunderHits.remove(player.getUniqueId());
                 victim.getWorld().strikeLightningEffect(victim.getLocation());
+                victim.setNoDamageTicks(0);
                 double trueDamage = 25.0;
-                victim.damage(trueDamage, player);
+                double oldHp = victim.getHealth();
+                double newHp = Math.max(0.0, oldHp - trueDamage);
+                victim.setHealth(newHp);
+                if (newHp <= 0.001) {
+                    victim.damage(1.0, player);
+                }
                 player.playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.8f, 1.2f);
                 player.sendActionBar(Component.text("✦ สายฟ้าทัณฑ์สวรรค์! (True Damage เจาะเกราะ)", NamedTextColor.AQUA));
             } else {
                 thunderHits.put(player.getUniqueId(), hits);
             }
+        }
+
+        // Soul Harvest (Lifesteal 5% on hit)
+        if (EnchantApplyListener.hasUnique(weapon, UniqueEnchant.SOUL_HARVEST)) {
+            double heal = Math.max(0.5, Math.min(5.0, event.getFinalDamage() * 0.05));
+            var playerMaxHp = player.getAttribute(Attribute.MAX_HEALTH);
+            double max = playerMaxHp != null ? playerMaxHp.getValue() : 20.0;
+            player.setHealth(Math.min(max, player.getHealth() + heal));
+            player.getWorld().spawnParticle(Particle.SOUL, player.getLocation().add(0, 1.2, 0), 4, 0.15, 0.15, 0.15, 0.02);
         }
 
         // Vampiric (Lifesteal 15% of damage)
@@ -301,11 +354,16 @@ public final class UniqueAbilityListener implements Listener {
             Location start = player.getEyeLocation();
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 0.7f);
 
+            Set<UUID> hitTargets = new HashSet<>();
             for (double d = 1.0; d <= 7.0; d += 1.0) {
                 Location point = start.clone().add(dir.clone().multiply(d));
+                if (point.getBlock().getType().isSolid()) {
+                    point.getWorld().spawnParticle(Particle.BLOCK, point, 8, 0.2, 0.2, 0.2, Bukkit.createBlockData(point.getBlock().getType()));
+                    break; // Solid block obstruction: air blade does not phase through solid walls!
+                }
                 point.getWorld().spawnParticle(Particle.SWEEP_ATTACK, point, 1);
                 for (Entity e : point.getNearbyEntities(1.5, 1.5, 1.5)) {
-                    if (e instanceof LivingEntity m && !e.equals(player) && !(e instanceof ArmorStand)) {
+                    if (e instanceof LivingEntity m && canDamage(player, m) && hitTargets.add(m.getUniqueId())) {
                         m.damage(18.0, player);
                         com.example.voidscape.compat.PlayerImpulse.apply(plugin, m, dir.clone().multiply(0.4).setY(0.2));
                     }
@@ -338,17 +396,22 @@ public final class UniqueAbilityListener implements Listener {
     // ⛏️ 3. MINING & TOOLS ENCHANTS
     // ==========================================
 
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onToolInteract(PlayerInteractEvent event) {
-        if (!event.getAction().isRightClick()) return;
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockDamage(org.bukkit.event.block.BlockDamageEvent event) {
         Player player = event.getPlayer();
         ItemStack tool = player.getInventory().getItemInMainHand();
         if (tool == null || !tool.hasItemMeta()) return;
 
-        // Bedrock Resonance (Sonar Radar on Right-Click)
+        // Virtual Efficiency Bonus (Levels 6-10)
+        int lbEff = plugin.relics().getLimitBreakLevel(tool, LimitBreakType.EFFICIENCY);
+        if (lbEff > 5) {
+            int amp = lbEff >= 8 ? 1 : 0;
+            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 45, amp, false, false, false));
+        }
+
+        // Advance Tool (Haste boost for ultra-fast digging on all platforms & Bedrock)
         if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.ADVANCE_TOOL)) {
-            event.setCancelled(true);
-            triggerBedrockSonar(player, player.getLocation().getBlock(), true);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 45, 1, false, false, false));
         }
     }
 
@@ -362,32 +425,27 @@ public final class UniqueAbilityListener implements Listener {
 
         Block origin = event.getBlock();
 
-        // 1. Bedrock Resonance (Passive sonar ping while mining)
-        if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.ADVANCE_TOOL)) {
-            triggerBedrockSonar(player, origin, false);
-        }
-
-        // 2. Demeter's Scythe (9x9 auto harvest & replant for Hoes)
+        // 1. Demeter's Scythe (9x9 auto harvest & replant for Hoes)
         if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.DEMETER_SCYTHE) && origin.getBlockData() instanceof Ageable) {
             event.setCancelled(true);
             harvestCropsArea(player, origin);
             return;
         }
 
-        // 3. Timber Titan (Fell whole tree for Axes)
+        // 2. Timber Titan / Titan Breach (Fell whole tree for Axes)
         if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.TITAN_BREACH) && Tag.LOGS.isTagged(origin.getType())) {
             fellTree(player, origin);
             return;
         }
 
-        // 4. Vein Smelter (Vein miner + auto smelt + fortune into inventory)
+        // 3. Vein Smelter (Vein miner + auto smelt + fortune into inventory)
         if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.VEIN_SMELTER) && isOre(origin.getType())) {
             event.setDropItems(false);
             mineVeinSmelt(player, origin);
             return;
         }
 
-        // 5. Seismic Slam (3x3 mining for Pickaxes)
+        // 4. Seismic Slam (3x3 mining for Pickaxes)
         if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.SEISMIC_SLAM) && !player.isSneaking() && Tag.MINEABLE_PICKAXE.isTagged(origin.getType())) {
             RayTraceResult ray = player.rayTraceBlocks(5.5);
             var face = ray != null ? ray.getHitBlockFace() : null;
@@ -415,6 +473,17 @@ public final class UniqueAbilityListener implements Listener {
                     int add = 1 + (int) (Math.random() * Math.min(extra, 3));
                     dropStack.setAmount(Math.min(dropStack.getMaxStackSize(), dropStack.getAmount() + add));
                     itemEntity.setItemStack(dropStack);
+                }
+            }
+        }
+
+        // Vein Smelter: Auto-smelt drops
+        if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.VEIN_SMELTER)) {
+            for (Item itemEntity : event.getItems()) {
+                ItemStack dropStack = itemEntity.getItemStack();
+                ItemStack smelted = smeltItem(dropStack);
+                if (smelted != null) {
+                    itemEntity.setItemStack(smelted);
                 }
             }
         }
@@ -553,25 +622,39 @@ public final class UniqueAbilityListener implements Listener {
     private void harvestCropsArea(Player player, Block origin) {
         recursiveBreaking.add(player.getUniqueId());
         try {
+            ItemStack tool = player.getInventory().getItemInMainHand();
+            boolean hasTelepathy = EnchantApplyListener.hasUnique(tool, UniqueEnchant.TELEPATHY);
+            int count = 0;
             for (int x = -4; x <= 4; x++) {
                 for (int z = -4; z <= 4; z++) {
                     Block b = origin.getRelative(x, 0, z);
+                    if (!b.getWorld().getWorldBorder().isInside(b.getLocation())) continue;
+                    if (b.getState() instanceof org.bukkit.inventory.InventoryHolder) continue;
                     if (b.getBlockData() instanceof Ageable ageable) {
                         if (ageable.getAge() >= ageable.getMaximumAge()) {
+                            count++;
                             // Drop mature crops with x2 multiplier
-                            for (ItemStack drop : b.getDrops(player.getInventory().getItemInMainHand(), player)) {
+                            for (ItemStack drop : b.getDrops(tool, player)) {
                                 drop.setAmount(drop.getAmount() * 2);
-                                b.getWorld().dropItemNaturally(b.getLocation().add(0.5, 0.3, 0.5), drop);
+                                if (hasTelepathy) {
+                                    var leftover = player.getInventory().addItem(drop);
+                                    leftover.values().forEach(rem -> b.getWorld().dropItemNaturally(b.getLocation().add(0.5, 0.3, 0.5), rem));
+                                } else {
+                                    b.getWorld().dropItemNaturally(b.getLocation().add(0.5, 0.3, 0.5), drop);
+                                }
                             }
                             ageable.setAge(0); // Replant
                             b.setBlockData(ageable);
-                            b.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, b.getLocation().add(0.5, 0.5, 0.5), 3);
+                            b.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, b.getLocation().add(0.5, 0.5, 0.5), 2);
                         }
                     }
                 }
             }
-            player.playSound(origin.getLocation(), Sound.BLOCK_CROP_BREAK, 1.0f, 1.2f);
-            player.sendActionBar(Component.text("✦ เคียวเทพกสิกรรม! (เก็บเกี่ยวและปลูกคืน 9×9 อัตโนมัติ)", NamedTextColor.GREEN));
+            if (count > 0) {
+                damageTool(player, tool, Math.max(1, count / 4));
+                player.playSound(origin.getLocation(), Sound.BLOCK_CROP_BREAK, 1.0f, 1.2f);
+                player.sendActionBar(Component.text("✦ เคียวเทพกสิกรรม! (เก็บเกี่ยวและปลูกคืน 9×9 อัตโนมัติ " + count + " แปลง)", NamedTextColor.GREEN));
+            }
         } finally {
             recursiveBreaking.remove(player.getUniqueId());
         }
@@ -588,6 +671,8 @@ public final class UniqueAbilityListener implements Listener {
 
             while (!queue.isEmpty() && count < 256) {
                 Block curr = queue.poll();
+                if (curr.getState() instanceof org.bukkit.inventory.InventoryHolder) continue;
+                if (!curr.getWorld().getWorldBorder().isInside(curr.getLocation())) continue;
                 count++;
                 player.breakBlock(curr);
 
@@ -627,6 +712,14 @@ public final class UniqueAbilityListener implements Listener {
 
             while (!queue.isEmpty() && count < 32) {
                 Block curr = queue.poll();
+                if (curr.getState() instanceof org.bukkit.inventory.InventoryHolder) continue;
+                if (!curr.getWorld().getWorldBorder().isInside(curr.getLocation())) continue;
+                if (count > 0 && !curr.equals(origin)) {
+                    // Check protection plugins / anti-cheat
+                    BlockBreakEvent testEvent = new BlockBreakEvent(curr, player);
+                    Bukkit.getPluginManager().callEvent(testEvent);
+                    if (testEvent.isCancelled()) continue;
+                }
                 count++;
 
                 // Retrieve drops taking player's tool and Fortune enchant into account
@@ -709,12 +802,36 @@ public final class UniqueAbilityListener implements Listener {
                     if (a == 0 && b == 0) continue;
                     Block block = face.getModY() != 0 ? origin.getRelative(a, 0, b)
                         : face.getModX() != 0 ? origin.getRelative(0, a, b) : origin.getRelative(a, b, 0);
+                    if (block.getState() instanceof org.bukkit.inventory.InventoryHolder) continue;
+                    if (!block.getWorld().getWorldBorder().isInside(block.getLocation())) continue;
                     if (!Tag.MINEABLE_PICKAXE.isTagged(block.getType()) || block.getType().getHardness() < 0) continue;
                     player.breakBlock(block);
                 }
             }
         } finally {
             recursiveBreaking.remove(player.getUniqueId());
+        }
+    }
+
+    private void damageTool(Player player, ItemStack tool, int amount) {
+        if (tool == null || !tool.hasItemMeta() || player.getGameMode() != GameMode.SURVIVAL) return;
+        if (plugin.relics().isEternityItem(tool)) return;
+        if (tool.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg) {
+            int unbreaking = tool.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.UNBREAKING);
+            int finalDmg = 0;
+            for (int i = 0; i < amount; i++) {
+                if (Math.random() < (1.0 / (unbreaking + 1))) {
+                    finalDmg++;
+                }
+            }
+            if (finalDmg > 0) {
+                dmg.setDamage(dmg.getDamage() + finalDmg);
+                tool.setItemMeta(dmg);
+                if (dmg.getDamage() >= tool.getType().getMaxDurability()) {
+                    tool.setAmount(0);
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                }
+            }
         }
     }
 
@@ -793,6 +910,16 @@ public final class UniqueAbilityListener implements Listener {
                     player.setHealth(maxHp * 0.5);
                     player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 20 * 60, 0));
                     player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 20 * 30, 1));
+
+                    if (event.getCause() == EntityDamageEvent.DamageCause.VOID) {
+                        Location safeLoc = player.getRespawnLocation();
+                        if (safeLoc == null) {
+                            safeLoc = player.getWorld().getSpawnLocation();
+                        }
+                        player.teleport(safeLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                        player.setVelocity(new Vector(0, 0, 0));
+                        player.setFallDistance(0);
+                    }
 
                     // Fire knockback wave
                     Location pLoc = player.getLocation();
@@ -881,38 +1008,24 @@ public final class UniqueAbilityListener implements Listener {
         }
     }
 
-    // Soulbound (Prevent gear drop on death)
+    // Soulbound (Prevent gear drop on death natively via Paper getItemsToKeep)
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        List<ItemStack> saved = new ArrayList<>();
+        int savedCount = 0;
         Iterator<ItemStack> it = event.getDrops().iterator();
 
         while (it.hasNext()) {
             ItemStack drop = it.next();
             if (EnchantApplyListener.hasUnique(drop, UniqueEnchant.SOULBOUND)) {
-                saved.add(drop);
+                event.getItemsToKeep().add(drop);
                 it.remove();
+                savedCount++;
             }
         }
 
-        if (!saved.isEmpty()) {
-            soulboundStash.put(player.getUniqueId(), saved);
-            player.sendMessage(Component.text("✦ [Soulbound] ไอเทมวิญญาณสถิต " + saved.size() + " ชิ้นได้รับการคุ้มครอง", NamedTextColor.LIGHT_PURPLE));
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerRespawn(PlayerRespawnEvent event) {
-        Player player = event.getPlayer();
-        List<ItemStack> saved = soulboundStash.remove(player.getUniqueId());
-        if (saved != null && !saved.isEmpty()) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                for (ItemStack item : saved) {
-                    player.getInventory().addItem(item);
-                }
-                player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_NETHERITE, 1.0f, 1.0f);
-            });
+        if (savedCount > 0) {
+            player.sendMessage(Component.text("✦ [Soulbound] ไอเทมวิญญาณสถิต " + savedCount + " ชิ้นได้รับการคุ้มครองข้ามความตาย", NamedTextColor.LIGHT_PURPLE));
         }
     }
 
@@ -951,18 +1064,6 @@ public final class UniqueAbilityListener implements Listener {
                     drop.setAmount(Math.min(drop.getMaxStackSize(), drop.getAmount() + Math.min(extra, 3)));
                 }
             }
-        }
-    }
-
-    // Virtual Efficiency Bonus (Levels 6-10)
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onBlockDamageEfficiency(org.bukkit.event.block.BlockDamageEvent event) {
-        Player player = event.getPlayer();
-        ItemStack tool = player.getInventory().getItemInMainHand();
-        int lbEff = plugin.relics().getLimitBreakLevel(tool, LimitBreakType.EFFICIENCY);
-        if (lbEff > 5) {
-            int amp = lbEff >= 8 ? 1 : 0;
-            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 45, amp, false, false, false));
         }
     }
 }
