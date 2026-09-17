@@ -440,7 +440,8 @@ public final class CropBuffListener implements Listener, AutoCloseable {
     }
 
     private boolean handleAncientAstralRoot(Player p) {
-        long currentFullTime = p.getWorld().getFullTime();
+        World rootWorld = Bukkit.getWorlds().isEmpty() ? p.getWorld() : Bukkit.getWorlds().get(0);
+        long currentFullTime = rootWorld.getFullTime();
         long currentDay = currentFullTime / 24000L;
         var pdc = p.getPersistentDataContainer();
         NamespacedKey lastKey = plugin.key("last_astral_day");
@@ -506,7 +507,8 @@ public final class CropBuffListener implements Listener, AutoCloseable {
     }
 
     private boolean handleYggdrasilSprout(Player p) {
-        long currentFullTime = p.getWorld().getFullTime();
+        World rootWorld = Bukkit.getWorlds().isEmpty() ? p.getWorld() : Bukkit.getWorlds().get(0);
+        long currentFullTime = rootWorld.getFullTime();
         long currentDay = currentFullTime / 24000L;
         var pdc = p.getPersistentDataContainer();
         NamespacedKey lastKey = plugin.key("last_yggdrasil_day");

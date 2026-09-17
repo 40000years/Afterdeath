@@ -97,6 +97,18 @@ public final class TravelListener implements Listener {
             }
         }
 
+        // Flower Ignition by Right-Click (convenient for Bedrock & Java players alike)
+        if(p.getWorld()!=plugin.world()&&allowedEntryWorld(p)&&isPortalFlower(hand.getType())) {
+            Block targetInner = clicked.getType()==Material.QUARTZ_BLOCK ? clicked.getRelative(e.getBlockFace()) : clicked;
+            if(tryIgnitePortal(targetInner, p) || (targetInner!=clicked && tryIgnitePortal(clicked, p))) {
+                e.setCancelled(true);
+                if(p.getGameMode()!=GameMode.CREATIVE) {
+                    hand.subtract(1);
+                    p.updateInventory();
+                }
+                return;
+            }
+        }
     }
 
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
@@ -434,6 +446,12 @@ public final class TravelListener implements Listener {
         if(p.getGameMode()==GameMode.CREATIVE||p.getGameMode()==GameMode.SPECTATOR)return;
         long now=System.currentTimeMillis();
         if(plugin.relics().immune(p)||pending.getOrDefault(p.getUniqueId(),0L)>now){e.setCancelled(true);return;}
+        // Void rescue: safe return if falling into the void
+        if(e.getCause()==EntityDamageEvent.DamageCause.VOID || p.getLocation().getY() < 0) {
+            e.setCancelled(true);
+            leave(p, true);
+            return;
+        }
         // Safe fall damage inside void dimension (helps with Elytra gliding)
         if(e.getCause()==EntityDamageEvent.DamageCause.FALL) {
             if(fallGrace.getOrDefault(p.getUniqueId(),0L)>now) { e.setCancelled(true); return; }

@@ -30,7 +30,11 @@ if ($LASTEXITCODE -ne 0) { throw 'JAR packaging failed.' }
 $distDir = Join-Path $moduleRoot 'dist'
 New-Item -ItemType Directory -Force -Path $distDir | Out-Null
 Copy-Item -LiteralPath $builtJar -Destination (Join-Path $distDir 'advance-magic-1.0.0.jar') -Force
-Copy-Item -LiteralPath $builtJar -Destination (Join-Path $workspaceRoot 'advance-magic.jar') -Force
+try {
+    Copy-Item -LiteralPath $builtJar -Destination (Join-Path $workspaceRoot 'advance-magic.jar') -Force
+} catch {
+    Write-Warning "Root advance-magic.jar is locked by IDE, skipping root copy."
+}
 
 $testServerPlugin = 'C:\Users\User\Desktop\TestServer\plugins\advance-magic.jar'
 if (Test-Path (Split-Path $testServerPlugin -Parent)) {

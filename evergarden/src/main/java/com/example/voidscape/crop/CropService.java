@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
@@ -621,6 +622,14 @@ public final class CropService implements Listener, AutoCloseable {
         Block b = e.getClickedBlock();
         if (b == null || b.getType() != Material.FARMLAND) return;
         if (getCropAt(b.getRelative(BlockFace.UP).getLocation()) != null) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onMobTrample(EntityInteractEvent e) {
+        Block b = e.getBlock();
+        if (b.getType() == Material.FARMLAND && getCropAt(b.getRelative(BlockFace.UP).getLocation()) != null) {
             e.setCancelled(true);
         }
     }

@@ -855,6 +855,18 @@ public final class DungeonManager implements Listener {
             if(protectedBlock(e.getClickedBlock())&&!canBypassProtection(e.getPlayer())) {
                 e.setCancelled(true);
             }
+        } else if(e.getAction()==Action.RIGHT_CLICK_BLOCK&&e.getClickedBlock()!=null) {
+            if(protectedBlock(e.getClickedBlock())&&!canBypassProtection(e.getPlayer())) {
+                ItemStack item = e.getItem();
+                if(item != null) {
+                    String name = item.getType().name();
+                    if(name.endsWith("_HOE") || name.endsWith("_SHOVEL") || name.endsWith("_AXE")
+                        || item.getType() == Material.FLINT_AND_STEEL || item.getType() == Material.FIRE_CHARGE) {
+                        e.setCancelled(true);
+                        e.getPlayer().sendActionBar(Component.text("✦ เกาะหลัก (Spawn Island) ได้รับการคุ้มครอง ไม่อนุญาตให้ดัดแปลงบล็อก", NamedTextColor.RED));
+                    }
+                }
+            }
         }
     }
 
