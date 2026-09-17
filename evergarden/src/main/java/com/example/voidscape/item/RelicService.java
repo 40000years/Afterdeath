@@ -720,6 +720,13 @@ public final class RelicService implements Listener {
         }
 
         if (repairStones == 1 && damagedEquipCount == 1 && totalItems == 2) {
+            consumeMatrixIngredients(inv);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (p.isOnline()) {
+                    consumeMatrixIngredients(inv);
+                    p.updateInventory();
+                }
+            });
             p.playSound(p.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 1.0f, 1.2f);
             p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.05);
             p.sendActionBar(Component.text("✦ ศิลาฟื้นฟูมิติ ซ่อมแซมความทนทาน 500 หน่วย!", NamedTextColor.GREEN));
@@ -727,11 +734,83 @@ public final class RelicService implements Listener {
         }
 
         if (scrollCount == 1 && totalItems == 2) {
+            consumeMatrixIngredients(inv);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (p.isOnline()) {
+                    consumeMatrixIngredients(inv);
+                    p.updateInventory();
+                }
+            });
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.25f);
             p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.35f);
             p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1.2, 0), 25, 0.35, 0.35, 0.35, 0.1);
             p.sendActionBar(Component.text("✦ ปลุกเสกมนตราผ่านโต๊ะคราฟต์สำเร็จ!", NamedTextColor.GREEN));
             return;
+        }
+    }
+
+    public void consumeMatrixIngredients(CraftingInventory inv) {
+        ItemStack[] matrix = inv.getMatrix();
+        boolean changed = false;
+        for (int i = 0; i < matrix.length; i++) {
+            ItemStack it = matrix[i];
+            if (it != null && !it.getType().isAir()) {
+                int amount = it.getAmount() - 1;
+                if (amount <= 0) {
+                    matrix[i] = null;
+                } else {
+                    it.setAmount(amount);
+                    matrix[i] = it;
+                }
+                changed = true;
+            }
+        }
+        if (changed) {
+            inv.setMatrix(matrix);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onCraftResultClick(org.bukkit.event.inventory.InventoryClickEvent e) {
+        if (e instanceof org.bukkit.event.inventory.CraftItemEvent) return; // Handled authoritatively by onCraftItem
+        if (!(e.getWhoClicked() instanceof Player p)) return;
+        if (!(e.getInventory() instanceof CraftingInventory inv)) return;
+        if (e.getSlotType() != org.bukkit.event.inventory.InventoryType.SlotType.RESULT && e.getRawSlot() != 0) return;
+
+        // Prevent number-key swap, drop, or non-standard clicks from duping custom crafts
+        if (e.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY
+            || e.getClick() == org.bukkit.event.inventory.ClickType.DROP
+            || e.getClick() == org.bukkit.event.inventory.ClickType.CONTROL_DROP
+            || e.getClick() == org.bukkit.event.inventory.ClickType.SWAP_OFFHAND) {
+            e.setCancelled(true);
+            return;
+        }
+
+        ItemStack result = inv.getResult();
+        if (result == null || result.getType().isAir()) return;
+
+        ItemStack[] matrix = inv.getMatrix();
+        int totalItems = 0;
+        int scrollCount = 0;
+        int repairStones = 0;
+        int damagedEquipCount = 0;
+
+        for (ItemStack it : matrix) {
+            if (it == null || it.getType().isAir()) continue;
+            totalItems++;
+            if (isRepairStone(it)) repairStones++;
+            else if (isScrollEternity(it) || getLimitBreakType(it) != null || getUniqueEnchant(it) != null) scrollCount++;
+            else if (it.hasItemMeta() && it.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg && dmg.getDamage() > 0) damagedEquipCount++;
+        }
+
+        if ((scrollCount == 1 && totalItems == 2) || (repairStones == 1 && damagedEquipCount == 1 && totalItems == 2)) {
+            consumeMatrixIngredients(inv);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (p.isOnline()) {
+                    consumeMatrixIngredients(inv);
+                    p.updateInventory();
+                }
+            });
         }
     }
 
