@@ -249,23 +249,23 @@ def main():
   if base=='bow':model['parent']='minecraft:item/bow'
   if base=='shield':
    model['display']={
-    'thirdperson_righthand':{'rotation':[0,90,0],'translation':[10.51,6,-4],'scale':[1,1,1]},
-    'thirdperson_lefthand':{'rotation':[0,90,0],'translation':[10.51,6,12],'scale':[1,1,1]},
-    'firstperson_righthand':{'rotation':[0,180,5],'translation':[-10,2,-10],'scale':[1.25,1.25,1.25]},
-    'firstperson_lefthand':{'rotation':[0,180,5],'translation':[10,0,-10],'scale':[1.25,1.25,1.25]},
+    'thirdperson_righthand':{'rotation':[0,0,0],'translation':[0,2,1],'scale':[1,1,1]},
+    'thirdperson_lefthand':{'rotation':[0,0,0],'translation':[0,2,1],'scale':[1,1,1]},
+    'firstperson_righthand':{'rotation':[0,0,0],'translation':[2,-1,-2],'scale':[1.1,1.1,1.1]},
+    'firstperson_lefthand':{'rotation':[0,0,0],'translation':[-2,-1,-2],'scale':[1.1,1.1,1.1]},
     'gui':{'rotation':[0,0,0],'translation':[0,0,0],'scale':[1,1,1]},
-    'fixed':{'rotation':[0,180,0],'translation':[0,0,0],'scale':[1,1,1]},
+    'fixed':{'rotation':[0,0,0],'translation':[0,0,0],'scale':[1,1,1]},
     'ground':{'rotation':[0,0,0],'translation':[0,2,0],'scale':[0.5,0.5,0.5]}}
    blocking_model={
     'parent':'minecraft:item/'+parent,
     'textures':{'layer0':'voidscape:item/'+name},
     'display':{
-     'thirdperson_righthand':{'rotation':[45,155,0],'translation':[-3.49,11,-2],'scale':[1,1,1]},
-     'thirdperson_lefthand':{'rotation':[45,155,0],'translation':[11.51,7,2.5],'scale':[1,1,1]},
-     'firstperson_righthand':{'rotation':[0,180,-5],'translation':[-15,5,-11],'scale':[1.25,1.25,1.25]},
-     'firstperson_lefthand':{'rotation':[0,180,-5],'translation':[5,5,-11],'scale':[1.25,1.25,1.25]},
+     'thirdperson_righthand':{'rotation':[0,0,0],'translation':[0,3,1],'scale':[1,1,1]},
+     'thirdperson_lefthand':{'rotation':[0,0,0],'translation':[0,3,1],'scale':[1,1,1]},
+     'firstperson_righthand':{'rotation':[0,0,0],'translation':[-3,2,-4],'scale':[1.25,1.25,1.25]},
+     'firstperson_lefthand':{'rotation':[0,0,0],'translation':[3,2,-4],'scale':[1.25,1.25,1.25]},
      'gui':{'rotation':[0,0,0],'translation':[0,0,0],'scale':[1,1,1]},
-     'fixed':{'rotation':[0,180,0],'translation':[0,0,0],'scale':[1,1,1]},
+     'fixed':{'rotation':[0,0,0],'translation':[0,0,0],'scale':[1,1,1]},
      'ground':{'rotation':[0,0,0],'translation':[0,2,0],'scale':[0.5,0.5,0.5]}}}
    write_json(java/f'assets/voidscape/models/item/{name}_blocking.json',blocking_model)
   if name in MASKS:

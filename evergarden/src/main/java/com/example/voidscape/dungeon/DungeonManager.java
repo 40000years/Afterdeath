@@ -49,7 +49,7 @@ public final class DungeonManager implements Listener {
     private final Map<UUID,String> seen=new HashMap<>();
     private final Map<Block,Long> tempWebs=new HashMap<>();
     private final Map<UUID,BossBar> trueDeathBars=new HashMap<>();
-    private final NamespacedKey mobKey,runKey,trueDeathHitsKey,trueDeathLevelKey;
+    private final NamespacedKey mobKey,runKey,trueDeathHitsKey,trueDeathLevelKey,mobTargetHpKey,mobTargetDmgKey,mobTargetNameKey;
     private final String runId=UUID.randomUUID().toString();
     private final YamlConfiguration ledger;
     private final File file;
@@ -58,6 +58,7 @@ public final class DungeonManager implements Listener {
     public DungeonManager(VoidscapePlugin plugin)throws IOException {
         this.plugin=plugin;mobKey=plugin.key("dungeon_mob");runKey=plugin.key("runtime");
         trueDeathHitsKey=plugin.key("true_death_hits");trueDeathLevelKey=plugin.key("true_death_level");
+        mobTargetHpKey=plugin.key("target_hp");mobTargetDmgKey=plugin.key("target_dmg");mobTargetNameKey=plugin.key("target_name");
         file=new File(plugin.getDataFolder(),"dungeons.yml");
         ledger=new YamlConfiguration();
         if(file.exists())try{ledger.load(file);}catch(Exception e){throw new IOException("Cannot safely read reward ledger",e);}
@@ -319,53 +320,64 @@ public final class DungeonManager implements Listener {
             m.setRemoveWhenFarAway(false);
             m.setPersistent(true);
 
-            // Immune tags for LevelledMobs and external mob-leveling plugins
-            m.addScoreboardTag("evergarden_mob");
-            m.addScoreboardTag("no-level");
-            m.addScoreboardTag("no_level");
-            m.addScoreboardTag("lm-ignore");
-            m.addScoreboardTag("levelledmobs:ignore");
-            m.setMetadata("no-level", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
-            m.setMetadata("levelledmobs:challenge", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
-            m.setMetadata("custom-boss", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
-            m.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "no-level"), PersistentDataType.BYTE, (byte) 1);
-            m.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "ignore"), PersistentDataType.BYTE, (byte) 1);
-
             double baseHp;
             double attackDamage;
             if (species == Species.BOSS) {
-                // Boss HP scaling: 750 base + 125 per extra player (capped at 1,000 HP max to respect Paper's 1024.0 attribute clamp)
-                baseHp = Math.min(1000.0, 750.0 + Math.max(0, teamSize - 1) * 125.0);
-                attackDamage = 45.0 + Math.max(0, teamSize - 1) * 10.0;
+                double cfgBossHp = plugin.getConfig().getDouble("combat.boss-health", 1024.0);
+                baseHp = Math.min(1000.0, Math.min(cfgBossHp, 750.0 + Math.max(0, teamSize - 1) * 100.0));
+                attackDamage = plugin.getConfig().getDouble("combat.boss-attack", 27.0) + Math.max(0, teamSize - 1) * 8.0;
                 if (m.getAttribute(Attribute.ARMOR) != null) m.getAttribute(Attribute.ARMOR).setBaseValue(24.0);
                 if (m.getAttribute(Attribute.ARMOR_TOUGHNESS) != null) m.getAttribute(Attribute.ARMOR_TOUGHNESS).setBaseValue(16.0);
                 if (m.getAttribute(Attribute.KNOCKBACK_RESISTANCE) != null) m.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1.0);
                 if (m.getAttribute(Attribute.SCALE) != null) m.getAttribute(Attribute.SCALE).setBaseValue(1.8);
             } else if (species == Species.VEX) {
                 baseHp = 20.0;
-                attackDamage = 24.0;
+                attackDamage = 20.0;
                 if (m.getAttribute(Attribute.SCALE) != null) m.getAttribute(Attribute.SCALE).setBaseValue(1.30);
             } else if (species == Species.CASTER) {
-                baseHp = 250.0 + (teamSize - 1) * 80.0;
-                attackDamage = 18.0;
+                double cfgSpecHp = plugin.getConfig().getDouble("combat.specialist-health", 75.0);
+                baseHp = cfgSpecHp + Math.max(0, teamSize - 1) * 15.0;
+                attackDamage = 16.0;
             } else if (species == Species.STALKER) {
-                baseHp = 350.0 + (teamSize - 1) * 100.0;
-                attackDamage = 24.0;
-            } else { // MINION
-                baseHp = 280.0 + (teamSize - 1) * 80.0;
-                attackDamage = 20.0;
+                double cfgSpecHp = plugin.getConfig().getDouble("combat.specialist-health", 80.0);
+                baseHp = cfgSpecHp * 1.25 + Math.max(0, teamSize - 1) * 20.0;
+                attackDamage = 22.0;
+            } else { // MINION / GUARDIAN
+                double cfgGuardHp = plugin.getConfig().getDouble("combat.guardian-health", 90.0);
+                baseHp = cfgGuardHp + Math.max(0, teamSize - 1) * 20.0;
+                attackDamage = plugin.getConfig().getDouble("combat.guardian-attack", 16.0);
             }
 
-            if (species != Species.VEX) {
-                baseHp = Math.round(baseHp * 0.70);
+            baseHp = Math.round(baseHp);
+
+            // Scoreboard tags & PDC immunity for LevelledMobs / external levelers
+            m.addScoreboardTag("no-level");
+            m.addScoreboardTag("levelledmobs:ignore");
+            m.addScoreboardTag("evergarden_mob");
+            m.addScoreboardTag("custom");
+            if (species == Species.BOSS) {
+                m.addScoreboardTag("boss");
+                m.addScoreboardTag("custom-boss");
             }
+            m.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "no-level"), PersistentDataType.BYTE, (byte) 1);
+            m.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "ignore"), PersistentDataType.BYTE, (byte) 1);
+            m.getPersistentDataContainer().set(mobTargetHpKey, PersistentDataType.DOUBLE, baseHp);
+            m.getPersistentDataContainer().set(mobTargetDmgKey, PersistentDataType.DOUBLE, attackDamage);
 
             if (m.getAttribute(Attribute.MAX_HEALTH) != null) {
-                m.getAttribute(Attribute.MAX_HEALTH).setBaseValue(baseHp);
+                var hpAttr = m.getAttribute(Attribute.MAX_HEALTH);
+                for (org.bukkit.attribute.AttributeModifier mod : new ArrayList<>(hpAttr.getModifiers())) {
+                    hpAttr.removeModifier(mod);
+                }
+                hpAttr.setBaseValue(baseHp);
                 m.setHealth(baseHp);
             }
             if (m.getAttribute(Attribute.ATTACK_DAMAGE) != null) {
-                m.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(attackDamage);
+                var dmgAttr = m.getAttribute(Attribute.ATTACK_DAMAGE);
+                for (org.bukkit.attribute.AttributeModifier mod : new ArrayList<>(dmgAttr.getModifiers())) {
+                    dmgAttr.removeModifier(mod);
+                }
+                dmgAttr.setBaseValue(attackDamage);
             }
 
             String name = species == Species.BOSS ?
@@ -373,6 +385,7 @@ public final class DungeonManager implements Listener {
                  enc.site.kind() == DungeonLayout.Kind.SANCTUM_ASTRAL ? "อัครเทวทูตดวงดาว (Astral Archon)" : "ผู้พิทักษ์กาลเวลา (Chronos Vanguard)") :
                 (species == Species.VEX ? "วิญญาณรังควานแห่งความว่างเปล่า (Void Vex)" :
                  species == Species.CASTER ? "ภูตพลังเวท" : species == Species.MINION ? "อัศวินแห่งวิหาร" : "นักล่ามิติ");
+            m.getPersistentDataContainer().set(mobTargetNameKey, PersistentDataType.STRING, name);
             m.customName(Component.text(name, species == Species.BOSS ? NamedTextColor.GOLD : species == Species.VEX ? NamedTextColor.RED : NamedTextColor.LIGHT_PURPLE));
             m.setCustomNameVisible(true);
 
@@ -405,19 +418,9 @@ public final class DungeonManager implements Listener {
         owners.put(mob.getUniqueId(),enc);
 
         // Schedule LevelledMobs immunity check 1 tick later to strip any external level modifications
-        final double finalHp = species == Species.VEX ? 20.0 : Math.round((species == Species.BOSS ? Math.min(1000.0, 750.0 + Math.max(0, teamSize - 1) * 125.0) :
-            species == Species.CASTER ? 250.0 + (teamSize - 1) * 80.0 :
-            species == Species.STALKER ? 350.0 + (teamSize - 1) * 100.0 :
-            280.0 + (teamSize - 1) * 80.0) * 0.70);
-        final double finalDmg = species == Species.BOSS ? 45.0 + Math.max(0, teamSize - 1) * 10.0 :
-            species == Species.VEX ? 24.0 :
-            species == Species.STALKER ? 24.0 :
-            species == Species.CASTER ? 18.0 : 20.0;
-        final String finalName = species == Species.BOSS ?
-            (enc.site.kind() == DungeonLayout.Kind.SANCTUM_DARK ? "จอมมารแห่งความมืด (Shadow Overlord)" :
-             enc.site.kind() == DungeonLayout.Kind.SANCTUM_ASTRAL ? "อัครเทวทูตดวงดาว (Astral Archon)" : "ผู้พิทักษ์กาลเวลา (Chronos Vanguard)") :
-            (species == Species.VEX ? "วิญญาณรังควานแห่งความว่างเปล่า (Void Vex)" :
-             species == Species.CASTER ? "ภูตพลังเวท" : species == Species.MINION ? "อัศวินแห่งวิหาร" : "นักล่ามิติ");
+        final double finalHp = mob.getPersistentDataContainer().getOrDefault(mobTargetHpKey, PersistentDataType.DOUBLE, 90.0);
+        final double finalDmg = mob.getPersistentDataContainer().getOrDefault(mobTargetDmgKey, PersistentDataType.DOUBLE, 16.0);
+        final String finalName = mob.getPersistentDataContainer().getOrDefault(mobTargetNameKey, PersistentDataType.STRING, "อัศวินแห่งวิหาร");
         final NamedTextColor finalColor = species == Species.BOSS ? NamedTextColor.GOLD : species == Species.VEX ? NamedTextColor.RED : NamedTextColor.LIGHT_PURPLE;
 
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
@@ -427,52 +430,110 @@ public final class DungeonManager implements Listener {
         return mob;
     }
 
-    private void cleanseAndLockMob(Mob mob, double targetHp, double targetDmg, String targetName, NamedTextColor color, boolean isBoss) {
+    public void cleanseAndLockMob(Mob mob, double targetHp, double targetDmg, String targetName, NamedTextColor color, boolean isBoss) {
         if (mob == null || !mob.isValid() || mob.isDead()) return;
 
         // 1. Strip external LevelledMobs or leveler PDC tags
         try {
             for (NamespacedKey key : mob.getPersistentDataContainer().getKeys()) {
                 String ns = key.getNamespace().toLowerCase(Locale.ROOT);
-                if (ns.contains("levelledmobs") || ns.equals("lm") || key.getKey().toLowerCase(Locale.ROOT).contains("level")) {
-                    if (!key.equals(trueDeathHitsKey) && !key.equals(trueDeathLevelKey) && !key.equals(mobKey) && !key.equals(runKey)) {
+                String k = key.getKey().toLowerCase(Locale.ROOT);
+                if (ns.contains("levelledmobs") || ns.equals("lm") || k.contains("level")) {
+                    if (!key.equals(trueDeathHitsKey) && !key.equals(trueDeathLevelKey)
+                        && !key.equals(mobKey) && !key.equals(runKey)
+                        && !key.equals(mobTargetHpKey) && !key.equals(mobTargetDmgKey) && !key.equals(mobTargetNameKey)) {
                         mob.getPersistentDataContainer().remove(key);
                     }
                 }
             }
         } catch (Exception ignored) {}
 
+        // Ensure immunity tags
+        mob.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "no-level"), PersistentDataType.BYTE, (byte) 1);
+        mob.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "ignore"), PersistentDataType.BYTE, (byte) 1);
+        mob.addScoreboardTag("no-level");
+        mob.addScoreboardTag("levelledmobs:ignore");
+        mob.addScoreboardTag("evergarden_mob");
+        mob.addScoreboardTag("custom");
+        if (isBoss) {
+            mob.addScoreboardTag("boss");
+            mob.addScoreboardTag("custom-boss");
+        }
+
         // 2. Strip external LevelledMobs metadata
-        for (String metaKey : List.of("levelledmobs:level", "levelledmobs", "lm_level", "mob_level")) {
+        for (String metaKey : List.of("levelledmobs:level", "levelledmobs", "lm_level", "mob_level", "lm_custom")) {
             if (mob.hasMetadata(metaKey)) {
                 mob.removeMetadata(metaKey, plugin);
             }
         }
 
-        // 3. Enforce Max Health and Health clamp
+        // 3. Strip ALL AttributeModifiers and enforce Max Health and Health clamp
         var hpAttr = mob.getAttribute(Attribute.MAX_HEALTH);
-        if (hpAttr != null && hpAttr.getBaseValue() != targetHp) {
+        if (hpAttr != null) {
+            for (org.bukkit.attribute.AttributeModifier mod : new ArrayList<>(hpAttr.getModifiers())) {
+                hpAttr.removeModifier(mod);
+            }
             hpAttr.setBaseValue(targetHp);
             if (mob.getHealth() > targetHp) {
                 mob.setHealth(targetHp);
             }
         }
 
-        // 4. Enforce Attack Damage
+        // 4. Strip ALL AttributeModifiers and enforce Attack Damage
         var dmgAttr = mob.getAttribute(Attribute.ATTACK_DAMAGE);
-        if (dmgAttr != null && dmgAttr.getBaseValue() != targetDmg) {
+        if (dmgAttr != null) {
+            for (org.bukkit.attribute.AttributeModifier mod : new ArrayList<>(dmgAttr.getModifiers())) {
+                dmgAttr.removeModifier(mod);
+            }
             dmgAttr.setBaseValue(targetDmg);
         }
 
-        // 5. Enforce Boss Armor
-        if (isBoss) {
-            if (mob.getAttribute(Attribute.ARMOR) != null) mob.getAttribute(Attribute.ARMOR).setBaseValue(24.0);
-            if (mob.getAttribute(Attribute.ARMOR_TOUGHNESS) != null) mob.getAttribute(Attribute.ARMOR_TOUGHNESS).setBaseValue(16.0);
+        // 5. Cleanse Armor & Toughness modifiers
+        var armorAttr = mob.getAttribute(Attribute.ARMOR);
+        if (armorAttr != null) {
+            for (org.bukkit.attribute.AttributeModifier mod : new ArrayList<>(armorAttr.getModifiers())) {
+                armorAttr.removeModifier(mod);
+            }
+            if (isBoss) armorAttr.setBaseValue(24.0);
+        }
+        var toughAttr = mob.getAttribute(Attribute.ARMOR_TOUGHNESS);
+        if (toughAttr != null) {
+            for (org.bukkit.attribute.AttributeModifier mod : new ArrayList<>(toughAttr.getModifiers())) {
+                toughAttr.removeModifier(mod);
+            }
+            if (isBoss) toughAttr.setBaseValue(16.0);
         }
 
         // 6. Restore pristine Custom Name without LevelledMobs [Lvl ...] prefix
-        mob.customName(Component.text(targetName, color));
-        mob.setCustomNameVisible(true);
+        if (targetName != null) {
+            mob.customName(Component.text(targetName, color != null ? color : (isBoss ? NamedTextColor.GOLD : NamedTextColor.LIGHT_PURPLE)));
+            mob.setCustomNameVisible(true);
+        }
+    }
+
+    public void cleanseMobIfTagged(Mob mob) {
+        if (mob == null || !mob.isValid() || mob.isDead()) return;
+        Double targetHp = mob.getPersistentDataContainer().get(mobTargetHpKey, PersistentDataType.DOUBLE);
+        if (targetHp == null || targetHp <= 0) return;
+        Double targetDmg = mob.getPersistentDataContainer().get(mobTargetDmgKey, PersistentDataType.DOUBLE);
+        if (targetDmg == null) targetDmg = 16.0;
+        String targetName = mob.getPersistentDataContainer().get(mobTargetNameKey, PersistentDataType.STRING);
+        boolean isBoss = owners.containsKey(mob.getUniqueId()) && owners.get(mob.getUniqueId()).mobs.get(mob.getUniqueId()) == Species.BOSS;
+
+        var hpAttr = mob.getAttribute(Attribute.MAX_HEALTH);
+        boolean needsCleanse = false;
+        if (hpAttr != null) {
+            if (!hpAttr.getModifiers().isEmpty() || hpAttr.getBaseValue() != targetHp || mob.getHealth() > targetHp) {
+                needsCleanse = true;
+            }
+        }
+        if (mob.hasMetadata("levelledmobs") || mob.hasMetadata("levelledmobs:level") || mob.hasMetadata("lm_level")) {
+            needsCleanse = true;
+        }
+
+        if (needsCleanse) {
+            cleanseAndLockMob(mob, targetHp, targetDmg, targetName, null, isBoss);
+        }
     }
 
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
@@ -767,6 +828,7 @@ public final class DungeonManager implements Listener {
                 if(enc.bossStarted)spawnBoss(enc);else startWave(enc,Math.max(1,enc.wave));
             }
             for(Player p:team){enc.presence.merge(p.getUniqueId(),1,Integer::sum);combatUntil.put(p.getUniqueId(),now+10000);}
+            for(UUID id:enc.mobs.keySet()){if(Bukkit.getEntity(id) instanceof Mob m&&m.isValid()&&!m.isDead()){cleanseMobIfTagged(m);}}
 
             if(enc.bar!=null) {
                 for(Player p:new ArrayList<>(enc.bar.getPlayers()))if(!team.contains(p))enc.bar.removePlayer(p);
@@ -1193,6 +1255,27 @@ public final class DungeonManager implements Listener {
                 || cause == EntityDamageEvent.DamageCause.FALL) {
                 e.setCancelled(true);
             }
+        }
+    }
+
+    @EventHandler(priority=EventPriority.LOWEST)
+    public void onMobCombatLowest(EntityDamageEvent e) {
+        if (e.getEntity() instanceof Mob mob && mob.getPersistentDataContainer().has(mobKey)) {
+            cleanseMobIfTagged(mob);
+        }
+    }
+
+    @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+    public void onMobCombatMonitor(EntityDamageEvent e) {
+        if (e.getEntity() instanceof Mob mob && mob.getPersistentDataContainer().has(mobKey)) {
+            cleanseMobIfTagged(mob);
+        }
+    }
+
+    @EventHandler(priority=EventPriority.LOWEST)
+    public void onMobTarget(org.bukkit.event.entity.EntityTargetLivingEntityEvent e) {
+        if (e.getEntity() instanceof Mob mob && mob.getPersistentDataContainer().has(mobKey)) {
+            cleanseMobIfTagged(mob);
         }
     }
 

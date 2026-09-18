@@ -36,7 +36,7 @@ combat:
   custom-appearance: true
   boss-skill-damage: 35
   boss-health: 1024
-  guardian-health: 135
+  guardian-health: 90
   specialist-health: 80
   boss-attack: 27
   guardian-attack: 16
