@@ -37,7 +37,7 @@ public final class ResourcePackService implements Listener, AutoCloseable {
         }
         try(var zip=new java.util.zip.ZipFile(output.resolve("evergarden-bedrock.mcpack").toFile());
             var reader=new InputStreamReader(zip.getInputStream(zip.getEntry("manifest.json")),java.nio.charset.StandardCharsets.UTF_8)) {
-            var header=com.google.gson.JsonParser.parseReader(reader).getAsJsonObject().getAsJsonObject("header");
+            var header=new com.google.gson.JsonParser().parse(reader).getAsJsonObject().getAsJsonObject("header");
             bedrockPackInfo="Bundled Bedrock version: "+header.get("version")+" | UUID: "+header.get("uuid").getAsString();
         }
         if(!plugin.getConfig().getBoolean("resource-pack.geyser.auto-install",true)) {

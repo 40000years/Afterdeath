@@ -559,7 +559,11 @@ public final class CropService implements Listener, AutoCloseable {
         }
 
         if (crop.isMature()) {
-            harvest(crop, p, false);
+            if (hand != null && com.example.voidscape.enchant.EnchantApplyListener.hasUnique(hand, com.example.voidscape.enchant.UniqueEnchant.DEMETER_SCYTHE) && plugin.abilities() != null) {
+                plugin.abilities().harvestCropsArea(p, cropBlock);
+            } else {
+                harvest(crop, p, false);
+            }
         } else {
             p.sendActionBar(Component.text("⏳ " + crop.getType().thaiName + " กำลังเติบโต (" + (int)(crop.growthProgress() * 100) + "% · เหลือ " + crop.secondsRemaining() + " วินาที)", NamedTextColor.YELLOW));
             cropBlock.getWorld().playSound(cropBlock.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_HIT, 0.6f, 1.5f);
@@ -585,7 +589,11 @@ public final class CropService implements Listener, AutoCloseable {
         }
 
         if (found.isMature()) {
-            harvest(found, p, false);
+            if (hand != null && com.example.voidscape.enchant.EnchantApplyListener.hasUnique(hand, com.example.voidscape.enchant.UniqueEnchant.DEMETER_SCYTHE) && plugin.abilities() != null) {
+                plugin.abilities().harvestCropsArea(p, found.getLocation().getBlock());
+            } else {
+                harvest(found, p, false);
+            }
         } else {
             p.sendActionBar(Component.text("⏳ " + found.getType().thaiName + " กำลังเติบโต (" + (int)(found.growthProgress() * 100) + "% · เหลือ " + found.secondsRemaining() + " วินาที)", NamedTextColor.YELLOW));
             found.getLocation().getWorld().playSound(found.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_HIT, 0.6f, 1.5f);
@@ -602,6 +610,13 @@ public final class CropService implements Listener, AutoCloseable {
 
         e.setCancelled(true);
         Player p = e.getDamager() instanceof Player pl ? pl : null;
+        if (p != null) {
+            ItemStack hand = p.getInventory().getItemInMainHand();
+            if (hand != null && com.example.voidscape.enchant.EnchantApplyListener.hasUnique(hand, com.example.voidscape.enchant.UniqueEnchant.DEMETER_SCYTHE) && plugin.abilities() != null) {
+                plugin.abilities().harvestCropsArea(p, found.getLocation().getBlock());
+                return;
+            }
+        }
         harvest(found, p, true);
     }
 
@@ -799,7 +814,7 @@ public final class CropService implements Listener, AutoCloseable {
         Location loc = crop.getLocation();
         World w = loc.getWorld();
         if (w == null) return;
-        Location dropLoc = loc.add(0.5, 0.3, 0.5);
+        Location dropLoc = loc.clone().add(0.5, 0.3, 0.5);
 
         // Hoe handling
         ItemStack tool = player != null ? player.getInventory().getItemInMainHand() : null;
@@ -812,6 +827,8 @@ public final class CropService implements Listener, AutoCloseable {
             }
             w.playSound(dropLoc, Sound.ITEM_HOE_TILL, 0.9f, 1.2f);
         }
+
+        boolean hasTelepathy = player != null && tool != null && com.example.voidscape.enchant.EnchantApplyListener.hasUnique(tool, com.example.voidscape.enchant.UniqueEnchant.TELEPATHY);
 
         if (crop.isMature()) {
             int fortune = 0;
@@ -840,7 +857,10 @@ public final class CropService implements Listener, AutoCloseable {
             }
             int seedCount = 1 + extraSeed;
             ItemStack seed = factory.createSeed(crop.getType(), seedCount);
-            w.dropItemNaturally(dropLoc, seed);
+            ItemStack produce = factory.createFood(crop.getType(), foodCount);
+
+            giveOrDrop(player, dropLoc, seed, hasTelepathy);
+            giveOrDrop(player, dropLoc, produce, hasTelepathy);
 
             w.playSound(dropLoc, Sound.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, 1.0f, 1.2f);
             w.playSound(dropLoc, Sound.ENTITY_ITEM_PICKUP, 0.6f, 1.4f);
@@ -865,10 +885,10 @@ public final class CropService implements Listener, AutoCloseable {
         } else {
             // Unripe break
             ItemStack seed = factory.createSeed(crop.getType(), 1);
-            w.dropItemNaturally(dropLoc, seed);
+            giveOrDrop(player, dropLoc, seed, hasTelepathy);
             w.playSound(dropLoc, Sound.BLOCK_CROP_BREAK, 1.0f, 0.9f);
             if (player != null) {
-                player.sendActionBar(Component.text("พืชยังไม่โตเต็มที่ (ได้รับเมล็ดคืน)", NamedTextColor.GRAY));
+                player.sendActionBar(Component.text("⏳ พืชยังไม่โตเต็มที่ (ได้รับเมล็ดคืน)", NamedTextColor.GRAY));
             }
         }
 
@@ -878,6 +898,21 @@ public final class CropService implements Listener, AutoCloseable {
         removeEntities(crop);
         loc.getBlock().setType(Material.AIR, false);
         dirty.set(true);
+    }
+
+    private void giveOrDrop(Player player, Location dropLoc, ItemStack item, boolean telepathy) {
+        if (item == null || item.getAmount() <= 0) return;
+        World w = dropLoc.getWorld();
+        if (w == null) return;
+        if (telepathy && player != null) {
+            var leftover = player.getInventory().addItem(item);
+            if (leftover.isEmpty()) return;
+            for (ItemStack rem : leftover.values()) {
+                w.dropItemNaturally(dropLoc, rem);
+            }
+        } else {
+            w.dropItemNaturally(dropLoc, item);
+        }
     }
 
     private void removeEntities(PlantedCrop crop) {

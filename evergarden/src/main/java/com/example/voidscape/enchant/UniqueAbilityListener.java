@@ -489,7 +489,8 @@ public final class UniqueAbilityListener implements Listener {
         Block origin = event.getBlock();
 
         // 1. Demeter's Scythe (9x9 auto harvest & replant for Hoes)
-        if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.DEMETER_SCYTHE) && origin.getBlockData() instanceof Ageable) {
+        boolean isEvergardenCrop = plugin.crops() != null && (plugin.crops().getCropAt(origin.getLocation()) != null || plugin.crops().getCropAt(origin.getRelative(org.bukkit.block.BlockFace.UP).getLocation()) != null);
+        if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.DEMETER_SCYTHE) && (origin.getBlockData() instanceof Ageable || isEvergardenCrop)) {
             event.setCancelled(true);
             harvestCropsArea(player, origin);
             return;
@@ -605,7 +606,7 @@ public final class UniqueAbilityListener implements Listener {
         return org.bukkit.block.BlockFace.SOUTH;
     }
 
-    private void harvestCropsArea(Player player, Block origin) {
+    public void harvestCropsArea(Player player, Block origin) {
         recursiveBreaking.add(player.getUniqueId());
         try {
             ItemStack tool = player.getInventory().getItemInMainHand();
@@ -632,6 +633,16 @@ public final class UniqueAbilityListener implements Listener {
                             ageable.setAge(0); // Replant
                             b.setBlockData(ageable);
                             b.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, b.getLocation().add(0.5, 0.5, 0.5), 2);
+                        }
+                    } else if (plugin.crops() != null) {
+                        com.example.voidscape.crop.PlantedCrop customCrop = plugin.crops().getCropAt(b.getLocation());
+                        if (customCrop == null) {
+                            customCrop = plugin.crops().getCropAt(b.getRelative(org.bukkit.block.BlockFace.UP).getLocation());
+                        }
+                        if (customCrop != null && customCrop.isMature()) {
+                            plugin.crops().harvest(customCrop, player, false);
+                            count++;
+                            b.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, customCrop.getLocation().add(0.5, 0.5, 0.5), 2);
                         }
                     }
                 }

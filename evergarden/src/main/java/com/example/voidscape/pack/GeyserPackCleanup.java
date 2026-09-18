@@ -14,7 +14,7 @@ public final class GeyserPackCleanup {
     public static int clean(Path geyser, Path bundledMapping, Path bundledPack,
                             String mappingName, String packName) throws IOException {
         Set<String> owned=new HashSet<>();
-        collect(JsonParser.parseString(Files.readString(bundledMapping)),owned);
+        collect(new JsonParser().parse(Files.readString(bundledMapping)),owned);
         Path backup=geyser.resolve("plugin-pack-backups");
         int changed=0;
         Path mappings=geyser.resolve("custom_mappings");
@@ -22,7 +22,7 @@ public final class GeyserPackCleanup {
             for(Path path:paths.filter(Files::isRegularFile).filter(p->p.toString().endsWith(".json")).toList()) {
                 if(path.equals(mappings.resolve(mappingName)))continue;
                 JsonElement json;
-                try {json=JsonParser.parseString(Files.readString(path));}
+                try {json=new JsonParser().parse(Files.readString(path));}
                 catch(JsonParseException e){continue;}
                 if(strip(json,owned)) {
                     backup(path,backup);
@@ -58,7 +58,7 @@ public final class GeyserPackCleanup {
             var entry=zip.getEntry("manifest.json");
             if(entry==null)return null;
             try(var reader=new InputStreamReader(zip.getInputStream(entry),StandardCharsets.UTF_8)) {
-                return JsonParser.parseReader(reader).getAsJsonObject().getAsJsonObject("header").get("uuid").getAsString();
+                return new JsonParser().parse(reader).getAsJsonObject().getAsJsonObject("header").get("uuid").getAsString();
             }
         }catch(IOException|RuntimeException e){return null;}
     }
