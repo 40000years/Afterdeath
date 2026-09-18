@@ -22,19 +22,22 @@ import org.bukkit.potion.*;
 import org.bukkit.util.Vector;
 import com.example.voidscape.crop.CropType;
 import com.example.voidscape.crop.CropTier;
+import org.bukkit.scheduler.BukkitRunnable;
 import java.util.concurrent.ThreadLocalRandom;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
 public final class DungeonManager implements Listener {
-    private enum Species { MINION, CASTER, STALKER, BOSS }
+    private enum Species { MINION, CASTER, STALKER, BOSS, VEX }
     private static final class Encounter {
         final Site site; final Map<UUID,Species> mobs=new HashMap<>();
         final Map<UUID,Integer> presence=new HashMap<>();
         final Map<UUID,Long> casterCooldowns=new HashMap<>();
+        final Map<UUID,Long> casterVexCooldowns=new HashMap<>();
         int wave=0; boolean bossStarted=false,finished=false;
         long lastPresent=System.currentTimeMillis(),lastSkill=0,warningAt=0;
+        long lastLaser=0; boolean laserActive=false;
         Location warning; BossBar bar;
         final int totalWaves;
         Encounter(Site site,int totalWaves){this.site=site;this.totalWaves=totalWaves;}
@@ -307,6 +310,7 @@ public final class DungeonManager implements Listener {
                 case SANCTUM_ASTRAL -> Stray.class;
                 case SANCTUM_TIME -> PiglinBrute.class;
             };
+            case VEX -> Vex.class;
         };
 
         Mob mob=plugin.world().spawn(where,type,m->{
@@ -325,6 +329,10 @@ public final class DungeonManager implements Listener {
                 if (m.getAttribute(Attribute.ARMOR_TOUGHNESS) != null) m.getAttribute(Attribute.ARMOR_TOUGHNESS).setBaseValue(16.0);
                 if (m.getAttribute(Attribute.KNOCKBACK_RESISTANCE) != null) m.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1.0);
                 if (m.getAttribute(Attribute.SCALE) != null) m.getAttribute(Attribute.SCALE).setBaseValue(1.8);
+            } else if (species == Species.VEX) {
+                baseHp = 20.0;
+                attackDamage = 24.0;
+                if (m.getAttribute(Attribute.SCALE) != null) m.getAttribute(Attribute.SCALE).setBaseValue(1.30);
             } else if (species == Species.CASTER) {
                 baseHp = 250.0 + (teamSize - 1) * 80.0;
                 attackDamage = 18.0;
@@ -336,7 +344,9 @@ public final class DungeonManager implements Listener {
                 attackDamage = 20.0;
             }
 
-            baseHp = Math.round(baseHp * 0.70);
+            if (species != Species.VEX) {
+                baseHp = Math.round(baseHp * 0.70);
+            }
 
             if (m.getAttribute(Attribute.MAX_HEALTH) != null) {
                 m.getAttribute(Attribute.MAX_HEALTH).setBaseValue(baseHp);
@@ -349,11 +359,19 @@ public final class DungeonManager implements Listener {
             String name = species == Species.BOSS ?
                 (enc.site.kind() == DungeonLayout.Kind.SANCTUM_DARK ? "จอมมารแห่งความมืด (Shadow Overlord)" :
                  enc.site.kind() == DungeonLayout.Kind.SANCTUM_ASTRAL ? "อัครเทวทูตดวงดาว (Astral Archon)" : "ผู้พิทักษ์กาลเวลา (Chronos Vanguard)") :
-                (species == Species.CASTER ? "ภูตพลังเวท" : species == Species.MINION ? "อัศวินแห่งวิหาร" : "นักล่ามิติ");
-            m.customName(Component.text(name, species == Species.BOSS ? NamedTextColor.GOLD : NamedTextColor.LIGHT_PURPLE));
+                (species == Species.VEX ? "วิญญาณรังควานแห่งความว่างเปล่า (Void Vex)" :
+                 species == Species.CASTER ? "ภูตพลังเวท" : species == Species.MINION ? "อัศวินแห่งวิหาร" : "นักล่ามิติ");
+            m.customName(Component.text(name, species == Species.BOSS ? NamedTextColor.GOLD : species == Species.VEX ? NamedTextColor.RED : NamedTextColor.LIGHT_PURPLE));
             m.setCustomNameVisible(true);
 
-            if(m instanceof Vex vex) vex.setLimitedLifetime(false);
+            if(m instanceof Vex vex) {
+                vex.setLimitedLifetime(false);
+                vex.setCharging(true);
+                if (m.getEquipment() != null) {
+                    m.getEquipment().setItemInMainHand(new ItemStack(Material.IRON_SWORD));
+                    m.getEquipment().setItemInMainHandDropChance(0f);
+                }
+            }
             if(m instanceof PiglinAbstract piglin) piglin.setImmuneToZombification(true);
             if(species==Species.STALKER && m.getAttribute(Attribute.MOVEMENT_SPEED)!=null) m.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.32);
             if(m.getEquipment()!=null) {
@@ -367,7 +385,7 @@ public final class DungeonManager implements Listener {
                     m.getEquipment().setItemInMainHandDropChance(0);
                 }
             }
-            if(plugin.getConfig().getBoolean("combat.custom-appearance",true)) GuardianAppearance.apply(m,enc.site.kind(),species==Species.BOSS);
+            if(species != Species.VEX && plugin.getConfig().getBoolean("combat.custom-appearance",true)) GuardianAppearance.apply(m,enc.site.kind(),species==Species.BOSS);
         });
 
         if(!mob.isValid()||mob.isDead())return null;
@@ -418,11 +436,21 @@ public final class DungeonManager implements Listener {
             Encounter mobEnc=owners.get(mobDamager.getUniqueId());
             if(mobEnc!=null) {
                 Species species=mobEnc.mobs.get(mobDamager.getUniqueId());
-                if(plugin.getConfig().getBoolean("combat.apply-weakness",false))
-                    victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,120,0));
-                victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,80,1));
-                if(Math.random() < 0.20) {
-                    placeTemporaryWeb(victim.getLocation().getBlock(),6000L);
+                if (species == Species.VEX) {
+                    victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 120, 1));
+                    Vector impulse = victim.getLocation().toVector().subtract(mobDamager.getLocation().toVector()).normalize().multiply(0.85);
+                    impulse.setY(0.35);
+                    victim.setVelocity(victim.getVelocity().add(impulse));
+                    victim.playSound(victim.getLocation(), Sound.ENTITY_VEX_HURT, 1.0f, 0.8f);
+                    victim.getWorld().spawnParticle(Particle.SOUL, victim.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.05);
+                    plugin.message(victim, "⚠ วิญญาณ Void Vex โจมตีทะลวง! ติดคำสาปอ่อนแอ (Weakness II) และกระเด็นถอยหลัง!");
+                } else {
+                    if(plugin.getConfig().getBoolean("combat.apply-weakness",false))
+                        victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,120,0));
+                    victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,80,1));
+                    if(Math.random() < 0.20) {
+                        placeTemporaryWeb(victim.getLocation().getBlock(),6000L);
+                    }
                 }
                 if (species == Species.BOSS) {
                     recordTrueDeathHit(victim);
@@ -533,28 +561,30 @@ public final class DungeonManager implements Listener {
         if(!runId.equals(e.getEntity().getPersistentDataContainer().get(runKey,PersistentDataType.STRING)))return;
 
         Location deathLoc = e.getEntity().getLocation();
-        // 35% chance to drop 1-2 Astral Dust from wave mobs
-        if (ThreadLocalRandom.current().nextDouble() < 0.35 && plugin.relics() != null) {
-            int dustCount = ThreadLocalRandom.current().nextDouble() < 0.30 ? 2 : 1;
-            deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.relics().createAstralDust(dustCount));
-            deathLoc.getWorld().spawnParticle(Particle.FIREWORK, deathLoc.clone().add(0, 0.5, 0), 6, 0.2, 0.2, 0.2, 0.05);
-        }
+        if (species != Species.VEX) {
+            // 35% chance to drop 1-2 Astral Dust from wave mobs
+            if (ThreadLocalRandom.current().nextDouble() < 0.35 && plugin.relics() != null) {
+                int dustCount = ThreadLocalRandom.current().nextDouble() < 0.30 ? 2 : 1;
+                deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.relics().createAstralDust(dustCount));
+                deathLoc.getWorld().spawnParticle(Particle.FIREWORK, deathLoc.clone().add(0, 0.5, 0), 6, 0.2, 0.2, 0.2, 0.05);
+            }
 
-        // 3% chance to drop 1 Key Shard from wave mobs (low rate, anti-looting 10 abuse, strictly 1 item)
-        if (ThreadLocalRandom.current().nextDouble() < 0.03 && plugin.relics() != null) {
-            deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.relics().createKeyShard(1));
-            deathLoc.getWorld().spawnParticle(Particle.ENCHANT, deathLoc.clone().add(0, 0.5, 0), 10, 0.3, 0.3, 0.3, 0.05);
-        }
+            // 3% chance to drop 1 Key Shard from wave mobs (low rate, anti-looting 10 abuse, strictly 1 item)
+            if (ThreadLocalRandom.current().nextDouble() < 0.03 && plugin.relics() != null) {
+                deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.relics().createKeyShard(1));
+                deathLoc.getWorld().spawnParticle(Particle.ENCHANT, deathLoc.clone().add(0, 0.5, 0), 10, 0.3, 0.3, 0.3, 0.05);
+            }
 
-        // 15% chance to drop Tier 2 crop seed corresponding to Sanctum element
-        if (ThreadLocalRandom.current().nextDouble() < 0.15 && plugin.crops() != null && plugin.crops().factory() != null) {
-            CropType seedType = switch (enc.site.kind()) {
-                case SANCTUM_DARK -> ThreadLocalRandom.current().nextBoolean() ? CropType.BLOOD_THORN_TOMATO : CropType.REAPERS_GARLIC;
-                case SANCTUM_ASTRAL -> ThreadLocalRandom.current().nextBoolean() ? CropType.THUNDER_KERNEL_CORN : CropType.FROSTBITE_RADISH;
-                case SANCTUM_TIME -> ThreadLocalRandom.current().nextBoolean() ? CropType.TITAN_PUMPKIN : CropType.KINETIC_PEA_POD;
-            };
-            deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.crops().factory().createSeed(seedType, 1));
-            deathLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, deathLoc.clone().add(0, 0.5, 0), 10, 0.3, 0.3, 0.3, 0.05);
+            // 15% chance to drop Tier 2 crop seed corresponding to Sanctum element
+            if (ThreadLocalRandom.current().nextDouble() < 0.15 && plugin.crops() != null && plugin.crops().factory() != null) {
+                CropType seedType = switch (enc.site.kind()) {
+                    case SANCTUM_DARK -> ThreadLocalRandom.current().nextBoolean() ? CropType.BLOOD_THORN_TOMATO : CropType.REAPERS_GARLIC;
+                    case SANCTUM_ASTRAL -> ThreadLocalRandom.current().nextBoolean() ? CropType.THUNDER_KERNEL_CORN : CropType.FROSTBITE_RADISH;
+                    case SANCTUM_TIME -> ThreadLocalRandom.current().nextBoolean() ? CropType.TITAN_PUMPKIN : CropType.KINETIC_PEA_POD;
+                };
+                deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.crops().factory().createSeed(seedType, 1));
+                deathLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, deathLoc.clone().add(0, 0.5, 0), 10, 0.3, 0.3, 0.3, 0.05);
+            }
         }
 
         if(species==Species.BOSS) {
@@ -705,6 +735,30 @@ public final class DungeonManager implements Listener {
                         target.playSound(targetLoc,Sound.ENTITY_EVOKER_CAST_SPELL,0.8f,1.2f);
                         plugin.message(target,"⚠ ภูตพลังเวทร่ายคำสาปใยแมงมุมและสาดน้ำยาบั่นทอนกำลังใส่คุณ!");
                     }
+
+                    // Caster Void Vex Summoning (anti-high ground & anti-pillar)
+                    long lastVex=enc.casterVexCooldowns.getOrDefault(entry.getKey(),0L);
+                    boolean highGroundTarget=target.getLocation().getY()>99.0;
+                    long vexCooldown=highGroundTarget?8000L:15000L;
+                    if(now-lastVex>vexCooldown) {
+                        long activeVexes=enc.mobs.values().stream().filter(s->s==Species.VEX).count();
+                        if(activeVexes<4&&owners.size()<plugin.integer("performance.max-dungeon-mobs",64,4,128)) {
+                            enc.casterVexCooldowns.put(entry.getKey(),now);
+                            for(int vi=0;vi<2;vi++) {
+                                Location vexSpawn=mob.getLocation().clone().add((Math.random()-0.5)*2.0,1.2,(Math.random()-0.5)*2.0);
+                                LivingEntity vex=spawn(enc,Species.VEX,vexSpawn,team.size());
+                                if(vex instanceof Mob vm) {
+                                    vm.setTarget(target);
+                                }
+                            }
+                            mob.getWorld().spawnParticle(Particle.WITCH,mob.getLocation(),20,0.5,0.5,0.5,0.05);
+                            mob.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME,mob.getLocation().add(0,1,0),20,0.4,0.5,0.4,0.08);
+                            mob.getWorld().playSound(mob.getLocation(),Sound.ENTITY_EVOKER_PREPARE_SUMMON,1.0f,1.0f);
+                            for(Player p:team) {
+                                plugin.message(p,"⚠ ภูตพลังเวทอัญเชิญ 'วิญญาณรังควานแห่งความว่างเปล่า (Void Vex)' ออกมา 2 ตน!");
+                            }
+                        }
+                    }
                 }
 
                 // Boss skills & ultimate abilities
@@ -712,7 +766,30 @@ public final class DungeonManager implements Listener {
                     if(enc.bar!=null) {
                         enc.bar.setProgress(Math.max(0.0, Math.min(1.0, mob.getHealth() / mob.getAttribute(Attribute.MAX_HEALTH).getValue())));
                     }
-                    if(enc.warningAt==0&&now-enc.lastSkill>plugin.integer("combat.boss-skill-interval-ms",5000,2500,20000)) {
+
+                    // Boss Targeting Laser -> Elemental Sonic Blast
+                    Player highGroundPlayer=team.stream()
+                        .filter(p->p.isValid()&&p.getGameMode()!=GameMode.CREATIVE&&p.getLocation().getY()>99.0)
+                        .findFirst().orElse(null);
+
+                    boolean triggerLaser=false;
+                    Player laserTarget=null;
+
+                    if(!enc.laserActive) {
+                        if(highGroundPlayer!=null&&now-enc.lastLaser>6000L) {
+                            triggerLaser=true;
+                            laserTarget=highGroundPlayer;
+                        } else if(now-enc.lastLaser>plugin.integer("combat.boss-laser-interval-ms",13000,7000,30000)) {
+                            triggerLaser=true;
+                            laserTarget=target;
+                        }
+                    }
+
+                    if(triggerLaser&&laserTarget!=null) {
+                        fireBossLaser(enc,mob,laserTarget,team);
+                    }
+
+                    if(!enc.laserActive&&enc.warningAt==0&&now-enc.lastSkill>plugin.integer("combat.boss-skill-interval-ms",7000,3000,25000)) {
                         enc.warning=target.getLocation();
                         enc.warningAt=now+2000;
                         enc.lastSkill=now;
@@ -804,6 +881,151 @@ public final class DungeonManager implements Listener {
         }
     }
 
+    private void fireBossLaser(Encounter enc, Mob boss, Player target, List<Player> team) {
+        enc.laserActive = true;
+        enc.lastLaser = System.currentTimeMillis();
+
+        new BukkitRunnable() {
+            int ticks = 0;
+            final int maxTicks = 24; // 1.2 seconds total (24 ticks / 2 = 12 steps)
+            Location lockedAimLoc = null;
+
+            @Override
+            public void run() {
+                if (!boss.isValid() || !active.containsKey(enc.site.id()) || enc.finished) {
+                    enc.laserActive = false;
+                    cancel();
+                    return;
+                }
+                if (!target.isOnline() || !target.isValid() || target.getWorld() != boss.getWorld()) {
+                    enc.laserActive = false;
+                    cancel();
+                    return;
+                }
+
+                ticks += 2;
+
+                Location eyeLoc = boss.getEyeLocation();
+                // Until 0.9s (tick 18), track target chest; during final 0.3s (ticks 18-24), freeze aim for dodge window!
+                if (ticks <= 18 || lockedAimLoc == null) {
+                    lockedAimLoc = target.getLocation().add(0, 1.0, 0);
+                }
+
+                // Draw targeting laser line
+                Vector dir = lockedAimLoc.toVector().subtract(eyeLoc.toVector());
+                double dist = dir.length();
+                if (dist > 0.1 && dist <= 40.0) {
+                    Vector step = dir.clone().normalize().multiply(0.7);
+                    Location current = eyeLoc.clone();
+                    // Red laser when tracking, flashing white/electric when locked!
+                    Particle.DustOptions laserColor = ticks > 18
+                        ? new Particle.DustOptions(Color.fromRGB(255, 255, 255), 1.4f)
+                        : new Particle.DustOptions(Color.fromRGB(255, 30, 30), 1.2f);
+                    int steps = (int) (dist / 0.7);
+                    for (int i = 0; i < steps; i++) {
+                        current.add(step);
+                        current.getWorld().spawnParticle(Particle.DUST, current, 1, 0, 0, 0, 0, laserColor);
+                    }
+                }
+
+                // Warning sound & Action Bar countdown
+                target.playSound(target.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.7f, ticks > 18 ? 2.0f : 1.6f);
+                double remainingSec = Math.max(0.0, (maxTicks - ticks) * 0.05);
+                String msg = ticks > 18
+                    ? "⚠ ลำแสงล็อคเป้าแล้ว! (0." + (maxTicks - ticks) + "s) แดชหลบทันที!"
+                    : "⚠ บอสกำลังล็อคเป้าลำแสงพิฆาต! (" + String.format(Locale.ROOT, "%.1f", remainingSec) + "s)";
+                target.sendActionBar(Component.text(msg, ticks > 18 ? NamedTextColor.YELLOW : NamedTextColor.RED));
+
+                // At 1.2s -> FIRE!
+                if (ticks >= maxTicks) {
+                    enc.laserActive = false;
+                    cancel();
+
+                    Location fireOrigin = boss.getEyeLocation();
+                    Vector fireDir = lockedAimLoc.toVector().subtract(fireOrigin.toVector()).normalize();
+                    double maxBeamRange = 36.0;
+
+                    World world = boss.getWorld();
+                    world.playSound(fireOrigin, Sound.ENTITY_WARDEN_SONIC_BOOM, 1.3f, 0.85f);
+                    world.playSound(fireOrigin, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.9f, 1.8f);
+
+                    // Spawn dense beam particles
+                    Location beamStep = fireOrigin.clone();
+                    Vector increment = fireDir.clone().multiply(0.6);
+                    int totalSteps = (int) (maxBeamRange / 0.6);
+
+                    for (int i = 0; i < totalSteps; i++) {
+                        beamStep.add(increment);
+
+                        if (i % 4 == 0) {
+                            world.spawnParticle(Particle.SONIC_BOOM, beamStep, 1);
+                        }
+
+                        switch (enc.site.kind()) {
+                            case SANCTUM_DARK -> {
+                                world.spawnParticle(Particle.SOUL_FIRE_FLAME, beamStep, 2, 0.1, 0.1, 0.1, 0.02);
+                                world.spawnParticle(Particle.SQUID_INK, beamStep, 1, 0.05, 0.05, 0.05, 0.01);
+                            }
+                            case SANCTUM_ASTRAL -> {
+                                world.spawnParticle(Particle.END_ROD, beamStep, 2, 0.1, 0.1, 0.1, 0.03);
+                                world.spawnParticle(Particle.FIREWORK, beamStep, 1, 0.05, 0.05, 0.05, 0.02);
+                            }
+                            case SANCTUM_TIME -> {
+                                world.spawnParticle(Particle.REVERSE_PORTAL, beamStep, 3, 0.1, 0.1, 0.1, 0.05);
+                                world.spawnParticle(Particle.COPPER_FIRE_FLAME, beamStep, 1, 0.1, 0.1, 0.1, 0.02);
+                            }
+                        }
+                    }
+
+                    // Hit detection: Pierces blocks and checks players within 2.2 blocks of the beam ray
+                    for (Player p : team) {
+                        if (!p.isValid() || p.getWorld() != world || p.getGameMode() == GameMode.CREATIVE) continue;
+
+                        Location pCenter = p.getLocation().add(0, 1.0, 0);
+                        Vector ap = pCenter.toVector().subtract(fireOrigin.toVector());
+                        double projection = ap.dot(fireDir);
+
+                        if (projection >= 0 && projection <= maxBeamRange) {
+                            Vector closestPoint = fireOrigin.toVector().add(fireDir.clone().multiply(projection));
+                            double distSq = pCenter.toVector().distanceSquared(closestPoint);
+
+                            if (distSq <= 2.2 * 2.2) {
+                                p.damage(26.0, boss);
+
+                                Vector impulse = fireDir.clone().multiply(1.2);
+                                impulse.setY(0.45);
+                                p.setVelocity(p.getVelocity().add(impulse));
+
+                                switch (enc.site.kind()) {
+                                    case SANCTUM_DARK -> {
+                                        p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 0));
+                                        p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 80, 1));
+                                        p.sendActionBar(Component.text("💥 โดนลำแสงความมืดทะลวง! ติดตาบอดและคำสาป Wither!", NamedTextColor.DARK_PURPLE));
+                                    }
+                                    case SANCTUM_ASTRAL -> {
+                                        p.setFreezeTicks(Math.min(p.getMaxFreezeTicks(), p.getFreezeTicks() + 160));
+                                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 1));
+                                        p.sendActionBar(Component.text("💥 โดนลำแสงดวงดาวแช่แข็ง! ติด Slow และ Freeze!", NamedTextColor.AQUA));
+                                    }
+                                    case SANCTUM_TIME -> {
+                                        ItemStack mainHand = p.getInventory().getItemInMainHand();
+                                        if (mainHand != null && mainHand.getType() != Material.AIR) {
+                                            p.setCooldown(mainHand.getType(), 80);
+                                        }
+                                        p.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 120, 1));
+                                        p.sendActionBar(Component.text("💥 โดนลำแสงกาลเวลาหยุดนิ่ง! อาวุธติดคูลดาวน์ 4 วินาที!", NamedTextColor.GOLD));
+                                    }
+                                }
+                                p.playSound(p.getLocation(), Sound.ENTITY_WARDEN_SONIC_BOOM, 1.0f, 1.2f);
+                                p.getWorld().spawnParticle(Particle.CRIT, p.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, 0.2);
+                            }
+                        }
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 1L, 2L);
+    }
+
     public boolean isSpawnIsland(Block b) {
         if (b == null || b.getWorld() != plugin.world()) return false;
         if (!plugin.getConfig().getBoolean("spawn-protection.enabled", true)) return false;
@@ -854,6 +1076,8 @@ public final class DungeonManager implements Listener {
             e.setCancelled(true);
             if (isSpawnIsland(e.getBlock())) {
                 e.getPlayer().sendActionBar(Component.text("✦ เกาะหลัก (Spawn Island) ได้รับการคุ้มครอง ไม่อนุญาตให้เทของเหลว", NamedTextColor.RED));
+            } else {
+                e.getPlayer().sendActionBar(Component.text("✦ วิหารศักดิ์สิทธิ์ได้รับการคุ้มครอง ไม่อนุญาตให้เทของเหลวหรือลาวา", NamedTextColor.RED));
             }
         }
     }
@@ -864,6 +1088,21 @@ public final class DungeonManager implements Listener {
             e.setCancelled(true);
             if (isSpawnIsland(e.getBlock())) {
                 e.getPlayer().sendActionBar(Component.text("✦ เกาะหลัก (Spawn Island) ได้รับการคุ้มครอง ไม่อนุญาตให้ตักของเหลว", NamedTextColor.RED));
+            }
+        }
+    }
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void onMobEnvironmentalDamage(EntityDamageEvent e) {
+        if (owners.containsKey(e.getEntity().getUniqueId())) {
+            EntityDamageEvent.DamageCause cause = e.getCause();
+            if (cause == EntityDamageEvent.DamageCause.FIRE
+                || cause == EntityDamageEvent.DamageCause.FIRE_TICK
+                || cause == EntityDamageEvent.DamageCause.LAVA
+                || cause == EntityDamageEvent.DamageCause.DROWNING
+                || cause == EntityDamageEvent.DamageCause.SUFFOCATION
+                || cause == EntityDamageEvent.DamageCause.FALL) {
+                e.setCancelled(true);
             }
         }
     }
@@ -901,7 +1140,8 @@ public final class DungeonManager implements Listener {
     }
     private void remove(Encounter enc) {
         for(UUID id:enc.mobs.keySet()){owners.remove(id);Entity e=Bukkit.getEntity(id);if(e!=null)e.remove();}
-        enc.mobs.clear();enc.casterCooldowns.clear();
+        enc.mobs.clear();enc.casterCooldowns.clear();enc.casterVexCooldowns.clear();
+        enc.laserActive = false;
         clearWebs(enc.site);
         if(enc.bar!=null)enc.bar.removeAll();
     }
