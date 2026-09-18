@@ -42,6 +42,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
     private final Map<UUID, Double> overchargeOriginalMax = new ConcurrentHashMap<>();
     private final Map<UUID, Double> pendingOfflineManaResets = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> arcaneEchoCharges = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lastArcaneEcho = new ConcurrentHashMap<>();
     private final Map<UUID, Long> vampiricUntil = new ConcurrentHashMap<>();
     private final Map<UUID, Long> glacialUntil = new ConcurrentHashMap<>();
     private final Map<UUID, Long> chainLightningUntil = new ConcurrentHashMap<>();
@@ -105,14 +106,18 @@ public final class CropBuffListener implements Listener, AutoCloseable {
             e.setVelocityMultiplier(2.0);
         }
 
-        // 4. Arcane Echo: extra spell casts
+        // 4. Arcane Echo: extra spell casts with 3s internal cooldown
         int echoCharges = arcaneEchoCharges.getOrDefault(id, 0);
         if (echoCharges > 0) {
-            e.setExtraCasts(1);
-            int rem = echoCharges - 1;
-            if (rem <= 0) arcaneEchoCharges.remove(id);
-            else arcaneEchoCharges.put(id, rem);
-            p.sendMessage(ChatColor.AQUA + "✦ [Arcane Echo] ร่ายเวทซ้ำสองเท่า! (เหลือ " + rem + " ชาร์จ)");
+            long lastEcho = lastArcaneEcho.getOrDefault(id, 0L);
+            if (now - lastEcho >= 3000L) {
+                lastArcaneEcho.put(id, now);
+                e.setExtraCasts(1);
+                int rem = echoCharges - 1;
+                if (rem <= 0) arcaneEchoCharges.remove(id);
+                else arcaneEchoCharges.put(id, rem);
+                p.sendMessage(ChatColor.AQUA + "✦ [Arcane Echo] ร่ายเวทซ้ำสองเท่า! (เหลือ " + rem + " ชาร์จ)");
+            }
         }
 
         // 5. Omni Rebound: elemental explosion on cast
@@ -133,14 +138,16 @@ public final class CropBuffListener implements Listener, AutoCloseable {
 
         for (Entity ent : w.getNearbyEntities(loc, 6, 4, 6)) {
             if (ent instanceof Monster m && !ent.equals(p) && !m.isDead()) {
-                m.damage(8.0, p);
+                m.damage(18.0, p);
+                m.setFireTicks(80);
+                m.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1));
                 Vector diff = m.getLocation().toVector().subtract(loc.toVector());
                 if (diff.lengthSquared() > 0.001) {
-                    m.setVelocity(diff.normalize().setY(0.4).multiply(1.2));
+                    m.setVelocity(diff.normalize().setY(0.4).multiply(1.4));
                 }
             }
         }
-        p.sendActionBar(Component.text("✦ Omni Rebound: ระเบิดคลื่นมหาธาตุสะท้อนรอบตัว!", NamedTextColor.GOLD));
+        p.sendActionBar(Component.text("✦ Omni Rebound: ระเบิดคลื่นมหาธาตุ 18 ดาเมจรอบตัว!", NamedTextColor.GOLD));
     }
 
     // ==========================================
@@ -214,7 +221,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 p.sendActionBar(Component.text("✦ บลูเบอร์รี: ฟื้นฟูทันที +50 Mana!", NamedTextColor.AQUA));
             }
             case CHAMELEON_LEAF -> {
-                chameleonUntil.put(id, now + 45_000L);
+                chameleonUntil.put(id, now + 25_000L);
                 for (Entity ent : p.getWorld().getNearbyEntities(p.getLocation(), 24, 24, 24)) {
                     if (ent instanceof Mob mob && mob.getTarget() == p) {
                         mob.setTarget(null);
@@ -222,7 +229,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 }
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ILLUSIONER_MIRROR_MOVE, 0.8f, 1.2f);
                 p.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, p.getLocation().add(0, 1, 0), 25, 0.4, 0.6, 0.4, 0.02);
-                p.sendActionBar(Component.text("✦ ผักกาดหอม: มอนสเตอร์จะไม่โจมตีก่อน (45 วินาที)", NamedTextColor.GREEN));
+                p.sendActionBar(Component.text("✦ ผักกาดหอม: มอนสเตอร์จะไม่โจมตีก่อน (25 วินาที)", NamedTextColor.GREEN));
             }
             case FAIRY_MUSHROOM -> {
                 movement.fairy(p);
@@ -236,11 +243,11 @@ public final class CropBuffListener implements Listener, AutoCloseable {
             case MOUNTAIN_WALKER_BAMBOO -> {
                 movement.bamboo(p);
             }
-            case DEMETERS_MELON -> {
-                floraAuraCharges.put(id, floraAuraCharges.getOrDefault(id, 0) + 10);
-                p.getWorld().playSound(p.getLocation(), Sound.BLOCK_COMPOSTER_READY, 0.9f, 1.2f);
-                p.getWorld().spawnParticle(Particle.COMPOSTER, p.getLocation().add(0, 1, 0), 20, 0.4, 0.4, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ มะละกอ: ออร่าเร่งโตพืชผักรอบตัว (10 ชาร์จ)", NamedTextColor.GREEN));
+            case LUMBERJACK_ACORN -> {
+                treeFellerCharges.put(id, treeFellerCharges.getOrDefault(id, 0) + 5);
+                p.getWorld().playSound(p.getLocation(), Sound.BLOCK_WOOD_BREAK, 1.0f, 0.8f);
+                p.getWorld().spawnParticle(Particle.COMPOSTER, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.05);
+                p.sendActionBar(Component.text("✦ เกาลัด: โค่นต้นไม้ทั้งต้นในพริบตา (5 ชาร์จ)", NamedTextColor.GOLD));
             }
 
             // ==========================================
@@ -287,11 +294,11 @@ public final class CropBuffListener implements Listener, AutoCloseable {
             // ==========================================
             // Tier 3
             // ==========================================
-            case SOUL_WARD_BULB -> {
-                soulWardActive.add(id);
-                p.getWorld().playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 0.6f, 1.5f);
-                p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1, 0), 25, 0.3, 0.5, 0.3, 0.15);
-                p.sendActionBar(Component.text("✦ หอมหัวใหญ่: ม่านพลังป้องกันการตาย 1 ครั้ง เปิดใช้งานแล้ว!", NamedTextColor.AQUA));
+            case TWILIGHT_GRAPE -> {
+                sniperCastUntil.put(id, now + 60_000L);
+                p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ARROW_SHOOT, 0.9f, 1.8f);
+                p.getWorld().spawnParticle(Particle.WITCH, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.05);
+                p.sendActionBar(Component.text("✦ องุ่น: เพิ่มความเร็ว & ระยะยิงเวทมนตร์ +100% (60 วินาที)", NamedTextColor.DARK_PURPLE));
             }
             case VOID_FEATHER_BLOSSOM -> {
                 movement.rescue(p);
@@ -326,17 +333,17 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 }, 60L);
             }
             case ABYSSAL_KELP -> {
-                seismicUntil.put(id, now + 30_000L);
+                seismicUntil.put(id, now + 60_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_CONDUIT_ACTIVATE, 0.9f, 1.2f);
-                for (Entity ent : p.getWorld().getNearbyEntities(p.getLocation(), 24, 24, 24)) {
+                for (Entity ent : p.getWorld().getNearbyEntities(p.getLocation(), 32, 32, 32)) {
                     if (ent instanceof Monster || ent instanceof Boss) {
                         if (ent instanceof LivingEntity le) {
-                            le.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 600, 0, false, false));
+                            le.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 1200, 0, false, false));
                             ent.getWorld().spawnParticle(Particle.GLOW, ent.getLocation().add(0, 1, 0), 10, 0.3, 0.5, 0.3, 0.05);
                         }
                     }
                 }
-                p.sendActionBar(Component.text("✦ ขึ้นฉ่าย: มองเห็นศัตรูในระยะ 24 บล็อก (30 วินาที)", NamedTextColor.DARK_AQUA));
+                p.sendActionBar(Component.text("✦ ขึ้นฉ่าย: มองเห็นศัตรูในระยะ 32 บล็อก (60 วินาที)", NamedTextColor.DARK_AQUA));
             }
             case GLIDER_SPORE -> {
                 movement.glide(p);
@@ -361,11 +368,11 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 p.getWorld().spawnParticle(Particle.SCRAPE, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.1);
                 p.sendActionBar(Component.text("✦ เทอร์นิป: +35% โอกาสขุดแร่แล้วดรอปเบิ้ล 2 เท่า (3 นาที)", NamedTextColor.LIGHT_PURPLE));
             }
-            case LUMBERJACK_ACORN -> {
-                treeFellerCharges.put(id, treeFellerCharges.getOrDefault(id, 0) + 5);
-                p.getWorld().playSound(p.getLocation(), Sound.BLOCK_WOOD_BREAK, 1.0f, 0.8f);
-                p.getWorld().spawnParticle(Particle.COMPOSTER, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ เกาลัด: โค่นต้นไม้ทั้งต้นในพริบตา (5 ชาร์จ)", NamedTextColor.GOLD));
+            case DEMETERS_MELON -> {
+                floraAuraCharges.put(id, floraAuraCharges.getOrDefault(id, 0) + 6);
+                p.getWorld().playSound(p.getLocation(), Sound.BLOCK_COMPOSTER_READY, 0.9f, 1.2f);
+                p.getWorld().spawnParticle(Particle.COMPOSTER, p.getLocation().add(0, 1, 0), 20, 0.4, 0.4, 0.4, 0.05);
+                p.sendActionBar(Component.text("✦ มะละกอ: ออร่าเร่งโตพืชผักรอบตัว (6 ชาร์จ)", NamedTextColor.GREEN));
             }
             case PRISM_SHARD_CARROT -> {
                 vaultFortuneUntil.put(id, now + 300_000L);
@@ -375,15 +382,16 @@ public final class CropBuffListener implements Listener, AutoCloseable {
             }
             case GOLDLEAF_HERB -> {
                 mendingNectarUntil.put(id, now + 120_000L);
+                p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 2400, 0));
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.6f, 1.6f);
                 p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 25, 0.4, 0.5, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ ผักโขม: แปลงดาเมจ 30% เป็นการซ่อมชุดเกราะ (2 นาที)", NamedTextColor.GOLD));
+                p.sendActionBar(Component.text("✦ ผักโขม: Resistance I & แปลง 50% ดาเมจซ่อมเกราะ (2 นาที)", NamedTextColor.GOLD));
             }
-            case TWILIGHT_GRAPE -> {
-                sniperCastUntil.put(id, now + 60_000L);
-                p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ARROW_SHOOT, 0.9f, 1.8f);
-                p.getWorld().spawnParticle(Particle.WITCH, p.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.05);
-                p.sendActionBar(Component.text("✦ องุ่น: เพิ่มความเร็ว & ระยะยิงเวทมนตร์ +100% (60 วินาที)", NamedTextColor.DARK_PURPLE));
+            case SOUL_WARD_BULB -> {
+                soulWardActive.add(id);
+                p.getWorld().playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 0.6f, 1.5f);
+                p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1, 0), 25, 0.3, 0.5, 0.3, 0.15);
+                p.sendActionBar(Component.text("✦ หอมหัวใหญ่: ม่านพลังป้องกันการตาย 1 ครั้ง เปิดใช้งานแล้ว!", NamedTextColor.AQUA));
             }
             case CHRONO_PEPPER -> {
                 chronoSurge.put(id, now + 60_000L);
@@ -419,10 +427,10 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 p.sendTitle(ChatColor.LIGHT_PURPLE + "✦ MANA OVERCHARGE ✦", ChatColor.AQUA + "+100 Overcharge Mana (45 วินาที)!", 5, 40, 10);
             }
             case ETHEREAL_MINT -> {
-                arcaneEchoCharges.put(id, arcaneEchoCharges.getOrDefault(id, 0) + 3);
+                arcaneEchoCharges.put(id, arcaneEchoCharges.getOrDefault(id, 0) + 2);
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 1.0f, 1.6f);
                 p.getWorld().spawnParticle(Particle.WITCH, p.getLocation().add(0, 1, 0), 25, 0.4, 0.5, 0.4, 0.1);
-                p.sendTitle(ChatColor.AQUA + "✦ ARCANE ECHO ✦", ChatColor.WHITE + "ร่ายเวทซ้ำเบิ้ล 2 เท่าฟรี! (3 ชาร์จ)", 5, 40, 10);
+                p.sendTitle(ChatColor.AQUA + "✦ ARCANE ECHO ✦", ChatColor.WHITE + "ร่ายเวทซ้ำเบิ้ล 2 เท่าฟรี! (2 ชาร์จ, คูลดาวน์ 3s)", 5, 40, 10);
             }
             case BLOODBURN_CHILI -> {
                 bloodCastUntil.put(id, now + 30_000L);
@@ -434,7 +442,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 omniReboundUntil.put(id, now + 60_000L);
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.8f);
                 p.getWorld().spawnParticle(Particle.END_ROD, p.getLocation().add(0, 1, 0), 30, 0.4, 0.6, 0.4, 0.1);
-                p.sendTitle(ChatColor.GOLD + "✦ ELEMENTAL REBOUND ✦", ChatColor.WHITE + "ระเบิดมหาธาตุตรงข้ามรอบตัวเมื่อร่ายเวท (60 วินาที)!", 5, 40, 10);
+                p.sendTitle(ChatColor.GOLD + "✦ ELEMENTAL REBOUND ✦", ChatColor.WHITE + "ระเบิดมหาธาตุ 18 ดาเมจรอบตัวเมื่อร่ายเวท (60 วินาที)!", 5, 40, 10);
             }
         }
     }
@@ -694,9 +702,9 @@ public final class CropBuffListener implements Listener, AutoCloseable {
             return;
         }
 
-        // 2. Mending Nectar (repair durability from 30% of incoming damage)
+        // 2. Mending Nectar (repair durability from 50% of incoming damage)
         if (mendingNectarUntil.getOrDefault(id, 0L) > now && e.getDamage() > 0) {
-            int repairPoints = (int) Math.round(e.getDamage() * 0.30 * 10);
+            int repairPoints = (int) Math.round(e.getDamage() * 0.50 * 10);
             if (repairPoints > 0) {
                 repairEquipment(p, repairPoints);
                 p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 6, 0.3, 0.3, 0.3, 0.05);
@@ -897,6 +905,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
     private void cleanPlayerMaps(UUID id) {
         chronoSurge.remove(id);
         arcaneEchoCharges.remove(id);
+        lastArcaneEcho.remove(id);
         vampiricUntil.remove(id);
         glacialUntil.remove(id);
         chainLightningUntil.remove(id);
@@ -968,9 +977,10 @@ public final class CropBuffListener implements Listener, AutoCloseable {
             if (entry.getValue() > 0) {
                 Player p = Bukkit.getPlayer(entry.getKey());
                 if (p != null && p.isOnline()) {
-                    PlantedCrop crop = cropService.findNearestUnripeCrop(p.getLocation(), 4.0);
+                    PlantedCrop crop = cropService.findNearestUnripeCrop(p.getLocation(), 5.0);
                     if (crop != null) {
-                        crop.accelerate(crop.getType().tier.growthSeconds / 2);
+                        int accel = Math.max(60, crop.getType().tier.growthSeconds / 3);
+                        crop.accelerate(accel);
                         cropService.onCropAccelerated(crop);
                         Location cLoc = crop.getLocation().add(0.5, 0.5, 0.5);
                         cLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, cLoc, 10, 0.3, 0.3, 0.3, 0.05);

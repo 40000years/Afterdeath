@@ -91,8 +91,8 @@ CROPS = [
      'pri': (220, 155, 70), 'sec': (150, 92, 38), 'acc': (245, 195, 105), 'shape': 'MELON_SQUASH'},
     {'id': 'mountain_walker_bamboo', 'title': 'Leek', 'tier': 1, 'seed': 'wheat_seeds', 'food': 'carrot',
      'pri': (92, 165, 68), 'sec': (45, 105, 38), 'acc': (225, 230, 175), 'shape': 'BAMBOO_STALK'},
-    {'id': 'demeters_melon', 'title': "Papaya", 'tier': 1, 'seed': 'melon_seeds', 'food': 'melon_slice',
-     'pri': (235, 142, 45), 'sec': (155, 78, 25), 'acc': (70, 62, 32), 'shape': 'MELON_SQUASH'},
+    {'id': 'lumberjack_acorn', 'title': 'Chestnut', 'tier': 1, 'seed': 'wheat_seeds', 'food': 'cookie',
+     'pri': (175, 110, 55), 'sec': (100, 55, 25), 'acc': (225, 175, 105), 'shape': 'ACORN'},
 
     # Tier 2: Combat & Slaying (6 crops)
     {'id': 'blood_thorn_tomato', 'title': 'Tomato', 'tier': 2, 'seed': 'pumpkin_seeds', 'food': 'apple',
@@ -109,8 +109,8 @@ CROPS = [
      'pri': (110, 220, 40), 'sec': (50, 130, 20), 'acc': (215, 255, 75), 'shape': 'POD'},
 
     # Tier 3: Dimension & Survival (6 crops)
-    {'id': 'soul_ward_bulb', 'title': 'Onion', 'tier': 3, 'seed': 'beetroot_seeds', 'food': 'golden_carrot',
-     'pri': (220, 190, 125), 'sec': (150, 112, 68), 'acc': (238, 220, 175), 'shape': 'BULB_GARLIC'},
+    {'id': 'twilight_grape', 'title': 'Grape', 'tier': 3, 'seed': 'melon_seeds', 'food': 'sweet_berries',
+     'pri': (115, 50, 180), 'sec': (60, 20, 105), 'acc': (205, 135, 255), 'shape': 'BERRY_BUNCH'},
     {'id': 'void_feather_blossom', 'title': 'Red Cabbage', 'tier': 3, 'seed': 'torchflower_seeds', 'food': 'dried_kelp',
      'pri': (130, 68, 145), 'sec': (76, 38, 92), 'acc': (182, 120, 190), 'shape': 'BLOSSOM'},
     {'id': 'lodestone_gourd', 'title': 'Bottle Gourd', 'tier': 3, 'seed': 'melon_seeds', 'food': 'apple',
@@ -125,14 +125,14 @@ CROPS = [
     # Tier 4: Mining & Utility (6 crops)
     {'id': 'fortune_beet', 'title': 'Turnip', 'tier': 4, 'seed': 'beetroot_seeds', 'food': 'carrot',
      'pri': (220, 205, 188), 'sec': (145, 118, 135), 'acc': (118, 168, 68), 'shape': 'ROOT_TUBER'},
-    {'id': 'lumberjack_acorn', 'title': 'Chestnut', 'tier': 4, 'seed': 'wheat_seeds', 'food': 'cookie',
-     'pri': (175, 110, 55), 'sec': (100, 55, 25), 'acc': (225, 175, 105), 'shape': 'ACORN'},
+    {'id': 'demeters_melon', 'title': "Papaya", 'tier': 4, 'seed': 'melon_seeds', 'food': 'melon_slice',
+     'pri': (235, 142, 45), 'sec': (155, 78, 25), 'acc': (70, 62, 32), 'shape': 'MELON_SQUASH'},
     {'id': 'prism_shard_carrot', 'title': 'Cassava', 'tier': 4, 'seed': 'pitcher_pod', 'food': 'golden_carrot',
      'pri': (172, 112, 66), 'sec': (100, 62, 38), 'acc': (225, 184, 125), 'shape': 'ROOT_TUBER'},
     {'id': 'goldleaf_herb', 'title': 'Spinach', 'tier': 4, 'seed': 'torchflower_seeds', 'food': 'golden_apple',
      'pri': (58, 145, 62), 'sec': (28, 88, 35), 'acc': (105, 185, 90), 'shape': 'LEAF_FROND'},
-    {'id': 'twilight_grape', 'title': 'Grape', 'tier': 4, 'seed': 'melon_seeds', 'food': 'sweet_berries',
-     'pri': (115, 50, 180), 'sec': (60, 20, 105), 'acc': (205, 135, 255), 'shape': 'BERRY_BUNCH'},
+    {'id': 'soul_ward_bulb', 'title': 'Onion', 'tier': 4, 'seed': 'beetroot_seeds', 'food': 'golden_carrot',
+     'pri': (220, 190, 125), 'sec': (150, 112, 68), 'acc': (238, 220, 175), 'shape': 'BULB_GARLIC'},
     {'id': 'chrono_pepper', 'title': 'Bell Pepper', 'tier': 4, 'seed': 'pumpkin_seeds', 'food': 'apple',
      'pri': (225, 165, 35), 'sec': (155, 92, 18), 'acc': (245, 205, 75), 'shape': 'PEPPER_CHILI'},
 

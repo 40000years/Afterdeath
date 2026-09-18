@@ -463,24 +463,6 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:seed_soul_ward_bulb"
-        },
-        "bedrock_identifier": "voidscape:seed_soul_ward_bulb",
-        "display_name": "Seed of Onion",
-        "bedrock_options": {
-          "icon": "voidscape.seed_soul_ward_bulb",
-          "allow_offhand": true,
-          "display_handheld": false,
-          "creative_category": "items"
-        }
-      },
-      {
-        "type": "definition",
-        "model": "minecraft:beetroot_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
           "value": "voidscape:seed_glider_spore"
         },
         "bedrock_identifier": "voidscape:seed_glider_spore",
@@ -505,6 +487,24 @@
         "display_name": "Seed of Turnip",
         "bedrock_options": {
           "icon": "voidscape.seed_fortune_beet",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:beetroot_seeds",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:seed_soul_ward_bulb"
+        },
+        "bedrock_identifier": "voidscape:seed_soul_ward_bulb",
+        "display_name": "Seed of Onion",
+        "bedrock_options": {
+          "icon": "voidscape.seed_soul_ward_bulb",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -845,12 +845,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_demeters_melon_stage_0"
+          "value": "voidscape:crop_lumberjack_acorn_stage_0"
         },
-        "bedrock_identifier": "voidscape:crop_demeters_melon_stage_0",
-        "display_name": "Papaya (Stage 0)",
+        "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_0",
+        "display_name": "Chestnut (Stage 0)",
         "bedrock_options": {
-          "icon": "voidscape.crop_demeters_melon_stage_0",
+          "icon": "voidscape.crop_lumberjack_acorn_stage_0",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -863,12 +863,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_demeters_melon_stage_1"
+          "value": "voidscape:crop_lumberjack_acorn_stage_1"
         },
-        "bedrock_identifier": "voidscape:crop_demeters_melon_stage_1",
-        "display_name": "Papaya (Stage 1)",
+        "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_1",
+        "display_name": "Chestnut (Stage 1)",
         "bedrock_options": {
-          "icon": "voidscape.crop_demeters_melon_stage_1",
+          "icon": "voidscape.crop_lumberjack_acorn_stage_1",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -881,12 +881,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_demeters_melon_stage_2"
+          "value": "voidscape:crop_lumberjack_acorn_stage_2"
         },
-        "bedrock_identifier": "voidscape:crop_demeters_melon_stage_2",
-        "display_name": "Papaya (Stage 2)",
+        "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_2",
+        "display_name": "Chestnut (Stage 2)",
         "bedrock_options": {
-          "icon": "voidscape.crop_demeters_melon_stage_2",
+          "icon": "voidscape.crop_lumberjack_acorn_stage_2",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -1223,12 +1223,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_soul_ward_bulb_stage_0"
+          "value": "voidscape:crop_twilight_grape_stage_0"
         },
-        "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_0",
-        "display_name": "Onion (Stage 0)",
+        "bedrock_identifier": "voidscape:crop_twilight_grape_stage_0",
+        "display_name": "Grape (Stage 0)",
         "bedrock_options": {
-          "icon": "voidscape.crop_soul_ward_bulb_stage_0",
+          "icon": "voidscape.crop_twilight_grape_stage_0",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -1241,12 +1241,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_soul_ward_bulb_stage_1"
+          "value": "voidscape:crop_twilight_grape_stage_1"
         },
-        "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_1",
-        "display_name": "Onion (Stage 1)",
+        "bedrock_identifier": "voidscape:crop_twilight_grape_stage_1",
+        "display_name": "Grape (Stage 1)",
         "bedrock_options": {
-          "icon": "voidscape.crop_soul_ward_bulb_stage_1",
+          "icon": "voidscape.crop_twilight_grape_stage_1",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -1259,12 +1259,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_soul_ward_bulb_stage_2"
+          "value": "voidscape:crop_twilight_grape_stage_2"
         },
-        "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_2",
-        "display_name": "Onion (Stage 2)",
+        "bedrock_identifier": "voidscape:crop_twilight_grape_stage_2",
+        "display_name": "Grape (Stage 2)",
         "bedrock_options": {
-          "icon": "voidscape.crop_soul_ward_bulb_stage_2",
+          "icon": "voidscape.crop_twilight_grape_stage_2",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -1601,12 +1601,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_lumberjack_acorn_stage_0"
+          "value": "voidscape:crop_demeters_melon_stage_0"
         },
-        "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_0",
-        "display_name": "Chestnut (Stage 0)",
+        "bedrock_identifier": "voidscape:crop_demeters_melon_stage_0",
+        "display_name": "Papaya (Stage 0)",
         "bedrock_options": {
-          "icon": "voidscape.crop_lumberjack_acorn_stage_0",
+          "icon": "voidscape.crop_demeters_melon_stage_0",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -1619,12 +1619,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_lumberjack_acorn_stage_1"
+          "value": "voidscape:crop_demeters_melon_stage_1"
         },
-        "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_1",
-        "display_name": "Chestnut (Stage 1)",
+        "bedrock_identifier": "voidscape:crop_demeters_melon_stage_1",
+        "display_name": "Papaya (Stage 1)",
         "bedrock_options": {
-          "icon": "voidscape.crop_lumberjack_acorn_stage_1",
+          "icon": "voidscape.crop_demeters_melon_stage_1",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -1637,12 +1637,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_lumberjack_acorn_stage_2"
+          "value": "voidscape:crop_demeters_melon_stage_2"
         },
-        "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_2",
-        "display_name": "Chestnut (Stage 2)",
+        "bedrock_identifier": "voidscape:crop_demeters_melon_stage_2",
+        "display_name": "Papaya (Stage 2)",
         "bedrock_options": {
-          "icon": "voidscape.crop_lumberjack_acorn_stage_2",
+          "icon": "voidscape.crop_demeters_melon_stage_2",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -1763,12 +1763,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_twilight_grape_stage_0"
+          "value": "voidscape:crop_soul_ward_bulb_stage_0"
         },
-        "bedrock_identifier": "voidscape:crop_twilight_grape_stage_0",
-        "display_name": "Grape (Stage 0)",
+        "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_0",
+        "display_name": "Onion (Stage 0)",
         "bedrock_options": {
-          "icon": "voidscape.crop_twilight_grape_stage_0",
+          "icon": "voidscape.crop_soul_ward_bulb_stage_0",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -1781,12 +1781,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_twilight_grape_stage_1"
+          "value": "voidscape:crop_soul_ward_bulb_stage_1"
         },
-        "bedrock_identifier": "voidscape:crop_twilight_grape_stage_1",
-        "display_name": "Grape (Stage 1)",
+        "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_1",
+        "display_name": "Onion (Stage 1)",
         "bedrock_options": {
-          "icon": "voidscape.crop_twilight_grape_stage_1",
+          "icon": "voidscape.crop_soul_ward_bulb_stage_1",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -1799,12 +1799,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_twilight_grape_stage_2"
+          "value": "voidscape:crop_soul_ward_bulb_stage_2"
         },
-        "bedrock_identifier": "voidscape:crop_twilight_grape_stage_2",
-        "display_name": "Grape (Stage 2)",
+        "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_2",
+        "display_name": "Onion (Stage 2)",
         "bedrock_options": {
-          "icon": "voidscape.crop_twilight_grape_stage_2",
+          "icon": "voidscape.crop_soul_ward_bulb_stage_2",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -2250,6 +2250,24 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
+          "value": "voidscape:seed_lumberjack_acorn"
+        },
+        "bedrock_identifier": "voidscape:seed_lumberjack_acorn",
+        "display_name": "Seed of Chestnut",
+        "bedrock_options": {
+          "icon": "voidscape.seed_lumberjack_acorn",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:wheat_seeds",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
           "value": "voidscape:seed_thunder_kernel_corn"
         },
         "bedrock_identifier": "voidscape:seed_thunder_kernel_corn",
@@ -2292,24 +2310,6 @@
         "display_name": "Seed of Celery",
         "bedrock_options": {
           "icon": "voidscape.seed_abyssal_kelp",
-          "allow_offhand": true,
-          "display_handheld": false,
-          "creative_category": "items"
-        }
-      },
-      {
-        "type": "definition",
-        "model": "minecraft:wheat_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_lumberjack_acorn"
-        },
-        "bedrock_identifier": "voidscape:seed_lumberjack_acorn",
-        "display_name": "Seed of Chestnut",
-        "bedrock_options": {
-          "icon": "voidscape.seed_lumberjack_acorn",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -2416,12 +2416,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_glider_spore"
+          "value": "voidscape:crop_lumberjack_acorn"
         },
-        "bedrock_identifier": "voidscape:crop_glider_spore",
-        "display_name": "Broccoli",
+        "bedrock_identifier": "voidscape:crop_lumberjack_acorn",
+        "display_name": "Chestnut",
         "bedrock_options": {
-          "icon": "voidscape.crop_glider_spore",
+          "icon": "voidscape.crop_lumberjack_acorn",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -2434,12 +2434,12 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_lumberjack_acorn"
+          "value": "voidscape:crop_glider_spore"
         },
-        "bedrock_identifier": "voidscape:crop_lumberjack_acorn",
-        "display_name": "Chestnut",
+        "bedrock_identifier": "voidscape:crop_glider_spore",
+        "display_name": "Broccoli",
         "bedrock_options": {
-          "icon": "voidscape.crop_lumberjack_acorn",
+          "icon": "voidscape.crop_glider_spore",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -2632,82 +2632,6 @@
         }
       }
     ],
-    "minecraft:melon_seeds": [
-      {
-        "type": "definition",
-        "model": "minecraft:melon_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_demeters_melon"
-        },
-        "bedrock_identifier": "voidscape:seed_demeters_melon",
-        "display_name": "Seed of Papaya",
-        "bedrock_options": {
-          "icon": "voidscape.seed_demeters_melon",
-          "allow_offhand": true,
-          "display_handheld": false,
-          "creative_category": "items"
-        }
-      },
-      {
-        "type": "definition",
-        "model": "minecraft:melon_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_lodestone_gourd"
-        },
-        "bedrock_identifier": "voidscape:seed_lodestone_gourd",
-        "display_name": "Seed of Bottle Gourd",
-        "bedrock_options": {
-          "icon": "voidscape.seed_lodestone_gourd",
-          "allow_offhand": true,
-          "display_handheld": false,
-          "creative_category": "items"
-        }
-      },
-      {
-        "type": "definition",
-        "model": "minecraft:melon_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_twilight_grape"
-        },
-        "bedrock_identifier": "voidscape:seed_twilight_grape",
-        "display_name": "Seed of Grape",
-        "bedrock_options": {
-          "icon": "voidscape.seed_twilight_grape",
-          "allow_offhand": true,
-          "display_handheld": false,
-          "creative_category": "items"
-        }
-      }
-    ],
-    "minecraft:melon_slice": [
-      {
-        "type": "definition",
-        "model": "minecraft:melon_slice",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_demeters_melon"
-        },
-        "bedrock_identifier": "voidscape:crop_demeters_melon",
-        "display_name": "Papaya",
-        "bedrock_options": {
-          "icon": "voidscape.crop_demeters_melon",
-          "allow_offhand": true,
-          "display_handheld": false,
-          "creative_category": "items"
-        }
-      }
-    ],
     "minecraft:apple": [
       {
         "type": "definition",
@@ -2846,24 +2770,6 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
-          "value": "voidscape:crop_soul_ward_bulb"
-        },
-        "bedrock_identifier": "voidscape:crop_soul_ward_bulb",
-        "display_name": "Onion",
-        "bedrock_options": {
-          "icon": "voidscape.crop_soul_ward_bulb",
-          "allow_offhand": true,
-          "display_handheld": false,
-          "creative_category": "items"
-        }
-      },
-      {
-        "type": "definition",
-        "model": "minecraft:golden_carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
           "value": "voidscape:crop_star_anise"
         },
         "bedrock_identifier": "voidscape:crop_star_anise",
@@ -2900,12 +2806,86 @@
           "type": "match",
           "property": "custom_model_data",
           "index": 0,
+          "value": "voidscape:crop_soul_ward_bulb"
+        },
+        "bedrock_identifier": "voidscape:crop_soul_ward_bulb",
+        "display_name": "Onion",
+        "bedrock_options": {
+          "icon": "voidscape.crop_soul_ward_bulb",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:golden_carrot",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
           "value": "voidscape:crop_void_overcharge_fig"
         },
         "bedrock_identifier": "voidscape:crop_void_overcharge_fig",
         "display_name": "Fig",
         "bedrock_options": {
           "icon": "voidscape.crop_void_overcharge_fig",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      }
+    ],
+    "minecraft:melon_seeds": [
+      {
+        "type": "definition",
+        "model": "minecraft:melon_seeds",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:seed_twilight_grape"
+        },
+        "bedrock_identifier": "voidscape:seed_twilight_grape",
+        "display_name": "Seed of Grape",
+        "bedrock_options": {
+          "icon": "voidscape.seed_twilight_grape",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:melon_seeds",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:seed_lodestone_gourd"
+        },
+        "bedrock_identifier": "voidscape:seed_lodestone_gourd",
+        "display_name": "Seed of Bottle Gourd",
+        "bedrock_options": {
+          "icon": "voidscape.seed_lodestone_gourd",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      },
+      {
+        "type": "definition",
+        "model": "minecraft:melon_seeds",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:seed_demeters_melon"
+        },
+        "bedrock_identifier": "voidscape:seed_demeters_melon",
+        "display_name": "Seed of Papaya",
+        "bedrock_options": {
+          "icon": "voidscape.seed_demeters_melon",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"
@@ -3054,6 +3034,26 @@
         "display_name": "Seed of Fig",
         "bedrock_options": {
           "icon": "voidscape.seed_void_overcharge_fig",
+          "allow_offhand": true,
+          "display_handheld": false,
+          "creative_category": "items"
+        }
+      }
+    ],
+    "minecraft:melon_slice": [
+      {
+        "type": "definition",
+        "model": "minecraft:melon_slice",
+        "predicate": {
+          "type": "match",
+          "property": "custom_model_data",
+          "index": 0,
+          "value": "voidscape:crop_demeters_melon"
+        },
+        "bedrock_identifier": "voidscape:crop_demeters_melon",
+        "display_name": "Papaya",
+        "bedrock_options": {
+          "icon": "voidscape.crop_demeters_melon",
           "allow_offhand": true,
           "display_handheld": false,
           "creative_category": "items"

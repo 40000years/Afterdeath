@@ -128,7 +128,7 @@ public final class BotanistNpc implements Listener {
             CropType.FAIRY_MUSHROOM,
             CropType.MAGNETIC_SQUASH,
             CropType.MOUNTAIN_WALKER_BAMBOO,
-            CropType.DEMETERS_MELON
+            CropType.LUMBERJACK_ACORN
         )) {
             MerchantRecipe recipe = new MerchantRecipe(factory.createSeed(crop, 1), Integer.MAX_VALUE);
             recipe.addIngredient(plugin.relics().createAstralDust(1));
@@ -143,7 +143,7 @@ public final class BotanistNpc implements Listener {
             CropType.FAIRY_MUSHROOM,
             CropType.MAGNETIC_SQUASH,
             CropType.MOUNTAIN_WALKER_BAMBOO,
-            CropType.DEMETERS_MELON
+            CropType.LUMBERJACK_ACORN
         )) {
             MerchantRecipe recipe = new MerchantRecipe(plugin.relics().createAstralDust(2), Integer.MAX_VALUE);
             recipe.addIngredient(factory.createFood(crop, 6));
