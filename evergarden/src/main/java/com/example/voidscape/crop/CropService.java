@@ -816,14 +816,29 @@ public final class CropService implements Listener, AutoCloseable {
         if (crop.isMature()) {
             int fortune = 0;
             if (tool != null) {
-                fortune = tool.getEnchantmentLevel(Enchantment.FORTUNE);
+                if (plugin.relics() != null) {
+                    fortune = plugin.relics().getLimitBreakLevel(tool, com.example.voidscape.enchant.LimitBreakType.FORTUNE);
+                }
+                if (fortune <= 0) {
+                    fortune = tool.getEnchantmentLevel(Enchantment.FORTUNE);
+                }
             }
 
-            int foodCount = 1 + (Math.random() < (0.4 + fortune * 0.15) ? 1 : 0);
-            ItemStack food = factory.createFood(crop.getType(), foodCount);
-            w.dropItemNaturally(dropLoc, food);
+            int extraFood = 0;
+            if (fortune > 3) {
+                extraFood = 1 + (int) (Math.random() * (fortune - 2));
+            } else if (fortune > 0) {
+                extraFood = Math.random() < (0.4 + fortune * 0.15) ? 1 : 0;
+            }
+            int foodCount = 1 + extraFood;
 
-            int seedCount = 1 + (Math.random() < (0.3 + fortune * 0.1) ? 1 : 0);
+            int extraSeed = 0;
+            if (fortune > 3) {
+                extraSeed = (int) (Math.random() * (fortune - 2));
+            } else if (fortune > 0) {
+                extraSeed = Math.random() < (0.3 + fortune * 0.1) ? 1 : 0;
+            }
+            int seedCount = 1 + extraSeed;
             ItemStack seed = factory.createSeed(crop.getType(), seedCount);
             w.dropItemNaturally(dropLoc, seed);
 

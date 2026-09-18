@@ -1148,7 +1148,7 @@ public final class RelicService implements Listener {
         ItemStack smelted=smeltResult(block.getType());
         if(smelted==null)return;
 
-        int fortune=held.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.FORTUNE);
+        int fortune = getLimitBreakLevel(held, LimitBreakType.FORTUNE);
         if(fortune>0&&isFortuneOre(block.getType())) {
             int roll=java.util.concurrent.ThreadLocalRandom.current().nextInt(fortune+2);
             smelted.setAmount(smelted.getAmount()*Math.max(1,roll));

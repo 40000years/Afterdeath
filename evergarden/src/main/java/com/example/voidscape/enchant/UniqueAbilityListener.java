@@ -68,6 +68,11 @@ public final class UniqueAbilityListener implements Listener {
             arrow.getPersistentDataContainer().set(arrowUniqueKey, PersistentDataType.STRING, String.join(",", activeEnchants));
             arrow.getPersistentDataContainer().set(arrowShooterKey, PersistentDataType.STRING, player.getUniqueId().toString());
         }
+
+        int lbPower = plugin.relics().getLimitBreakLevel(bow, LimitBreakType.POWER);
+        if (lbPower > 5) {
+            arrow.getPersistentDataContainer().set(plugin.key("arrow_lb_power"), PersistentDataType.INTEGER, lbPower);
+        }
     }
 
     private boolean arrowHasUnique(AbstractArrow arrow, UniqueEnchant ue) {
@@ -203,15 +208,19 @@ public final class UniqueAbilityListener implements Listener {
 
         // Colossus Slayer bonus damage calculation and Virtual Power
         if (event.getDamager() instanceof AbstractArrow arrow) {
-            if (arrow.getShooter() instanceof Player shooter) {
+            int effectivePower = 0;
+            Integer arrowPower = arrow.getPersistentDataContainer().get(plugin.key("arrow_lb_power"), PersistentDataType.INTEGER);
+            if (arrowPower != null && arrowPower > 5) {
+                effectivePower = arrowPower;
+            } else if (arrow.getShooter() instanceof Player shooter) {
                 ItemStack bow = shooter.getInventory().getItemInMainHand();
                 if (bow.getType() != Material.BOW && bow.getType() != Material.CROSSBOW) {
                     bow = shooter.getInventory().getItemInOffHand();
                 }
-                int lbPower = plugin.relics().getLimitBreakLevel(bow, LimitBreakType.POWER);
-                if (lbPower > 5) {
-                    event.setDamage(event.getDamage() + (lbPower - 5) * 2.0);
-                }
+                effectivePower = plugin.relics().getLimitBreakLevel(bow, LimitBreakType.POWER);
+            }
+            if (effectivePower > 5) {
+                event.setDamage(event.getDamage() + (effectivePower - 5) * 2.5);
             }
 
             if (arrowHasUnique(arrow, UniqueEnchant.COLOSSUS_SLAYER) && event.getEntity() instanceof LivingEntity victim) {
@@ -450,16 +459,16 @@ public final class UniqueAbilityListener implements Listener {
         ItemStack tool = player.getInventory().getItemInMainHand();
         if (tool == null || !tool.hasItemMeta()) return;
 
-        // Virtual Efficiency Bonus (Levels 6-10)
+        // Virtual Efficiency Bonus (Levels 6-10: Haste I at 6-7, Haste II at 8-9, Haste III at 10)
         int lbEff = plugin.relics().getLimitBreakLevel(tool, LimitBreakType.EFFICIENCY);
         if (lbEff > 5) {
-            int amp = lbEff >= 8 ? 1 : 0;
-            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 45, amp, false, false, false));
+            int amp = lbEff >= 10 ? 2 : (lbEff >= 8 ? 1 : 0);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 60, amp, false, false, false));
         }
 
         // Advance Tool (Haste boost for ultra-fast digging on all platforms & Bedrock)
         if (EnchantApplyListener.hasUnique(tool, UniqueEnchant.ADVANCE_TOOL)) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 45, 1, false, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 60, 1, false, false, false));
         }
     }
 
@@ -511,17 +520,24 @@ public final class UniqueAbilityListener implements Listener {
         ItemStack tool = player.getInventory().getItemInMainHand();
         if (tool == null || !tool.hasItemMeta()) return;
 
-        // Virtual Fortune Bonus (Levels 4-10)
+        // Virtual Fortune Bonus (Levels 4-10: uncapped scaling +1..+2 at lvl 4 up to +4..+8 at lvl 10)
         int lbFortune = plugin.relics().getLimitBreakLevel(tool, LimitBreakType.FORTUNE);
         if (lbFortune > 3) {
             int extra = lbFortune - 3;
+            int minBonus = Math.max(1, (extra + 1) / 2);
+            int maxBonus = extra + 1;
+            boolean bonusGiven = false;
             for (Item itemEntity : event.getItems()) {
                 ItemStack dropStack = itemEntity.getItemStack();
                 if (dropStack.getMaxStackSize() > 1 && isFortuneDrop(dropStack.getType())) {
-                    int add = 1 + (int) (Math.random() * Math.min(extra, 3));
+                    int add = minBonus + (int) (Math.random() * (maxBonus - minBonus + 1));
                     dropStack.setAmount(Math.min(dropStack.getMaxStackSize(), dropStack.getAmount() + add));
                     itemEntity.setItemStack(dropStack);
+                    bonusGiven = true;
                 }
+            }
+            if (bonusGiven && Math.random() < 0.35) {
+                player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation().add(0, 1, 0), 5, 0.3, 0.3, 0.3, 0.1);
             }
         }
 
@@ -555,7 +571,11 @@ public final class UniqueAbilityListener implements Listener {
         String name = mat.name();
         return name.contains("RAW_") || name.endsWith("_INGOT") || name.equals("DIAMOND")
             || name.equals("EMERALD") || name.equals("COAL") || name.equals("REDSTONE")
-            || name.equals("LAPIS_LAZULI") || name.equals("NETHER_QUARTZ") || name.equals("AMETHYST_SHARD");
+            || name.equals("LAPIS_LAZULI") || name.equals("NETHER_QUARTZ") || name.equals("AMETHYST_SHARD")
+            || name.equals("GLOWSTONE_DUST") || name.equals("CLAY_BALL") || name.equals("COPPER_INGOT")
+            || name.equals("CARROT") || name.equals("POTATO") || name.equals("WHEAT_SEEDS")
+            || name.equals("BEETROOT_SEEDS") || name.equals("NETHER_WART") || name.equals("MELON_SLICE")
+            || name.equals("PRISMARINE_CRYSTALS") || name.equals("PRISMARINE_SHARD");
     }
 
     private org.bukkit.block.BlockFace getMiningFace(Player player) {
@@ -706,7 +726,7 @@ public final class UniqueAbilityListener implements Listener {
                 // Tool durability damage (if not unbreakable / eternity)
                 if (count > 1 && player.getGameMode() == GameMode.SURVIVAL && tool.hasItemMeta() && !plugin.relics().isEternityItem(tool)) {
                     if (tool.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg) {
-                        int unbreaking = tool.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.UNBREAKING);
+                        int unbreaking = plugin.relics().getLimitBreakLevel(tool, LimitBreakType.UNBREAKING);
                         if (Math.random() < (1.0 / (unbreaking + 1))) {
                             dmg.setDamage(dmg.getDamage() + 1);
                             tool.setItemMeta(dmg);
@@ -767,7 +787,7 @@ public final class UniqueAbilityListener implements Listener {
         if (tool == null || !tool.hasItemMeta() || player.getGameMode() != GameMode.SURVIVAL) return;
         if (plugin.relics().isEternityItem(tool)) return;
         if (tool.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable dmg) {
-            int unbreaking = tool.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.UNBREAKING);
+            int unbreaking = plugin.relics().getLimitBreakLevel(tool, LimitBreakType.UNBREAKING);
             int finalDmg = 0;
             for (int i = 0; i < amount; i++) {
                 if (Math.random() < (1.0 / (unbreaking + 1))) {
@@ -1013,7 +1033,7 @@ public final class UniqueAbilityListener implements Listener {
         }
     }
 
-    // Virtual Looting Bonus (Levels 4-10)
+    // Virtual Looting Bonus (Levels 4-10: uncapped multiplier + rare drop booster)
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDeathLooting(EntityDeathEvent event) {
         Player killer = event.getEntity().getKiller();
@@ -1022,10 +1042,47 @@ public final class UniqueAbilityListener implements Listener {
         int lbLoot = plugin.relics().getLimitBreakLevel(weapon, LimitBreakType.LOOTING);
         if (lbLoot > 3) {
             int extra = lbLoot - 3;
+            // Guaranteed uncapped scaling per drop:
+            // Level 4 (extra=1): +1..+2 items
+            // Level 6 (extra=3): +2..+4 items
+            // Level 8 (extra=5): +3..+6 items
+            // Level 10 (extra=7): +4..+8 items
+            int minBonus = Math.max(1, (extra + 1) / 2);
+            int maxBonus = extra + 1;
+            boolean bonusAdded = false;
+
             for (ItemStack drop : event.getDrops()) {
-                if (drop != null && drop.getMaxStackSize() > 1 && Math.random() < 0.40) {
-                    drop.setAmount(Math.min(drop.getMaxStackSize(), drop.getAmount() + Math.min(extra, 3)));
+                if (drop != null && drop.getMaxStackSize() > 1) {
+                    int add = minBonus + (int) (Math.random() * (maxBonus - minBonus + 1));
+                    drop.setAmount(Math.min(drop.getMaxStackSize(), drop.getAmount() + add));
+                    bonusAdded = true;
                 }
+            }
+
+            // Rare Drops Booster (Wither Skeleton Skull, Shulker Shells)
+            LivingEntity victim = event.getEntity();
+            if (victim instanceof WitherSkeleton) {
+                boolean hasSkull = event.getDrops().stream().anyMatch(d -> d != null && d.getType() == Material.WITHER_SKELETON_SKULL);
+                if (!hasSkull) {
+                    double extraSkullChance = extra * 0.02; // +2% per level above 3 (+14% at lvl 10)
+                    if (Math.random() < extraSkullChance) {
+                        event.getDrops().add(new ItemStack(Material.WITHER_SKELETON_SKULL, 1));
+                        bonusAdded = true;
+                    }
+                }
+            } else if (victim instanceof Shulker) {
+                boolean hasShell = event.getDrops().stream().anyMatch(d -> d != null && d.getType() == Material.SHULKER_SHELL);
+                if (!hasShell) {
+                    double extraShellChance = Math.min(1.0, 0.20 + extra * 0.12);
+                    if (Math.random() < extraShellChance) {
+                        event.getDrops().add(new ItemStack(Material.SHULKER_SHELL, 1));
+                        bonusAdded = true;
+                    }
+                }
+            }
+
+            if (bonusAdded) {
+                killer.getWorld().playSound(killer.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.3f);
             }
         }
     }
