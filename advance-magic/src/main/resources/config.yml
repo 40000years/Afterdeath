@@ -46,15 +46,15 @@ follow-up:
 # Bundled pack is automatically offered one tick after joining.
 resource-pack:
   enabled: true
-  # Optional external direct URL. Empty = serve the embedded ZIP automatically.
-  url: ''
-  # Empty = embedded ZIP's SHA-1. Set this for a modified externally hosted pack.
+  # Direct HTTPS CDN URL (Fastly / GitHub). Empty = use bundled CDN URL.
+  url: 'https://raw.githubusercontent.com/40000years/Afterdeath/DEV/advance-magic/dist/advance-magic-java.zip'
+  # Empty = calculate dynamically from embedded ZIP.
   sha1: ''
   required: false
   host:
-    enabled: true
+    enabled: false
     bind: '0.0.0.0'
-    # Players must be able to access this TCP port (allocate it on hosting panels).
+    # Local micro-HTTP server (disabled by default in favor of HTTPS port 443 CDN).
     port: 8187
     # Empty = hostname the player joined. Set explicitly for proxies/SRV records.
     public-host: ''

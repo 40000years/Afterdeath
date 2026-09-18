@@ -64,17 +64,19 @@ relics:
   allow-pvp: false
 resource-pack:
   enabled: true
+  # Direct HTTPS CDN URL (Fastly / GitHub). Empty = use bundled CDN URL.
+  url: 'https://raw.githubusercontent.com/40000years/Afterdeath/DEV/evergarden/dist/evergarden-java.zip'
+  # Empty = calculate dynamically from embedded ZIP.
+  sha1: ''
+  required: false
   host:
-    enabled: true
+    enabled: false
     bind: 0.0.0.0
     port: 8188
     public-host: ''
     public-url: ''
   geyser:
     auto-install: true
-  url: ''
-  sha1: ''
-  required: false
 
 # No anticheat bypass permissions are granted. Restart after changing modes.
 compatibility:

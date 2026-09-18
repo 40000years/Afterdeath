@@ -16,6 +16,7 @@ import java.util.jar.JarFile;
 
 public final class ResourcePackService implements Listener, AutoCloseable {
     public static final UUID PACK_ID=UUID.fromString("3e8e5b71-0600-4a42-a678-483a7cce5fb0");
+    public static final String DEFAULT_CDN_URL = "https://raw.githubusercontent.com/40000years/Afterdeath/DEV/advance-magic/dist/advance-magic-java.zip";
     private static final List<String> FILES=List.of("advance-magic-java.zip","advance-magic-bedrock.mcpack",
             "geyser-mappings.json","pack-hashes.json","wand-preview.html","advance-magic-guide-th.png");
     private final JavaPlugin plugin;
@@ -74,13 +75,20 @@ public final class ResourcePackService implements Listener, AutoCloseable {
             byte[] pack=input.readAllBytes();
             sha1=HexFormat.of().formatHex(MessageDigest.getInstance("SHA-1").digest(pack));
             if(!plugin.getConfig().getBoolean("resource-pack.enabled",true))return;
-            if(!plugin.getConfig().getString("resource-pack.url","").isBlank())return;
-            if(!plugin.getConfig().getBoolean("resource-pack.host.enabled",true))return;
+            String configuredUrl=plugin.getConfig().getString("resource-pack.url","").trim();
+            if(!configuredUrl.isBlank()) {
+                plugin.getLogger().info("Advance Magic pack configured to use external CDN: "+configuredUrl);
+                return;
+            }
+            if(!plugin.getConfig().getBoolean("resource-pack.host.enabled",false)) {
+                plugin.getLogger().info("Advance Magic local pack host disabled; serving Java pack via GitHub CDN.");
+                return;
+            }
             http=new PackHttpServer(plugin.getConfig().getString("resource-pack.host.bind","0.0.0.0"),
                     plugin.getConfig().getInt("resource-pack.host.port",8187),pack,sha1);
             plugin.getLogger().info("Bundled Java pack served on TCP "+http.port()+". Allow this port through your host/firewall; /magic pack shows status.");
         }catch(IOException|GeneralSecurityException|IllegalArgumentException e) {
-            failure=e.getMessage();plugin.getLogger().warning("Pack host could not start: "+failure+". Use an allocated TCP port or resource-pack.url.");
+            failure=e.getMessage();plugin.getLogger().warning("Pack host could not start: "+failure+". Falling back to GitHub CDN.");
         }
     }
     private boolean bedrock(Player player) {
@@ -96,7 +104,10 @@ public final class ResourcePackService implements Listener, AutoCloseable {
     public String url(Player player) {
         String external=plugin.getConfig().getString("resource-pack.url","").trim();
         if(!external.isEmpty())return validateUrl(external);
-        if(http==null)return "";
+        if(!plugin.getConfig().getBoolean("resource-pack.host.enabled",false)) {
+            return DEFAULT_CDN_URL;
+        }
+        if(http==null)return DEFAULT_CDN_URL;
         String base=plugin.getConfig().getString("resource-pack.host.public-url","").trim();
         if(!base.isEmpty())return validateUrl(base.replaceAll("/+$","")+http.path());
         String host=plugin.getConfig().getString("resource-pack.host.public-host","").trim();
@@ -104,9 +115,9 @@ public final class ResourcePackService implements Listener, AutoCloseable {
             InetSocketAddress address=player.getVirtualHost();
             if(address!=null)host=address.getHostString();
         }
-        if(host.isBlank())return "";
+        if(host.isBlank())return DEFAULT_CDN_URL;
         try{return validateUrl(new URI("http",null,host,http.port(),http.path(),null,null).toASCIIString());}
-        catch(URISyntaxException e){return "";}
+        catch(URISyntaxException e){return DEFAULT_CDN_URL;}
     }
     private String validateUrl(String value) {
         try {
@@ -119,9 +130,7 @@ public final class ResourcePackService implements Listener, AutoCloseable {
         if(!plugin.getConfig().getBoolean("resource-pack.enabled",true)||bedrock(player))return;
         String url=url(player);
         if(url.isEmpty()) {statuses.put(player.getUniqueId(),"NOT_OFFERED: configure the public host/URL");return;}
-        String digest=plugin.getConfig().getString("resource-pack.url","").isBlank()?sha1:
-                plugin.getConfig().getString("resource-pack.sha1","").trim();
-        // An empty external hash means the admin hosted the exact bundled ZIP.
+        String digest=plugin.getConfig().getString("resource-pack.sha1","").trim();
         if(digest.isEmpty())digest=sha1;
         if(!digest.matches("[a-fA-F0-9]{40}")) {statuses.put(player.getUniqueId(),"INVALID_SHA1");return;}
         try {
@@ -141,9 +150,9 @@ public final class ResourcePackService implements Listener, AutoCloseable {
     @EventHandler public void quit(PlayerQuitEvent event){statuses.remove(event.getPlayer().getUniqueId());}
     public void describe(CommandSender sender) {
         sender.sendMessage(ChatColor.LIGHT_PURPLE+"Advance Magic resource pack");
-        sender.sendMessage("Enabled: "+plugin.getConfig().getBoolean("resource-pack.enabled",true)+" | Host: "+(http==null?"off":"TCP "+http.port()));
+        sender.sendMessage("Enabled: "+plugin.getConfig().getBoolean("resource-pack.enabled",true)+" | Host: "+(http==null?"off (CDN active)":"TCP "+http.port()));
         sender.sendMessage("Bundled SHA-1: "+sha1);
-        String url=url(sender instanceof Player p?p:null);sender.sendMessage("URL: "+(url.isEmpty()?"auto from joining player's server address; set host.public-host for proxies/SRV":url));
+        String url=url(sender instanceof Player p?p:null);sender.sendMessage("URL: "+(url.isEmpty()?"CDN default":url));
         sender.sendMessage(geyserStatus);
         if(!failure.isEmpty())sender.sendMessage(ChatColor.RED+failure);
         if(sender instanceof Player p)sender.sendMessage("Your pack: "+statuses.getOrDefault(p.getUniqueId(),"not offered (or Bedrock)"));
