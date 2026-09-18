@@ -108,6 +108,9 @@ public final class BotanistNpc implements Listener {
         v.setCollidable(false);
         v.setGravity(false);
         v.setSilent(true);
+        v.addScoreboardTag("evergarden_mob");
+        v.addScoreboardTag("no-level");
+        v.addScoreboardTag("no_level");
         v.setPersistent(true);
         v.setRemoveWhenFarAway(false);
         v.setProfession(Villager.Profession.FARMER);

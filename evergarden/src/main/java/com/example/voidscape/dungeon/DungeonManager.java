@@ -319,6 +319,18 @@ public final class DungeonManager implements Listener {
             m.setRemoveWhenFarAway(false);
             m.setPersistent(true);
 
+            // Immune tags for LevelledMobs and external mob-leveling plugins
+            m.addScoreboardTag("evergarden_mob");
+            m.addScoreboardTag("no-level");
+            m.addScoreboardTag("no_level");
+            m.addScoreboardTag("lm-ignore");
+            m.addScoreboardTag("levelledmobs:ignore");
+            m.setMetadata("no-level", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+            m.setMetadata("levelledmobs:challenge", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+            m.setMetadata("custom-boss", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+            m.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "no-level"), PersistentDataType.BYTE, (byte) 1);
+            m.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "ignore"), PersistentDataType.BYTE, (byte) 1);
+
             double baseHp;
             double attackDamage;
             if (species == Species.BOSS) {
@@ -391,7 +403,76 @@ public final class DungeonManager implements Listener {
         if(!mob.isValid()||mob.isDead())return null;
         enc.mobs.put(mob.getUniqueId(),species);
         owners.put(mob.getUniqueId(),enc);
+
+        // Schedule LevelledMobs immunity check 1 tick later to strip any external level modifications
+        final double finalHp = species == Species.VEX ? 20.0 : Math.round((species == Species.BOSS ? Math.min(1000.0, 750.0 + Math.max(0, teamSize - 1) * 125.0) :
+            species == Species.CASTER ? 250.0 + (teamSize - 1) * 80.0 :
+            species == Species.STALKER ? 350.0 + (teamSize - 1) * 100.0 :
+            280.0 + (teamSize - 1) * 80.0) * 0.70);
+        final double finalDmg = species == Species.BOSS ? 45.0 + Math.max(0, teamSize - 1) * 10.0 :
+            species == Species.VEX ? 24.0 :
+            species == Species.STALKER ? 24.0 :
+            species == Species.CASTER ? 18.0 : 20.0;
+        final String finalName = species == Species.BOSS ?
+            (enc.site.kind() == DungeonLayout.Kind.SANCTUM_DARK ? "จอมมารแห่งความมืด (Shadow Overlord)" :
+             enc.site.kind() == DungeonLayout.Kind.SANCTUM_ASTRAL ? "อัครเทวทูตดวงดาว (Astral Archon)" : "ผู้พิทักษ์กาลเวลา (Chronos Vanguard)") :
+            (species == Species.VEX ? "วิญญาณรังควานแห่งความว่างเปล่า (Void Vex)" :
+             species == Species.CASTER ? "ภูตพลังเวท" : species == Species.MINION ? "อัศวินแห่งวิหาร" : "นักล่ามิติ");
+        final NamedTextColor finalColor = species == Species.BOSS ? NamedTextColor.GOLD : species == Species.VEX ? NamedTextColor.RED : NamedTextColor.LIGHT_PURPLE;
+
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            cleanseAndLockMob(mob, finalHp, finalDmg, finalName, finalColor, species == Species.BOSS);
+        }, 1L);
+
         return mob;
+    }
+
+    private void cleanseAndLockMob(Mob mob, double targetHp, double targetDmg, String targetName, NamedTextColor color, boolean isBoss) {
+        if (mob == null || !mob.isValid() || mob.isDead()) return;
+
+        // 1. Strip external LevelledMobs or leveler PDC tags
+        try {
+            for (NamespacedKey key : mob.getPersistentDataContainer().getKeys()) {
+                String ns = key.getNamespace().toLowerCase(Locale.ROOT);
+                if (ns.contains("levelledmobs") || ns.equals("lm") || key.getKey().toLowerCase(Locale.ROOT).contains("level")) {
+                    if (!key.equals(trueDeathHitsKey) && !key.equals(trueDeathLevelKey) && !key.equals(mobKey) && !key.equals(runKey)) {
+                        mob.getPersistentDataContainer().remove(key);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // 2. Strip external LevelledMobs metadata
+        for (String metaKey : List.of("levelledmobs:level", "levelledmobs", "lm_level", "mob_level")) {
+            if (mob.hasMetadata(metaKey)) {
+                mob.removeMetadata(metaKey, plugin);
+            }
+        }
+
+        // 3. Enforce Max Health and Health clamp
+        var hpAttr = mob.getAttribute(Attribute.MAX_HEALTH);
+        if (hpAttr != null && hpAttr.getBaseValue() != targetHp) {
+            hpAttr.setBaseValue(targetHp);
+            if (mob.getHealth() > targetHp) {
+                mob.setHealth(targetHp);
+            }
+        }
+
+        // 4. Enforce Attack Damage
+        var dmgAttr = mob.getAttribute(Attribute.ATTACK_DAMAGE);
+        if (dmgAttr != null && dmgAttr.getBaseValue() != targetDmg) {
+            dmgAttr.setBaseValue(targetDmg);
+        }
+
+        // 5. Enforce Boss Armor
+        if (isBoss) {
+            if (mob.getAttribute(Attribute.ARMOR) != null) mob.getAttribute(Attribute.ARMOR).setBaseValue(24.0);
+            if (mob.getAttribute(Attribute.ARMOR_TOUGHNESS) != null) mob.getAttribute(Attribute.ARMOR_TOUGHNESS).setBaseValue(16.0);
+        }
+
+        // 6. Restore pristine Custom Name without LevelledMobs [Lvl ...] prefix
+        mob.customName(Component.text(targetName, color));
+        mob.setCustomNameVisible(true);
     }
 
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
@@ -451,6 +532,14 @@ public final class DungeonManager implements Listener {
                     if(Math.random() < 0.20) {
                         placeTemporaryWeb(victim.getLocation().getBlock(),6000L);
                     }
+                }
+                // Cap and enforce melee hit damage against external leveler inflation
+                double maxMelee = species == Species.BOSS ? (45.0 + Math.max(0, mobEnc.presence.size() - 1) * 10.0) :
+                                  species == Species.VEX ? 24.0 :
+                                  species == Species.STALKER ? 24.0 :
+                                  species == Species.MINION ? 20.0 : 18.0;
+                if (e.getDamage() > maxMelee * 1.35) {
+                    e.setDamage(maxMelee);
                 }
                 if (species == Species.BOSS) {
                     recordTrueDeathHit(victim);
