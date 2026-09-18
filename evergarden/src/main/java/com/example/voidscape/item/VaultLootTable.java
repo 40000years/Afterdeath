@@ -2,7 +2,7 @@ package com.example.voidscape.item;
 
 /**
  * 10,000-ticket balanced loot table for Evergarden Vault (Long-term server economy):
- * 0..1499    (15.0%) : Limit Break Scrolls (19 abilities including Spear & Mace)
+ * 0..1499    (15.0%) : Limit Break Scrolls (14 abilities including Mace & Thorns)
  * 1500..2699 (12.0%) : Unique Enchant Scrolls (22 abilities)
  * 2700..3399  (7.0%) : Advance Magic Cores (14 elements)
  * 3400..3899  (5.0%) : Special Relic Equipment (Rift Pickaxe, Smelter Pickaxe, Storm Bow, Nova Bow, Rift Blade, Eternal Aegis)

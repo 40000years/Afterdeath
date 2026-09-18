@@ -196,6 +196,11 @@ public final class UniqueAbilityListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        // Virtual Thorns Retaliation (Levels 4-10) when player is attacked
+        if (event.getEntity() instanceof Player victimPlayer && !IN_THORNS_REFLECTION.get()) {
+            handleVirtualThorns(event, victimPlayer);
+        }
+
         // Colossus Slayer bonus damage calculation and Virtual Power
         if (event.getDamager() instanceof AbstractArrow arrow) {
             if (arrow.getShooter() instanceof Player shooter) {
@@ -223,24 +228,6 @@ public final class UniqueAbilityListener implements Listener {
             return;
         }
 
-        // Thrown Trident / Spear damage & virtual bonuses
-        if (event.getDamager() instanceof Trident trident) {
-            if (trident.getShooter() instanceof Player shooter && event.getEntity() instanceof LivingEntity victim) {
-                ItemStack tridentItem = trident.getItemStack();
-                int lbImp = plugin.relics().getLimitBreakLevel(tridentItem, LimitBreakType.IMPALING);
-                if (lbImp > 5 && (victim.isInWaterOrRain() || victim instanceof WaterMob)) {
-                    double bonus = (lbImp - 5) * 2.5;
-                    event.setDamage(event.getDamage() + bonus);
-                    victim.getWorld().spawnParticle(Particle.SPLASH, victim.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.1);
-                }
-                int lbLoyalty = plugin.relics().getLimitBreakLevel(tridentItem, LimitBreakType.LOYALTY);
-                if (lbLoyalty > 3) {
-                    event.setDamage(event.getDamage() + (lbLoyalty - 3) * 1.5);
-                }
-            }
-            return;
-        }
-
         if (!(event.getDamager() instanceof Player player) || !(event.getEntity() instanceof LivingEntity victim)) return;
         if (victim instanceof ArmorStand) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
@@ -259,22 +246,6 @@ public final class UniqueAbilityListener implements Listener {
             double bonusSmite = (lbSmite - 5) * 2.5;
             event.setDamage(event.getDamage() + bonusSmite);
             victim.getWorld().spawnParticle(Particle.CRIT, victim.getLocation().add(0, 1, 0), 6, 0.2, 0.3, 0.2, 0.1);
-        }
-
-        // Virtual Impaling Bonus (Levels 6-10) on Trident / Spear melee
-        int lbImpaling = plugin.relics().getLimitBreakLevel(weapon, LimitBreakType.IMPALING);
-        if (lbImpaling > 5 && (victim.isInWaterOrRain() || victim instanceof WaterMob)) {
-            double bonusImp = (lbImpaling - 5) * 2.5;
-            event.setDamage(event.getDamage() + bonusImp);
-            victim.getWorld().spawnParticle(Particle.SPLASH, victim.getLocation().add(0, 1, 0), 8, 0.2, 0.3, 0.2, 0.1);
-        }
-
-        // Virtual Fire Aspect Bonus (Levels 3-5)
-        int lbFire = plugin.relics().getLimitBreakLevel(weapon, LimitBreakType.FIRE_ASPECT);
-        if (lbFire > 2) {
-            int extraTicks = (lbFire - 2) * 60;
-            victim.setFireTicks(Math.max(victim.getFireTicks(), 80 + extraTicks));
-            victim.getWorld().spawnParticle(Particle.FLAME, victim.getLocation().add(0, 1, 0), 6, 0.2, 0.3, 0.2, 0.05);
         }
 
         // Virtual Sweeping Edge Bonus (Levels 4-8)
@@ -1076,63 +1047,6 @@ public final class UniqueAbilityListener implements Listener {
         }
     }
 
-    // Virtual Respiration Bonus (Levels 4-8) on Helmet
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onEntityAirChange(EntityAirChangeEvent event) {
-        if (!(event.getEntity() instanceof Player player)) return;
-        if (event.getAmount() >= player.getRemainingAir()) return;
-        ItemStack helmet = player.getInventory().getHelmet();
-        if (helmet == null || helmet.getType().isAir()) return;
-        int lbResp = plugin.relics().getLimitBreakLevel(helmet, LimitBreakType.RESPIRATION);
-        if (lbResp > 3) {
-            double cancelChance = 1.0 - (4.0 / (lbResp + 1.0));
-            if (java.util.concurrent.ThreadLocalRandom.current().nextDouble() < cancelChance) {
-                event.setCancelled(true);
-            }
-        }
-    }
-
-    // Virtual Riptide Bonus (Levels 4-5) on Spear/Trident
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onPlayerRiptide(PlayerRiptideEvent event) {
-        ItemStack item = event.getItem();
-        if (item == null || item.getType().isAir()) return;
-        int lbRiptide = plugin.relics().getLimitBreakLevel(item, LimitBreakType.RIPTIDE);
-        if (lbRiptide > 3) {
-            Player player = event.getPlayer();
-            double boost = 1.0 + (lbRiptide - 3) * 0.20;
-            player.setVelocity(player.getVelocity().multiply(boost));
-            player.getWorld().spawnParticle(Particle.SPLASH, player.getLocation(), 15, 0.3, 0.3, 0.3, 0.2);
-        }
-    }
-
-    // Virtual Loyalty Velocity Boost (Levels 4-5) on Spear/Trident
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onTridentLaunch(ProjectileLaunchEvent event) {
-        if (event.getEntity() instanceof Trident trident && trident.getShooter() instanceof Player) {
-            ItemStack tridentItem = trident.getItemStack();
-            int lbLoyalty = plugin.relics().getLimitBreakLevel(tridentItem, LimitBreakType.LOYALTY);
-            if (lbLoyalty > 3) {
-                trident.setVelocity(trident.getVelocity().multiply(1.0 + (lbLoyalty - 3) * 0.15));
-            }
-        }
-    }
-
-    // Virtual Swift Sneak Bonus (Levels 4-5) on Leggings
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onToggleSneak(PlayerToggleSneakEvent event) {
-        Player player = event.getPlayer();
-        if (event.isSneaking()) {
-            ItemStack leggings = player.getInventory().getLeggings();
-            if (leggings != null && !leggings.getType().isAir()) {
-                int lbSneak = plugin.relics().getLimitBreakLevel(leggings, LimitBreakType.SWIFT_SNEAK);
-                if (lbSneak > 3) {
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, lbSneak - 4, true, false, false));
-                }
-            }
-        }
-    }
-
     // Virtual Depth Strider Bonus (Levels 4-5) on Boots
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerMoveDepthStrider(PlayerMoveEvent event) {
@@ -1146,6 +1060,47 @@ public final class UniqueAbilityListener implements Listener {
                 int lbDepth = plugin.relics().getLimitBreakLevel(boots, LimitBreakType.DEPTH_STRIDER);
                 if (lbDepth > 3) {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 40, lbDepth - 4, true, false, false));
+                }
+            }
+        }
+    }
+
+    private static final ThreadLocal<Boolean> IN_THORNS_REFLECTION = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
+    private void handleVirtualThorns(EntityDamageByEntityEvent event, Player player) {
+        if (player.getInventory().getArmorContents() == null) return;
+        int maxThorns = 0;
+        for (ItemStack armor : player.getInventory().getArmorContents()) {
+            if (armor != null && !armor.getType().isAir()) {
+                int lbThorns = plugin.relics().getLimitBreakLevel(armor, LimitBreakType.THORNS);
+                if (lbThorns > maxThorns) {
+                    maxThorns = lbThorns;
+                }
+            }
+        }
+        if (maxThorns > 3) {
+            Entity damager = event.getDamager();
+            LivingEntity attacker = null;
+            if (damager instanceof LivingEntity living) {
+                attacker = living;
+            } else if (damager instanceof Projectile proj && proj.getShooter() instanceof LivingEntity livingShooter) {
+                attacker = livingShooter;
+            }
+
+            if (attacker != null && !attacker.equals(player) && !(attacker instanceof ArmorStand) && canDamage(player, attacker)) {
+                // Vanilla Thorns III is 45% chance for 1-4 dmg.
+                // Limit Break Thorns (4..10) scales chance up to 95% and reflect damage up to 12.5
+                double chance = Math.min(0.95, 0.45 + (maxThorns - 3) * 0.08);
+                if (java.util.concurrent.ThreadLocalRandom.current().nextDouble() < chance) {
+                    double reflectDmg = 2.0 + (maxThorns - 3) * 1.5;
+                    IN_THORNS_REFLECTION.set(Boolean.TRUE);
+                    try {
+                        attacker.damage(reflectDmg, player);
+                        attacker.getWorld().playSound(attacker.getLocation(), Sound.ENCHANT_THORNS_HIT, 1.0f, 1.2f);
+                        attacker.getWorld().spawnParticle(Particle.CRIT, attacker.getLocation().add(0, 1, 0), 10, 0.2, 0.3, 0.2, 0.1);
+                    } finally {
+                        IN_THORNS_REFLECTION.set(Boolean.FALSE);
+                    }
                 }
             }
         }
