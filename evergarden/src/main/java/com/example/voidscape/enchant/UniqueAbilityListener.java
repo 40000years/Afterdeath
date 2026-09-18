@@ -461,6 +461,12 @@ public final class UniqueAbilityListener implements Listener {
 
         // Virtual Efficiency Bonus (Levels 6-10: Haste I at 6-7, Haste II at 8-9, Haste III at 10)
         int lbEff = plugin.relics().getLimitBreakLevel(tool, LimitBreakType.EFFICIENCY);
+        if (lbEff >= 9) {
+            Block block = event.getBlock();
+            if (isPickaxeInstaMineable(block.getType())) {
+                event.setInstaBreak(true);
+            }
+        }
         if (lbEff > 5) {
             int amp = lbEff >= 10 ? 2 : (lbEff >= 8 ? 1 : 0);
             player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 60, amp, false, false, false));
@@ -576,6 +582,16 @@ public final class UniqueAbilityListener implements Listener {
             || name.equals("CARROT") || name.equals("POTATO") || name.equals("WHEAT_SEEDS")
             || name.equals("BEETROOT_SEEDS") || name.equals("NETHER_WART") || name.equals("MELON_SLICE")
             || name.equals("PRISMARINE_CRYSTALS") || name.equals("PRISMARINE_SHARD");
+    }
+
+    private boolean isPickaxeInstaMineable(Material mat) {
+        if (mat == null) return false;
+        String name = mat.name();
+        return name.contains("DEEPSLATE") || name.contains("STONE") || name.contains("ORE")
+            || name.contains("COBBLE") || name.contains("ANDESITE") || name.contains("DIORITE")
+            || name.contains("GRANITE") || name.contains("TUFF") || name.contains("BASALT")
+            || name.contains("BLACKSTONE") || name.contains("NETHERRACK") || name.contains("SANDSTONE")
+            || name.contains("BRICK") || name.contains("PRISMARINE");
     }
 
     private org.bukkit.block.BlockFace getMiningFace(Player player) {

@@ -375,6 +375,10 @@ public final class RelicService implements Listener {
         int vanillaCap = Math.min(next, type.enchantment().getMaxLevel());
         meta.addEnchant(type.enchantment(), vanillaCap, true);
 
+        if (type == LimitBreakType.EFFICIENCY && next >= 6) {
+            EnchantApplyListener.applyEfficiencyToolComponent(meta, next);
+        }
+
         List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
         lore.removeIf(line -> net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line).contains(type.thaiTitle()));
         lore.add(Component.text("✦ " + type.thaiTitle() + " ระดับ " + toRoman(next), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
@@ -442,6 +446,15 @@ public final class RelicService implements Listener {
             var meta = item.getItemMeta();
             if (meta != null && (!meta.hasTool() || meta.getTool().getRules().isEmpty())) {
                 EnchantApplyListener.applyAdvanceToolComponent(meta);
+                item.setItemMeta(meta);
+                changed = true;
+            }
+        }
+        int lbEff = getLimitBreakLevel(item, LimitBreakType.EFFICIENCY);
+        if (lbEff >= 6) {
+            var meta = item.getItemMeta();
+            if (meta != null && (!meta.hasTool() || meta.getTool().getDefaultMiningSpeed() < 35.0f)) {
+                EnchantApplyListener.applyEfficiencyToolComponent(meta, lbEff);
                 item.setItemMeta(meta);
                 changed = true;
             }

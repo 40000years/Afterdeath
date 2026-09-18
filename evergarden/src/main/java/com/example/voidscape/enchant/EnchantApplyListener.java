@@ -373,6 +373,24 @@ public final class EnchantApplyListener implements Listener {
         }
     }
 
+    public static void applyEfficiencyToolComponent(ItemMeta meta, int level) {
+        if (meta == null || level < 6) return;
+        try {
+            org.bukkit.inventory.meta.components.ToolComponent tool = meta.getTool();
+            // Formula: 9.0 (base netherite) + level^2 + 1
+            // Level 9: 9 + 82 = 91.0 (>= 90.0 required to instamine Deepslate 3.0 hardness)
+            // Level 10: 9 + 101 = 110.0 (Ultra instamine)
+            float speed = (float) (9.0 + (level * level + 1));
+            tool.setDefaultMiningSpeed(speed);
+            tool.addRule(Tag.MINEABLE_PICKAXE, speed, true);
+            tool.addRule(Tag.MINEABLE_AXE, speed, true);
+            tool.addRule(Tag.MINEABLE_SHOVEL, speed, true);
+            tool.addRule(Tag.MINEABLE_HOE, speed, true);
+            meta.setTool(tool);
+        } catch (Throwable ignored) {
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onItemDamage(PlayerItemDamageEvent event) {
         if (relics.isEternityItem(event.getItem())) {
