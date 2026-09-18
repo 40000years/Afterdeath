@@ -53,7 +53,8 @@ public final class CropBuffListener implements Listener, AutoCloseable {
     private final Set<UUID> soulWardActive = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Map<UUID, Long> kineticSlamUntil = new ConcurrentHashMap<>();
     private final Map<UUID, Long> chameleonUntil = new ConcurrentHashMap<>();
-    private final Map<UUID, Long> seismicUntil = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> abyssalBubbleUntil = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> abyssalCooldown = new ConcurrentHashMap<>();
     private final Map<UUID, Long> magnetUntil = new ConcurrentHashMap<>();
     private final Map<UUID, Long> oreResonanceUntil = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> floraAuraCharges = new ConcurrentHashMap<>();
@@ -333,17 +334,17 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 }, 60L);
             }
             case ABYSSAL_KELP -> {
-                seismicUntil.put(id, now + 60_000L);
-                p.getWorld().playSound(p.getLocation(), Sound.BLOCK_CONDUIT_ACTIVATE, 0.9f, 1.2f);
-                for (Entity ent : p.getWorld().getNearbyEntities(p.getLocation(), 32, 32, 32)) {
-                    if (ent instanceof Monster || ent instanceof Boss) {
-                        if (ent instanceof LivingEntity le) {
-                            le.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 1200, 0, false, false));
-                            ent.getWorld().spawnParticle(Particle.GLOW, ent.getLocation().add(0, 1, 0), 10, 0.3, 0.5, 0.3, 0.05);
-                        }
-                    }
+                abyssalBubbleUntil.put(id, now + 120_000L);
+                p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2400, 1, false, false, true));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 2400, 0, false, false, true));
+                if (p.getFireTicks() > 0) {
+                    p.setFireTicks(0);
                 }
-                p.sendActionBar(Component.text("✦ ขึ้นฉ่าย: มองเห็นศัตรูในระยะ 32 บล็อก (60 วินาที)", NamedTextColor.DARK_AQUA));
+                p.getWorld().playSound(p.getLocation(), Sound.ITEM_BUCKET_FILL, 0.9f, 1.2f);
+                p.getWorld().playSound(p.getLocation(), Sound.BLOCK_CONDUIT_ACTIVATE, 0.8f, 1.4f);
+                p.getWorld().spawnParticle(Particle.BUBBLE_POP, p.getLocation().add(0, 1, 0), 30, 0.5, 0.6, 0.5, 0.08);
+                p.getWorld().spawnParticle(Particle.SPLASH, p.getLocation().add(0, 0.5, 0), 25, 0.4, 0.4, 0.4, 0.1);
+                p.sendActionBar(Component.text("✦ ขึ้นฉ่าย: เกราะฟองสบู่น้ำลึก (Absorption II & สะท้อนคลื่นน้ำ 2 นาที)", NamedTextColor.DARK_AQUA));
             }
             case GLIDER_SPORE -> {
                 movement.glide(p);
@@ -711,6 +712,33 @@ public final class CropBuffListener implements Listener, AutoCloseable {
             }
         }
 
+        // 2.5 Abyssal Bubble Shield: Extinguish fire & counter-blast knockback
+        if (abyssalBubbleUntil.getOrDefault(id, 0L) > now) {
+            if (p.getFireTicks() > 0) {
+                p.setFireTicks(0);
+                p.getWorld().playSound(p.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.8f, 1.2f);
+            }
+            if (e.getDamage() > 0 && abyssalCooldown.getOrDefault(id, 0L) <= now) {
+                abyssalCooldown.put(id, now + 5000L);
+                Location loc = p.getLocation();
+                loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_SPLASH, 1.0f, 1.2f);
+                loc.getWorld().playSound(loc, Sound.BLOCK_CONDUIT_DEACTIVATE, 0.8f, 1.6f);
+                loc.getWorld().spawnParticle(Particle.SPLASH, loc.clone().add(0, 0.8, 0), 35, 0.5, 0.4, 0.5, 0.15);
+                loc.getWorld().spawnParticle(Particle.BUBBLE_POP, loc.clone().add(0, 1.0, 0), 20, 0.5, 0.5, 0.5, 0.05);
+
+                for (Entity ent : loc.getWorld().getNearbyEntities(loc, 5.0, 5.0, 5.0)) {
+                    if (ent instanceof Monster m && !m.isDead()) {
+                        m.damage(4.0, p);
+                        Vector away = m.getLocation().toVector().subtract(loc.toVector());
+                        if (away.lengthSquared() > 0.001) {
+                            m.setVelocity(away.normalize().setY(0.35).multiply(0.9));
+                        }
+                    }
+                }
+                p.sendActionBar(Component.text("✦ คลื่นน้ำลึกระเบิดสะท้อนศัตรูกระเด็น!", NamedTextColor.AQUA));
+            }
+        }
+
         // 3. Undying Aegis (Prevent death)
         if (soulWardActive.contains(id)) {
             if (p.getHealth() - e.getFinalDamage() <= 0) {
@@ -915,7 +943,8 @@ public final class CropBuffListener implements Listener, AutoCloseable {
         soulWardActive.remove(id);
         kineticSlamUntil.remove(id);
         chameleonUntil.remove(id);
-        seismicUntil.remove(id);
+        abyssalBubbleUntil.remove(id);
+        abyssalCooldown.remove(id);
         magnetUntil.remove(id);
         oreResonanceUntil.remove(id);
         floraAuraCharges.remove(id);
