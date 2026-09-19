@@ -2,16 +2,9 @@ package com.example.voidscape.gui;
 
 import com.example.voidscape.VoidscapePlugin;
 import com.example.voidscape.guide.BedrockGuideService;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 
-public final class UpgradeMenuService implements Listener {
+public final class UpgradeMenuService {
     private final VoidscapePlugin plugin;
 
     public UpgradeMenuService(VoidscapePlugin plugin) {
@@ -37,30 +30,5 @@ public final class UpgradeMenuService implements Listener {
 
         // Fallback to chest GUI
         ChestUpgradeGui.open(plugin, player);
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onSmithingTableInteract(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getClickedBlock() == null) return;
-
-        Material blockType = event.getClickedBlock().getType();
-        if (blockType != Material.SMITHING_TABLE) return;
-
-        Player player = event.getPlayer();
-
-        // On Bedrock, right clicking a smithing table opens the mobile touch upgrade menu!
-        if (BedrockGuideService.isBedrock(player)) {
-            event.setCancelled(true);
-            open(plugin, player);
-            return;
-        }
-
-        // On Java, sneaking and right-clicking opens the upgrade menu
-        if (player.isSneaking()) {
-            event.setCancelled(true);
-            open(plugin, player);
-        }
     }
 }

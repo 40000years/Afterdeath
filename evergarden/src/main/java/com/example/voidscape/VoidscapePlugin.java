@@ -123,7 +123,6 @@ public final class VoidscapePlugin extends JavaPlugin {
             } catch (Throwable ignored) {}
             getServer().getOnlinePlayers().forEach(p->{relics.migrate(p.getInventory());relics.migrate(p.getEnderChest());packs.offer(p);});
             pm.registerEvents(new com.example.voidscape.gui.ChestUpgradeGui(this),this);
-            pm.registerEvents(new com.example.voidscape.gui.UpgradeMenuService(this),this);
             VoidCommand command=new VoidCommand(this);
             getCommand("evergarden").setExecutor(command);getCommand("evergarden").setTabCompleter(command);
             if (getCommand("upgrade") != null) {
