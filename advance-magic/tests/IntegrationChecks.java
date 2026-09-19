@@ -94,7 +94,7 @@ public final class IntegrationChecks extends JavaPlugin {
         plugin.mana().quit(player);
         check(plugin.mana().account(player).mana()==40&&plugin.mana().account(player).remaining(Spell.LIGHTNING_STRIKE.id(),System.currentTimeMillis())>0,"PDC reload preserves mana and cooldown");
         target=w.spawn(new Location(w,0.5,100,6.5),Vindicator.class);target.setAI(false);target.setSilent(true);target.setGravity(false);
-        target.getEquipment().clear();target.getAttribute(Attribute.MAX_HEALTH).setBaseValue(200);target.setHealth(200);
+        target.getEquipment().clear();target.getAttribute(Attribute.MAX_HEALTH).setBaseValue(2000);target.setHealth(2000);
         target.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
         check(plugin.spells().cast(player,Spell.FROST_NOVA),"Frost Nova casts");
         check(target.getPotionEffect(PotionEffectType.SLOWNESS).getAmplifier()==3,"Frost Nova Slowness IV");
@@ -114,7 +114,7 @@ public final class IntegrationChecks extends JavaPlugin {
                 check(!arrow.isValid(),"wall intercepts moving arrow");
                 reset();
                 check(plugin.spells().cast(player,Spell.LIGHTNING_STRIKE),"Lightning targets entity");
-                check(target.getHealth()<200,"Lightning damage passes through real server damage pipeline");
+                check(target.getHealth()<2000,"Lightning damage passes through real server damage pipeline");
                 reset();check(plugin.spells().cast(player,Spell.DRAGONS_BREATH),"Dragon cloud launches");
                 check(w.getEntitiesByClass(AreaEffectCloud.class).size()==1,"native AreaEffectCloud exists");
                 later(30,this::projectiles);
@@ -127,10 +127,10 @@ public final class IntegrationChecks extends JavaPlugin {
         player.setVelocity(new org.bukkit.util.Vector());
         for(var effect:player.getActivePotionEffects())player.removePotionEffect(effect.getType());
         for(var effect:target.getActivePotionEffects())target.removePotionEffect(effect.getType());
-        target.setNoDamageTicks(0);target.setHealth(200);target.setFireTicks(0);target.teleport(new Location(player.getWorld(),0.5,100,6.5));target.setVelocity(new org.bukkit.util.Vector());
+        target.setNoDamageTicks(0);target.setHealth(2000);target.setFireTicks(0);target.teleport(new Location(player.getWorld(),0.5,100,6.5));target.setVelocity(new org.bukkit.util.Vector());
     }
     void projectiles() {
-        check(target.getHealth()<200,"Dragon cloud deals continuous magic damage");
+        check(target.getHealth()<2000,"Dragon cloud deals continuous magic damage");
         reset();check(plugin.spells().cast(player,Spell.BLAZE_BARRAGE),"Blaze Barrage launches");
         later(16,()->{
             check(target.getFireTicks()>0,"blaze impact ignites target");
@@ -153,7 +153,7 @@ public final class IntegrationChecks extends JavaPlugin {
         });
     }
     void finishSpells() {
-        check(target.getHealth()<200,"Guardian Beam deals shock and tidal burst damage");
+        check(target.getHealth()<2000,"Guardian Beam deals shock and tidal burst damage");
         check(player.hasPotionEffect(PotionEffectType.REGENERATION),"Guardian Beam rewards water surge regen");
         reset();World w=player.getWorld();
         for(int x=-1;x<=1;x++)for(int y=100;y<=102;y++)w.getBlockAt(x,y,3).setType(Material.STONE);

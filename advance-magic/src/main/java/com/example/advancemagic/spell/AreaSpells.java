@@ -28,7 +28,7 @@ public final class AreaSpells implements Listener {
         // The vanilla effect sends native lightning packets without uncontrolled fire or extra damage.
         at.getWorld().strikeLightningEffect(at);
         for(var e:c.nearby(p,at,5,false))if(c.affect(p,e,Spell.LIGHTNING_STRIKE)) {
-            c.damage(p,e,c.configuredDamage("damage.lightning",60),DamageType.LIGHTNING_BOLT);
+            c.damage(p,e,c.configuredDamage("damage.lightning",240),DamageType.LIGHTNING_BOLT);
             c.potion(e,PotionEffectType.SLOWNESS,40,2);
         }
         c.ring(at,5,Spell.LIGHTNING_STRIKE);
@@ -39,9 +39,9 @@ public final class AreaSpells implements Listener {
                 at.getWorld().playSound(at,Sound.ENTITY_LIGHTNING_BOLT_IMPACT,1.3f,1.8f);
                 c.ring(at,7,Spell.LIGHTNING_STRIKE);
                 c.particles(at.clone().add(0,0.5,0),Particle.ELECTRIC_SPARK,45,2.2);
-                c.echo(p,at,Spell.LIGHTNING_STRIKE,14,7,18);
+                c.echo(p,at,Spell.LIGHTNING_STRIKE,14,7,72);
                 for(var e:c.nearby(p,at,7,false))if(c.affect(p,e,Spell.LIGHTNING_STRIKE)) {
-                    c.damage(p,e,c.configuredDamage("damage.lightning-secondary",30),DamageType.LIGHTNING_BOLT);
+                    c.damage(p,e,c.configuredDamage("damage.lightning-secondary",120),DamageType.LIGHTNING_BOLT);
                     c.potion(e,PotionEffectType.BLINDNESS,40,0);
                     c.potion(e,PotionEffectType.NAUSEA,60,0);
                 }
@@ -65,9 +65,9 @@ public final class AreaSpells implements Listener {
                 center.getWorld().playSound(center,Sound.ENTITY_PLAYER_HURT_FREEZE,1.2f,0.9f);
                 c.ring(center,7.5,Spell.FROST_NOVA);
                 c.particles(center.clone().add(0,0.5,0),Particle.SNOWFLAKE,40,2.5);
-                c.echo(p,center,Spell.FROST_NOVA,14,7.5,25);
+                c.echo(p,center,Spell.FROST_NOVA,14,7.5,100);
                 for(var e:c.nearby(p,center,7.5,false))if(c.affect(p,e,Spell.FROST_NOVA)) {
-                    c.damage(p,e,c.configuredDamage("damage.frost-shatter",35),DamageType.FREEZE);
+                    c.damage(p,e,c.configuredDamage("damage.frost-shatter",140),DamageType.FREEZE);
                     Vector push=e.getLocation().toVector().subtract(center.toVector()).setY(0);
                     if(push.lengthSquared()>0.01)c.velocity(e,push.normalize().multiply(0.6).setY(0.25));
                 }
@@ -136,13 +136,13 @@ public final class AreaSpells implements Listener {
             c.particles(ruptureCenter,Particle.CAMPFIRE_COSY_SMOKE,25,1.5);
             c.particles(ruptureCenter,Particle.EXPLOSION,2,0.8);
             for(var e:c.nearby(p,ruptureCenter,4.5,false))if(c.affect(p,e,Spell.EARTH_WALL)) {
-                c.damage(p,e,c.configuredDamage("damage.earth-wall-rupture",25),DamageType.MOB_ATTACK);
+                c.damage(p,e,c.configuredDamage("damage.earth-wall-rupture",100),DamageType.MOB_ATTACK);
                 c.potion(e,PotionEffectType.SLOWNESS,60,3);
                 Vector knock=e.getLocation().toVector().subtract(center.toVector()).setY(0);
                 if(knock.lengthSquared()<0.01)knock=facing.clone();
                 c.velocity(e,knock.normalize().multiply(0.8).setY(0.35));
             }
-            c.echo(p,ruptureCenter,Spell.EARTH_WALL,100,5,25);
+            c.echo(p,ruptureCenter,Spell.EARTH_WALL,100,5,100);
         }catch(RuntimeException ex){effect.close();throw ex;}
         return true;
     }
@@ -165,7 +165,7 @@ public final class AreaSpells implements Listener {
             for(Entity entity : world.getNearbyEntities(point, 1.8, 1.8, 1.8)) {
                 if(entity instanceof LivingEntity living && !entity.equals(p) && !(living instanceof ArmorStand) && c.enemy(p, living)) {
                     if(hitEnemies.add(living) && c.affect(p, living, Spell.SONIC_BOOM)) {
-                        c.damage(p, living, c.configuredDamage("damage.sonic-boom", 75.0), DamageType.SONIC_BOOM);
+                        c.damage(p, living, c.configuredDamage("damage.sonic-boom", 300.0), DamageType.SONIC_BOOM);
                         Vector knock = dir.clone().multiply(1.8).setY(0.4);
                         c.velocity(living, knock);
                         c.potion(living, PotionEffectType.DARKNESS, 60, 0);
@@ -175,7 +175,7 @@ public final class AreaSpells implements Listener {
             }
         }
         Location endPoint = eye.clone().add(dir.clone().multiply(15.0));
-        c.echo(p, endPoint, Spell.SONIC_BOOM, 14, 5.0, 25.0);
+        c.echo(p, endPoint, Spell.SONIC_BOOM, 14, 5.0, 100.0);
         return true;
     }
 

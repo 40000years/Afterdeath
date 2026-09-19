@@ -152,7 +152,7 @@ public final class MagicContext {
         for(int i=0;i<=n;i++)particles(from.clone().add(delta.clone().multiply((double)i/n)),type,1,0);
     }
     public double configuredDamage(String key,double fallback) {
-        double n=plugin.getConfig().getDouble(key,fallback);return Double.isFinite(n)?Math.max(0,Math.min(200,n)):Math.max(0,Math.min(200,fallback));
+        double n=plugin.getConfig().getDouble(key,fallback);return Double.isFinite(n)?Math.max(0,Math.min(2000,n)):Math.max(0,Math.min(2000,fallback));
     }
     /** Automatic final pulse, owned by the original caster and cancelled with their effects. */
     public void echo(Player p,Location center,Spell spell,int delay,double radius,double baseDamage) {

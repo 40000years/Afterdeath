@@ -63,9 +63,9 @@ public final class ProjectileSpells implements Listener {
                     at.getWorld().playSound(at,Sound.ENTITY_BLAZE_HURT,0.8f,1.2f);
                     c.particles(at,Particle.FLAME,25,0.8);
                     c.particles(at,Particle.EXPLOSION,1,0.2);
-                    if(finisher)c.echo(p,at,Spell.BLAZE_BARRAGE,14,4.5,20);
+                    if(finisher)c.echo(p,at,Spell.BLAZE_BARRAGE,14,4.5,80);
                     for(var e:c.nearby(p,at,3.5,false))if(c.affect(p,e,Spell.BLAZE_BARRAGE)) {
-                        c.damage(p,e,c.configuredDamage("damage.blaze-barrage",25),DamageType.MAGIC);
+                        c.damage(p,e,c.configuredDamage("damage.blaze-barrage",100),DamageType.MAGIC);
                         e.setFireTicks(Math.max(e.getFireTicks(),100));
                     }
                 });
@@ -98,9 +98,9 @@ public final class ProjectileSpells implements Listener {
                 c.ring(at,9,Spell.VOID_PULL);
                 c.particles(at,Particle.REVERSE_PORTAL,45,1.2);
                 c.particles(at,Particle.DRAGON_BREATH,25,0.8);
-                c.echo(p,at,Spell.VOID_PULL,14,6,20);
+                c.echo(p,at,Spell.VOID_PULL,14,6,80);
                 for(var e:c.nearby(p,at,5.5,false))if(c.affect(p,e,Spell.VOID_PULL)) {
-                    c.damage(p,e,c.configuredDamage("damage.void-collapse",45),DamageType.MAGIC);
+                    c.damage(p,e,c.configuredDamage("damage.void-collapse",180),DamageType.MAGIC);
                     c.velocity(e,new Vector(0,1.1,0));
                 }
             }
@@ -123,8 +123,8 @@ public final class ProjectileSpells implements Listener {
                 },at->{
                     c.particles(at,Particle.EXPLOSION,finisher?3:1,finisher?0.5:0);
                     at.getWorld().playSound(at,Sound.ENTITY_GENERIC_EXPLODE,finisher?1.0f:0.5f,finisher?0.8f:1.4f);
-                    double dmg=c.configuredDamage("damage.wither-skull",40)*(finisher?1.5:1.0);
-                    if(finisher)c.echo(p,at,Spell.WITHER_RAY,14,4.5,15);
+                    double dmg=c.configuredDamage("damage.wither-skull",160)*(finisher?1.5:1.0);
+                    if(finisher)c.echo(p,at,Spell.WITHER_RAY,14,4.5,60);
                     for(var e:c.nearby(p,at,finisher?4.5:3.0,false))if(c.affect(p,e,Spell.WITHER_RAY)) {
                         c.damage(p,e,dmg,DamageType.EXPLOSION);
                         c.potion(e,PotionEffectType.WITHER,finisher?160:100,finisher?2:1);
@@ -201,7 +201,7 @@ public final class ProjectileSpells implements Listener {
             }
             if(age%10==0) {
                 for(var target:c.nearby(p,center,22,false))if(c.affect(p,target,Spell.SHULKER_LEVITATION)) {
-                    c.damage(p,target,15,DamageType.MAGIC);
+                    c.damage(p,target,60,DamageType.MAGIC);
                 }
             }
             return true;
@@ -225,7 +225,7 @@ public final class ProjectileSpells implements Listener {
             for(Entity e:world.getNearbyEntities(center,12,12,12)) {
                 if(e instanceof LivingEntity living&&!e.equals(p)&&!(living instanceof ArmorStand)&&c.enemy(p,living)) {
                     if(c.affect(p,living,Spell.SHULKER_LEVITATION)) {
-                        c.damage(p,living,c.configuredDamage("damage.shulker-singularity-burst",120),DamageType.EXPLOSION);
+                        c.damage(p,living,c.configuredDamage("damage.shulker-singularity-burst",480),DamageType.EXPLOSION);
                         Vector knock=living.getLocation().toVector().subtract(center.toVector()).normalize().multiply(1.8).setY(0.7);
                         c.velocity(living,knock);
                     }
@@ -234,7 +234,7 @@ public final class ProjectileSpells implements Listener {
 
             // 5. Sculk Corruption Zone (radius 7 blocks on surface)
             if(c.plugin.effects().hasCapacity())createSculkWitherZone(p,center);
-            c.echo(p,center,Spell.SHULKER_LEVITATION,14,12,20);
+            c.echo(p,center,Spell.SHULKER_LEVITATION,14,12,80);
     }
 
     private void createSculkWitherZone(Player p, Location center) {
@@ -340,7 +340,7 @@ public final class ProjectileSpells implements Listener {
             }
             if(age%5==0)for(var target:c.nearby(p,at,4,false))
                 if(age>=nextDamage.getOrDefault(target.getUniqueId(),0)&&c.affect(p,target,Spell.DRAGONS_BREATH)) {
-                    c.damage(p,target,c.configuredDamage("damage.dragon-per-second",30),DamageType.MAGIC);
+                    c.damage(p,target,c.configuredDamage("damage.dragon-per-second",120),DamageType.MAGIC);
                     nextDamage.put(target.getUniqueId(),age+20);
                 }
             // Stage 2: Lingering Dragonfire Corrosive Miasma
@@ -352,7 +352,7 @@ public final class ProjectileSpells implements Listener {
                 }
             }
             // Wait beyond the last cloud hit's immunity window before the final burst.
-            if(age==119)c.echo(p,at,Spell.DRAGONS_BREATH,14,5,30);
+            if(age==119)c.echo(p,at,Spell.DRAGONS_BREATH,14,5,120);
             return true;
         });
         try {
@@ -403,11 +403,11 @@ public final class ProjectileSpells implements Listener {
         });return true;
     }
     private void meteorImpact(Player p,Location at) {
-        c.echo(p,at,Spell.METEOR_STRIKE,14,6,15);
+        c.echo(p,at,Spell.METEOR_STRIKE,14,6,60);
         c.particles(at,Particle.EXPLOSION_EMITTER,1,0);c.ring(at,6,Spell.METEOR_STRIKE);
         at.getWorld().playSound(at,Sound.ENTITY_GENERIC_EXPLODE,1.5f,0.6f);
         for(var e:c.nearby(p,at,6,false))if(c.affect(p,e,Spell.METEOR_STRIKE)) {
-            c.damage(p,e,c.configuredDamage("meteor.damage",90),DamageType.EXPLOSION);
+            c.damage(p,e,c.configuredDamage("meteor.damage",360),DamageType.EXPLOSION);
             var ignite=new EntityCombustByEntityEvent(p,e,4.0f);Bukkit.getPluginManager().callEvent(ignite);
             if(!ignite.isCancelled())e.setFireTicks(Math.max(e.getFireTicks(),(int)(ignite.getDuration()*20)));
         }
@@ -431,7 +431,7 @@ public final class ProjectileSpells implements Listener {
         if(denied||!shot.owner.isOnline()||shot.owner.isDead()||shot.owner.getWorld()!=at.getWorld()||!c.loaded(at))return;
         if(shot.spell==Spell.SHULKER_LEVITATION) {
             if(e.getHitEntity() instanceof LivingEntity target&&c.enemy(shot.owner,target)&&c.affect(shot.owner,target,shot.spell)) {
-                c.damage(shot.owner,target,c.configuredDamage("damage.shulker-impact",20),DamageType.MAGIC);
+                c.damage(shot.owner,target,c.configuredDamage("damage.shulker-impact",80),DamageType.MAGIC);
                 c.potion(target,PotionEffectType.LEVITATION,80,1);
             }
         } else shot.impact.accept(at);
