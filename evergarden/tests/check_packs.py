@@ -97,6 +97,7 @@ with zipfile.ZipFile(dist / 'evergarden-java.zip') as java, zipfile.ZipFile(dist
     assert json.loads(java.read('assets/minecraft/items/bow.json'))['model']['fallback']['type'] == 'minecraft:condition'
     assert json.loads(java.read('assets/minecraft/items/shield.json'))['model']['fallback']['on_false']['model']['type'] == 'minecraft:shield'
     assert json.loads(java.read('assets/minecraft/items/shield.json'))['model']['fallback']['on_true']['model']['type'] == 'minecraft:shield'
+    assert json.loads(java.read('assets/minecraft/items/shield.json'))['model']['fallback']['transformation']['scale'] == [1.0, -1.0, -1.0]
 with zipfile.ZipFile(dist / 'evergarden-3.0.0.jar') as jar:
     for filename in (*hashes, 'geyser-mappings.json', 'pack-hashes.json'):
         assert jar.read('resource-packs/' + filename) == (dist / filename).read_bytes()
