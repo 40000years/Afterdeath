@@ -486,7 +486,7 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
             write_json(java / f'assets/voidscape/items/{stage_name}.json', {
                 'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + stage_name}
             })
-            selectors.setdefault('iron_helmet', []).append({
+            selectors.setdefault('carved_pumpkin', []).append({
                 'when': 'voidscape:' + stage_name,
                 'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + stage_name}
             })
@@ -533,9 +533,11 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
                     'render_controllers': ['controller.render.evergarden_mask']
                 }}
             })
-            mappings['items'].setdefault('minecraft:iron_helmet', []).append({
+            # carved_pumpkin equips to HEAD on Java but is NOT treated as wearable
+            # armor in Bedrock; Geyser will not render the attachable on the player.
+            mappings['items'].setdefault('minecraft:carved_pumpkin', []).append({
                 'type': 'definition',
-                'model': 'minecraft:iron_helmet',
+                'model': 'minecraft:carved_pumpkin',
                 'predicate': {'type': 'match', 'property': 'custom_model_data', 'index': 0, 'value': 'voidscape:' + stage_name},
                 'bedrock_identifier': 'voidscape:' + stage_name,
                 'display_name': f'{title} (Stage {stage})',

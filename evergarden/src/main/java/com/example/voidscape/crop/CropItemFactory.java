@@ -118,15 +118,18 @@ public final class CropItemFactory {
     }
 
     public ItemStack createPlantDisplay(CropType type, int stage) {
-        // Geyser derives minecraft:wearable from the base item's EQUIPPABLE
-        // component. A carrot in HEAD has no wearable slot on Bedrock.
-        ItemStack item = new ItemStack(Material.IRON_HELMET, 1);
+        // CARVED_PUMPKIN: equips to HEAD slot on Java (equippable component),
+        // but Bedrock does NOT classify it as wearable armor — so Geyser will
+        // not render an attachable on the opening player's head when the item
+        // is in a chest or held. IRON_HELMET caused a visible Geyser virtual-
+        // chest block above the player's head on every container open.
+        ItemStack item = new ItemStack(Material.CARVED_PUMPKIN, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 
         meta.displayName(Component.text(type.thaiName + " [Stage " + stage + "]").decoration(TextDecoration.ITALIC, false));
-        // Preserve the wearable HEAD slot for Geyser, but remove the vanilla
-        // iron armor asset so Java renders the custom plant item on the head.
+        // Explicitly set HEAD slot and clear the vanilla carved pumpkin model
+        // so Java uses the custom plant model from the resource pack.
         var equipment = meta.getEquippable();
         equipment.setSlot(org.bukkit.inventory.EquipmentSlot.HEAD);
         equipment.setModel(null);
