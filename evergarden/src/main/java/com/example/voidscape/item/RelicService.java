@@ -167,7 +167,7 @@ public final class RelicService implements Listener {
             Component.text(relic.lore,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
             Component.text(relic==Relic.VOID_KEY?"EVERGARDEN · TRIAL KEY":"EVERGARDEN · RELIC",NamedTextColor.DARK_PURPLE).decoration(TextDecoration.ITALIC, false)
         ));
-        meta.setItemModel(new NamespacedKey("voidscape", relic.id()));
+        meta.setItemModel(null);
         var selector=meta.getCustomModelDataComponent();selector.setStrings(List.of("voidscape:"+relic.id()));meta.setCustomModelDataComponent(selector);
         meta.getPersistentDataContainer().set(type,PersistentDataType.STRING,relic.name());
 
