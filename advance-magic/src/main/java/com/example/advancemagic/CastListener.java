@@ -73,6 +73,8 @@ public final class CastListener implements Listener {
 
     @EventHandler(priority=EventPriority.HIGH, ignoreCancelled=true)
     public void onAttackEntity(org.bukkit.event.entity.EntityDamageByEntityEvent e) {
+        if(plugin.context().isMagicDamage()) return;
+        if(e.getCause() != org.bukkit.event.entity.EntityDamageEvent.DamageCause.ENTITY_ATTACK) return;
         // Bedrock Mobile: Tapping an enemy monster directly with the wand in hand
         if(!(e.getDamager() instanceof Player p)) return;
         ItemStack wandItem = heldItem(p, EquipmentSlot.HAND);

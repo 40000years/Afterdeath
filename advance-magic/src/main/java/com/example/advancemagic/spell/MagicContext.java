@@ -15,6 +15,11 @@ import java.util.*;
 public final class MagicContext {
     public final AdvanceMagicPlugin plugin;
     private final Map<UUID, Long> playerVelocityCooldown = new java.util.concurrent.ConcurrentHashMap<>();
+    private final ThreadLocal<Boolean> magicDamageContext = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
+    public boolean isMagicDamage() {
+        return magicDamageContext.get();
+    }
 
     public MagicContext(AdvanceMagicPlugin plugin){this.plugin=plugin;}
     /** Server-issued impulse. Owners can disable player displacement without disabling damage. */
@@ -123,7 +128,13 @@ public final class MagicContext {
     public double damage(Player p,LivingEntity e,double amount,DamageType type) {
         if(!enemy(p,e))return 0;
         double before=e.getHealth();
-        e.damage(Math.max(0,amount),DamageSource.builder(type).withCausingEntity(p).withDirectEntity(p).build());
+        e.setNoDamageTicks(0);
+        magicDamageContext.set(Boolean.TRUE);
+        try {
+            e.damage(Math.max(0,amount),DamageSource.builder(type).withCausingEntity(p).withDirectEntity(p).build());
+        } finally {
+            magicDamageContext.set(Boolean.FALSE);
+        }
         return Math.max(0,before-e.getHealth());
     }
     public void heal(Player p,double amount) {

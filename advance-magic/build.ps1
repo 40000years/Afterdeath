@@ -40,6 +40,11 @@ $testServerPlugin = 'C:\Users\User\Desktop\TestServer\plugins\advance-magic.jar'
 if (Test-Path (Split-Path $testServerPlugin -Parent)) {
     Copy-Item -LiteralPath $builtJar -Destination $testServerPlugin -Force
     Write-Output ("Deployed to: " + $testServerPlugin)
+    $testServerData = 'C:\Users\User\Desktop\TestServer\plugins\advance-magic'
+    if (Test-Path $testServerData) {
+        Copy-Item -LiteralPath (Join-Path $moduleRoot 'src/main/resources/config.yml') -Destination (Join-Path $testServerData 'config.yml') -Force
+        Write-Output ("Synced config to: " + (Join-Path $testServerData 'config.yml'))
+    }
 }
 
 Write-Output ('Built: ' + (Join-Path $distDir 'advance-magic-1.0.0.jar'))
