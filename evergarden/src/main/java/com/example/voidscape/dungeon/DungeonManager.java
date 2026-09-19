@@ -931,7 +931,7 @@ public final class DungeonManager implements Listener {
                         if(highGroundPlayer!=null&&now-enc.lastLaser>6000L) {
                             triggerLaser=true;
                             laserTarget=highGroundPlayer;
-                        } else if(now-enc.lastLaser>plugin.integer("combat.boss-laser-interval-ms",13000,7000,30000)) {
+                        } else if(now-enc.lastLaser>plugin.integer("combat.boss-laser-interval-ms",120000,7000,300000)) {
                             triggerLaser=true;
                             laserTarget=target;
                         }
@@ -1061,8 +1061,8 @@ public final class DungeonManager implements Listener {
                 ticks += 2;
 
                 Location eyeLoc = boss.getEyeLocation();
-                // Until 0.9s (tick 18), track target chest; during final 0.3s (ticks 18-24), freeze aim for dodge window!
-                if (ticks <= 18 || lockedAimLoc == null) {
+                // Snapshot aim at the initial round (no homing/tracking), giving player full 1.2s to dodge!
+                if (lockedAimLoc == null) {
                     lockedAimLoc = target.getLocation().add(0, 1.0, 0);
                 }
 
@@ -1072,7 +1072,7 @@ public final class DungeonManager implements Listener {
                 if (dist > 0.1 && dist <= 40.0) {
                     Vector step = dir.clone().normalize().multiply(0.7);
                     Location current = eyeLoc.clone();
-                    // Red laser when tracking, flashing white/electric when locked!
+                    // Red laser when targeting, flashing white/electric when about to fire!
                     Particle.DustOptions laserColor = ticks > 18
                         ? new Particle.DustOptions(Color.fromRGB(255, 255, 255), 1.4f)
                         : new Particle.DustOptions(Color.fromRGB(255, 30, 30), 1.2f);
@@ -1088,7 +1088,7 @@ public final class DungeonManager implements Listener {
                 double remainingSec = Math.max(0.0, (maxTicks - ticks) * 0.05);
                 String msg = ticks > 18
                     ? "⚠ ลำแสงล็อคเป้าแล้ว! (0." + (maxTicks - ticks) + "s) แดชหลบทันที!"
-                    : "⚠ บอสกำลังล็อคเป้าลำแสงพิฆาต! (" + String.format(Locale.ROOT, "%.1f", remainingSec) + "s)";
+                    : "⚠ บอสล็อคทิศทาง Sonic Boom! (" + String.format(Locale.ROOT, "%.1f", remainingSec) + "s) ก้าวหลบออกจากแนวเลเซอร์!";
                 target.sendActionBar(Component.text(msg, ticks > 18 ? NamedTextColor.YELLOW : NamedTextColor.RED));
 
                 // At 1.2s -> FIRE!
