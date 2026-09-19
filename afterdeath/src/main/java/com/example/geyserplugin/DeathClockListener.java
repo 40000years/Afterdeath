@@ -16,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -304,5 +305,14 @@ public class DeathClockListener implements Listener {
     public void giveDeathClock(Player player) {
         Location loc = lastDeathLocations.getOrDefault(player.getUniqueId(), player.getLocation());
         giveDeathClockToHand(player, loc);
+    }
+
+    /**
+     * เคลียร์ข้อมูลพิกัดที่เก็บไว้เมื่อผู้เล่นออก
+     * ป้องกัน RAM leak กรณีตายรัวๆ แล้ว disconnect
+     */
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        lastDeathLocations.remove(event.getPlayer().getUniqueId());
     }
 }

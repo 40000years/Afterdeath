@@ -38,6 +38,7 @@ public final class DungeonManager implements Listener {
         int wave=0; boolean bossStarted=false,finished=false;
         long lastPresent=System.currentTimeMillis(),lastSkill=0,warningAt=0;
         long lastLaser=0; boolean laserActive=false;
+        long lastSonicBoom=0; // cooldown tracker สำหรับ Boss Elemental Sonic Blast
         Location warning; BossBar bar;
         final int totalWaves;
         Encounter(Site site,int totalWaves){this.site=site;this.totalWaves=totalWaves;}
@@ -579,13 +580,13 @@ public final class DungeonManager implements Listener {
             if(mobEnc!=null) {
                 Species species=mobEnc.mobs.get(mobDamager.getUniqueId());
                 if (species == Species.VEX) {
-                    victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 120, 1));
+                    // Weakness II ถูกลบออก: Vex ให้แค่ knockback + เสียง
                     Vector impulse = victim.getLocation().toVector().subtract(mobDamager.getLocation().toVector()).normalize().multiply(0.85);
                     impulse.setY(0.35);
                     victim.setVelocity(victim.getVelocity().add(impulse));
                     victim.playSound(victim.getLocation(), Sound.ENTITY_VEX_HURT, 1.0f, 0.8f);
                     victim.getWorld().spawnParticle(Particle.SOUL, victim.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.05);
-                    plugin.message(victim, "⚠ วิญญาณ Void Vex โจมตีทะลวง! ติดคำสาปอ่อนแอ (Weakness II) และกระเด็นถอยหลัง!");
+                    plugin.message(victim, "⚠ วิญญาณ Void Vex โจมตีทะลวง! กระเด็นถอยหลัง!");
                 } else {
                     if(plugin.getConfig().getBoolean("combat.apply-weakness",false))
                         victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,120,0));
@@ -940,10 +941,13 @@ public final class DungeonManager implements Listener {
                         fireBossLaser(enc,mob,laserTarget,team);
                     }
 
-                    if(!enc.laserActive&&enc.warningAt==0&&now-enc.lastSkill>plugin.integer("combat.boss-skill-interval-ms",7000,3000,25000)) {
+                    // Sonic Blast มีคูลดาวน์ 2 นาที (120000ms) แยกต่างหากจาก lastSkill
+                    boolean sonicBoomReady = (now - enc.lastSonicBoom) > 120000L;
+                    if(!enc.laserActive&&enc.warningAt==0&&sonicBoomReady&&now-enc.lastSkill>plugin.integer("combat.boss-skill-interval-ms",7000,3000,25000)) {
                         enc.warning=target.getLocation();
                         enc.warningAt=now+2000;
                         enc.lastSkill=now;
+                        enc.lastSonicBoom=now; // บันทึก cooldown Sonic Blast
 
                         String skillNotice=switch(enc.site.kind()) {
                             case SANCTUM_DARK -> "⚠ จอมมารร่าย 'มหาพายุทมิฬ (Abyssal Cataclysm)' · หลบออกจากวงเวท!";

@@ -309,7 +309,7 @@ def main():
    entries=[{'threshold':t,'model':{'type':'minecraft:model','model':f'minecraft:item/bow_pulling_{n}'}} for n,t in enumerate([0,0.65,0.9])]
    fallback={'type':'minecraft:condition','property':'minecraft:using_item','on_false':fallback,'on_true':{'type':'minecraft:range_dispatch','property':'minecraft:use_duration','scale':0.05,'fallback':entries[0]['model'],'entries':entries}}
   if base=='shield':
-   fallback={'type':'minecraft:condition','property':'minecraft:using_item','on_false':{'type':'minecraft:special','base':'minecraft:item/shield','model':{'type':'minecraft:shield'}},'on_true':{'type':'minecraft:special','base':'minecraft:item/shield_blocking','model':{'type':'minecraft:shield'}}}
+   fallback={'type':'minecraft:condition','property':'minecraft:using_item','on_false':{'type':'minecraft:special','base':'minecraft:item/shield','model':{'type':'minecraft:shield'}},'on_true':{'type':'minecraft:special','base':'minecraft:item/shield_blocking','model':{'type':'minecraft:shield_blocking'}}}
   write_json(java/f'assets/minecraft/items/{base}.json',{'model':{'type':'minecraft:select','property':'minecraft:custom_model_data','index':0,'cases':cases,'fallback':fallback}})
  core_cases=[]
  core_definitions=[]
