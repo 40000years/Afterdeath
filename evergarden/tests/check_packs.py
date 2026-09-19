@@ -78,7 +78,7 @@ with zipfile.ZipFile(dist / 'evergarden-java.zip') as java, zipfile.ZipFile(dist
                 if '_stage_' in name:
                     assert geometry['bones'][0]['name'] == 'head'
                     assert geometry['bones'][0]['pivot'] == [0, 24, 0]
-                    assert base == 'minecraft:iron_helmet', 'Plant attachables require a head-equippable base'
+                    assert base in ('minecraft:carved_pumpkin', 'minecraft:iron_helmet'), 'Plant attachables require a head-equippable base'
                     # Match vanilla crop.json density: two X planes plus two Z planes.
                     assert len(geometry['bones'][0]['cubes']) == 4
                     assert geometry['description']['texture_width'] == geometry['description']['texture_height'] == 64
@@ -96,6 +96,7 @@ with zipfile.ZipFile(dist / 'evergarden-java.zip') as java, zipfile.ZipFile(dist
                         assert model['display']['head']['translation'] == [0, 9.6, 0], name
     assert json.loads(java.read('assets/minecraft/items/bow.json'))['model']['fallback']['type'] == 'minecraft:condition'
     assert json.loads(java.read('assets/minecraft/items/shield.json'))['model']['fallback']['on_false']['model']['type'] == 'minecraft:shield'
+    assert json.loads(java.read('assets/minecraft/items/shield.json'))['model']['fallback']['on_true']['model']['type'] == 'minecraft:shield'
 with zipfile.ZipFile(dist / 'evergarden-3.0.0.jar') as jar:
     for filename in (*hashes, 'geyser-mappings.json', 'pack-hashes.json'):
         assert jar.read('resource-packs/' + filename) == (dist / filename).read_bytes()
