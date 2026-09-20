@@ -992,8 +992,6 @@ public final class DungeonManager implements Listener {
                                         p.playSound(blastLoc,Sound.ENTITY_WITHER_SHOOT,0.9f,0.8f);
                                         p.playSound(blastLoc,Sound.ENTITY_WARDEN_SONIC_BOOM,0.7f,0.7f);
                                     }
-                                    double healAmount=Math.min(mob.getAttribute(Attribute.MAX_HEALTH).getValue(),mob.getHealth()+200.0);
-                                    mob.setHealth(healAmount);
                                 }
                                 case SANCTUM_ASTRAL -> {
                                     blastLoc.getWorld().spawnParticle(Particle.FLASH,blastLoc.clone().add(0,1,0),5,0.2,0.5,0.2,0.0,Color.WHITE);
