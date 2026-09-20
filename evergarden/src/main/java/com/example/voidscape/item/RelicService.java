@@ -342,8 +342,15 @@ public final class RelicService implements Listener {
     public boolean isEternityItem(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
-        if (meta.isUnbreakable()) return true; // support legacy unbreakable items
-        return meta.getPersistentDataContainer().has(plugin.key("relic_eternity"), PersistentDataType.BYTE);
+        if (meta.getPersistentDataContainer().has(plugin.key("relic_eternity"), PersistentDataType.BYTE)) return true;
+        if (meta.isUnbreakable() && meta.hasLore()) {
+            for (Component line : meta.lore()) {
+                if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line).contains("สถิตนิรันดร์")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public int getLimitBreakLevel(ItemStack item, LimitBreakType type) {
@@ -352,7 +359,7 @@ public final class RelicService implements Listener {
         NamespacedKey key = plugin.key("lb_" + type.name().toLowerCase(Locale.ROOT));
         Integer custom = meta.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
         if (custom != null) return custom;
-        return meta.getEnchantLevel(type.enchantment());
+        return Math.min(meta.getEnchantLevel(type.enchantment()), type.enchantment().getMaxLevel());
     }
 
     public void applyEternityMeta(ItemMeta meta) {
@@ -369,20 +376,24 @@ public final class RelicService implements Listener {
         meta.lore(lore);
     }
 
-    public void applyLimitBreakMeta(ItemMeta meta, LimitBreakType type, int next) {
+    public void applyLimitBreakMeta(Material mat, ItemMeta meta, LimitBreakType type, int next) {
         NamespacedKey key = plugin.key("lb_" + type.name().toLowerCase(Locale.ROOT));
         meta.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, next);
         int vanillaCap = Math.min(next, type.enchantment().getMaxLevel());
         meta.addEnchant(type.enchantment(), vanillaCap, true);
 
         if (type == LimitBreakType.EFFICIENCY && next >= 6) {
-            EnchantApplyListener.applyEfficiencyToolComponent(meta, next);
+            EnchantApplyListener.applyEfficiencyToolComponent(mat, meta, next);
         }
 
         List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
         lore.removeIf(line -> net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line).contains(type.thaiTitle()));
         lore.add(Component.text("✦ " + type.thaiTitle() + " ระดับ " + toRoman(next), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
+    }
+
+    public void applyLimitBreakMeta(ItemMeta meta, LimitBreakType type, int next) {
+        applyLimitBreakMeta(null, meta, type, next);
     }
 
     public ItemStack evaluateScrollCraft(ItemStack scroll, ItemStack target) {
@@ -409,7 +420,7 @@ public final class RelicService implements Listener {
             int next = current + 1;
             ItemMeta meta = target.getItemMeta();
             if (meta == null) return null;
-            applyLimitBreakMeta(meta, type, next);
+            applyLimitBreakMeta(target.getType(), meta, type, next);
             ItemStack result = target.clone();
             result.setItemMeta(meta);
             return result;
@@ -453,11 +464,24 @@ public final class RelicService implements Listener {
         int lbEff = getLimitBreakLevel(item, LimitBreakType.EFFICIENCY);
         if (lbEff >= 6) {
             var meta = item.getItemMeta();
-            if (meta != null && (!meta.hasTool() || meta.getTool().getDefaultMiningSpeed() < 35.0f)) {
-                EnchantApplyListener.applyEfficiencyToolComponent(meta, lbEff);
+            if (meta != null && (!meta.hasTool() || meta.getTool().getDefaultMiningSpeed() != 1.0f)) {
+                EnchantApplyListener.applyEfficiencyToolComponent(item.getType(), meta, lbEff);
                 item.setItemMeta(meta);
                 changed = true;
             }
+        } else if (!EnchantApplyListener.hasUnique(item, UniqueEnchant.ADVANCE_TOOL)) {
+            var meta = item.getItemMeta();
+            if (meta != null && meta.hasTool()) {
+                meta.setTool(null);
+                item.setItemMeta(meta);
+                changed = true;
+            }
+        }
+        if (item.getItemMeta().isUnbreakable() && !isEternityItem(item)) {
+            var meta = item.getItemMeta();
+            meta.setUnbreakable(false);
+            item.setItemMeta(meta);
+            changed = true;
         }
         Relic relic=type(item);if(relic==null)return changed;
         var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();String model="voidscape:"+relic.id();

@@ -27,58 +27,107 @@ public final class PortalVisuals {
         file = new File(plugin.getDataFolder(), "portals.yml");
         var config = YamlConfiguration.loadConfiguration(file);
         for (String key : config.getKeys(false)) {
-            try { cells.put(key, Axis.valueOf(config.getString(key))); }
+            try {
+                Axis axis = Axis.valueOf(config.getString(key));
+                String[] parts = key.split(",");
+                World w = resolveWorld(parts[0]);
+                if (w != null) {
+                    cells.put(w.getName() + "," + parts[1] + "," + parts[2] + "," + parts[3], axis);
+                } else {
+                    cells.put(key, axis);
+                }
+            }
             catch (IllegalArgumentException ignored) { plugin.getLogger().warning("Invalid portal cell: " + key); }
         }
         Bukkit.getScheduler().runTaskTimer(plugin, this::spawnPortalParticles, 10L, 3L);
     }
-    private String key(Block b) { return b.getWorld().getUID()+","+b.getX()+","+b.getY()+","+b.getZ(); }
-    public boolean contains(Block b) { return b.getType()==Material.STRUCTURE_VOID && cells.containsKey(key(b)); }
+    public World resolveWorld(String token) {
+        if (token == null) return null;
+        World w = Bukkit.getWorld(token);
+        if (w != null) return w;
+        try {
+            return Bukkit.getWorld(UUID.fromString(token));
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+    private String key(Block b) { return b.getWorld().getName()+","+b.getX()+","+b.getY()+","+b.getZ(); }
+    private String legacyKey(Block b) { return b.getWorld().getUID()+","+b.getX()+","+b.getY()+","+b.getZ(); }
+    public boolean contains(Block b) {
+        if (b.getType() != Material.STRUCTURE_VOID) return false;
+        return cells.containsKey(key(b)) || cells.containsKey(legacyKey(b));
+    }
     public void add(Block b, Axis axis) {
         b.setType(Material.STRUCTURE_VOID, false);
         cells.put(key(b), axis);
     }
     public void remove(Block b) {
-        String key=key(b);
-        cells.remove(key);
-        UUID uuid=displays.remove(key);
-        Entity e=uuid==null?null:Bukkit.getEntity(uuid);
-        if(e!=null)e.remove();
+        String k = key(b);
+        String lk = legacyKey(b);
+        cells.remove(k);
+        cells.remove(lk);
+        UUID uuid = displays.remove(k);
+        if (uuid == null) uuid = displays.remove(lk);
+        Entity e = uuid == null ? null : Bukkit.getEntity(uuid);
+        if (e != null) e.remove();
     }
     public void save() {
-        var config=new YamlConfiguration();
-        cells.forEach((key,axis)->config.set(key,axis.name()));
+        var config = new YamlConfiguration();
+        cells.forEach((k, axis) -> config.set(k, axis.name()));
         try { config.save(file); }
-        catch(java.io.IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE,"Cannot save portal cells",e); }
+        catch (java.io.IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Cannot save portal cells", e); }
+    }
+    public void close() {
+        save();
     }
     public void tick() {
-        boolean changed=false;
-        for(var entry : new HashMap<>(cells).entrySet()) {
-            String key=entry.getKey(); String[] parts=key.split(",");
-            World w=Bukkit.getWorld(UUID.fromString(parts[0]));
-            if(w==null)continue;
-            int x=Integer.parseInt(parts[1]),y=Integer.parseInt(parts[2]),z=Integer.parseInt(parts[3]);
-            if(!w.isChunkLoaded(x>>4,z>>4))continue;
-            Block block=w.getBlockAt(x,y,z);
-            if(block.getType()!=Material.STRUCTURE_VOID) {remove(block);changed=true;continue;}
-            UUID uuid=displays.get(key); Entity old=uuid==null?null:Bukkit.getEntity(uuid);
-            if(old instanceof ArmorStand stand&&old.isValid()) {configure(stand,key);continue;}
-            Location loc=new Location(w,x+0.5,y-1.5,z+0.5,entry.getValue()==Axis.X?0:90,0);
-            ArmorStand found=null;
-            for(Entity nearby:w.getNearbyEntities(loc,0.2,0.2,0.2)) {
-                if(nearby instanceof ArmorStand stand && key.equals(stand.getPersistentDataContainer().get(plugin.key("portal_visual"),PersistentDataType.STRING))) {found=stand;break;}
+        boolean changed = false;
+        for (var entry : new HashMap<>(cells).entrySet()) {
+            String origKey = entry.getKey(); String[] parts = origKey.split(",");
+            World w = resolveWorld(parts[0]);
+            if (w == null) continue;
+            String cellKey = origKey;
+            if (!parts[0].equals(w.getName())) {
+                cells.remove(origKey);
+                cellKey = w.getName() + "," + parts[1] + "," + parts[2] + "," + parts[3];
+                cells.put(cellKey, entry.getValue());
+                changed = true;
             }
-            if(found==null) found=w.spawn(loc,ArmorStand.class,stand->{
-                stand.setInvisible(true);stand.setGravity(false);stand.setMarker(false);
-                stand.setCollidable(false);stand.setInvulnerable(true);stand.setSilent(true);
-                stand.setBasePlate(false);stand.setPersistent(true);
-                stand.getPersistentDataContainer().set(plugin.key("portal_visual"),PersistentDataType.STRING,key);
-                configure(stand,key);
+            final String finalKey = cellKey;
+            int x = Integer.parseInt(parts[1]), y = Integer.parseInt(parts[2]), z = Integer.parseInt(parts[3]);
+            if (!w.isChunkLoaded(x >> 4, z >> 4)) continue;
+            Block block = w.getBlockAt(x, y, z);
+            if (block.getType() != Material.STRUCTURE_VOID) {
+                if (block.getType() == Material.AIR || block.getType() == Material.CAVE_AIR || block.getType() == Material.VOID_AIR) {
+                    block.setType(Material.STRUCTURE_VOID, false);
+                } else {
+                    remove(block);
+                    changed = true;
+                    continue;
+                }
+            }
+            UUID uuid = displays.get(finalKey); Entity old = uuid == null ? null : Bukkit.getEntity(uuid);
+            if (old instanceof ArmorStand stand && old.isValid()) { configure(stand, finalKey); continue; }
+            Location loc = new Location(w, x + 0.5, y - 1.5, z + 0.5, entry.getValue() == Axis.X ? 0 : 90, 0);
+            ArmorStand found = null;
+            for (Entity nearby : w.getNearbyEntities(loc, 0.5, 0.5, 0.5)) {
+                if (nearby instanceof ArmorStand stand && (finalKey.equals(stand.getPersistentDataContainer().get(plugin.key("portal_visual"), PersistentDataType.STRING))
+                        || legacyKey(block).equals(stand.getPersistentDataContainer().get(plugin.key("portal_visual"), PersistentDataType.STRING)))) {
+                    found = stand;
+                    break;
+                }
+            }
+            if (found == null) found = w.spawn(loc, ArmorStand.class, stand -> {
+                stand.setInvisible(true); stand.setGravity(false); stand.setMarker(false);
+                stand.setCollidable(false); stand.setInvulnerable(true); stand.setSilent(true);
+                stand.setBasePlate(false); stand.setPersistent(true);
+                stand.getPersistentDataContainer().set(plugin.key("portal_visual"), PersistentDataType.STRING, finalKey);
+                configure(stand, finalKey);
             });
-            configure(found,key);
-            displays.put(key,found.getUniqueId());
+            configure(found, finalKey);
+            displays.put(finalKey, found.getUniqueId());
         }
-        if(changed)save();
+        if (changed) save();
     }
 
     private void configure(ArmorStand stand,String key) {
@@ -108,7 +157,7 @@ public final class PortalVisuals {
         for (var entry : new ArrayList<>(cells.entrySet())) {
             String key = entry.getKey();
             String[] parts = key.split(",");
-            World w = Bukkit.getWorld(UUID.fromString(parts[0]));
+            World w = resolveWorld(parts[0]);
             if (w == null) continue;
             int x = Integer.parseInt(parts[1]), y = Integer.parseInt(parts[2]), z = Integer.parseInt(parts[3]);
             if (!w.isChunkLoaded(x >> 4, z >> 4)) continue;

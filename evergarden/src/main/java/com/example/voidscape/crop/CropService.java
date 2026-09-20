@@ -38,6 +38,8 @@ public final class CropService implements Listener, AutoCloseable {
     private final VoidscapePlugin plugin;
     private final CropItemFactory factory;
     private final Map<String, PlantedCrop> plantedCrops = new ConcurrentHashMap<>();
+    public record DeferredCrop(String key, String typeId, int stage, long plantedAt, UUID displayUuid) {}
+    private final Map<String, DeferredCrop> deferredCrops = new ConcurrentHashMap<>();
     private final Map<UUID, PlantedCrop> entityUuidToCrop = new ConcurrentHashMap<>();
     private final Map<ChunkCoord, Set<PlantedCrop>> cropsByChunk = new ConcurrentHashMap<>();
     private final PriorityQueue<GrowthEntry> growthQueue = new PriorityQueue<>();
@@ -97,6 +99,11 @@ public final class CropService implements Listener, AutoCloseable {
         String[] parts = key.split(",");
         if (parts.length != 4) return null;
         World w = Bukkit.getWorld(parts[0]);
+        if (w == null) {
+            try {
+                w = Bukkit.getWorld(UUID.fromString(parts[0]));
+            } catch (IllegalArgumentException ignored) {}
+        }
         if (w == null) return null;
         return new Location(w, Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]));
     }
@@ -342,10 +349,8 @@ public final class CropService implements Listener, AutoCloseable {
                 updateCropRenderer(stand, crop);
                 return stand;
             }
-            if (ent != null && !ent.isValid()) {
-                entityUuidToCrop.remove(crop.getStandUuid());
-                crop.setStandUuid(null);
-            }
+            entityUuidToCrop.remove(crop.getStandUuid());
+            crop.setStandUuid(null);
         }
 
         Location center = loc.clone().add(0.5, CROP_STAND_Y, 0.5);
@@ -417,6 +422,42 @@ public final class CropService implements Listener, AutoCloseable {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onWorldLoad(org.bukkit.event.world.WorldLoadEvent e) {
+        World world = e.getWorld();
+        List<String> toRemove = new ArrayList<>();
+        for (Map.Entry<String, DeferredCrop> entry : deferredCrops.entrySet()) {
+            String key = entry.getKey();
+            DeferredCrop d = entry.getValue();
+            Location loc = parseKey(key);
+            if (loc != null && loc.getWorld().equals(world)) {
+                toRemove.add(key);
+                CropType type = CropType.fromId(d.typeId());
+                if (type == null) continue;
+                PlantedCrop crop = new PlantedCrop(loc, type, d.stage(), d.plantedAt(), d.displayUuid());
+                plantedCrops.put(locKey(loc), crop);
+                addCropToChunkIndex(crop);
+                if (d.displayUuid() != null) entityUuidToCrop.put(d.displayUuid(), crop);
+                if (!crop.isMature()) {
+                    int targetStage = crop.calculateTargetStage();
+                    if (targetStage > crop.getStage()) {
+                        crop.setStage(targetStage);
+                        dirty.set(true);
+                    }
+                    if (!crop.isMature()) {
+                        scheduleGrowth(crop);
+                    }
+                }
+                if (world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+                    getOrSpawnDisplay(crop);
+                }
+            }
+        }
+        for (String key : toRemove) {
+            deferredCrops.remove(key);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChunkUnload(ChunkUnloadEvent e) {
         ChunkCoord coord = ChunkCoord.of(e.getChunk());
         Set<PlantedCrop> crops = cropsByChunk.get(coord);
@@ -446,7 +487,13 @@ public final class CropService implements Listener, AutoCloseable {
                 }
                 if (entity instanceof ArmorStand) {
                     String key = entity.getPersistentDataContainer().get(cropEntityKey, PersistentDataType.STRING);
-                    if (key == null || !plantedCrops.containsKey(key) || !seenCropKeys.add(key)) {
+                    if (key != null && !plantedCrops.containsKey(key) && !deferredCrops.containsKey(key)) {
+                        Location loc = parseKey(key);
+                        if (loc != null && (plantedCrops.containsKey(locKey(loc)) || deferredCrops.containsKey(locKey(loc)))) {
+                            key = locKey(loc);
+                        }
+                    }
+                    if (key == null || (!plantedCrops.containsKey(key) && !deferredCrops.containsKey(key)) || !seenCropKeys.add(key)) {
                         entityUuidToCrop.remove(entity.getUniqueId());
                         entity.remove();
                     }
@@ -969,9 +1016,17 @@ public final class CropService implements Listener, AutoCloseable {
                     cfg.set(key + ".display", c.getStandUuid().toString());
                 }
             }
-            File tmp = new File(saveFile.getParentFile(), "crops.yml.tmp");
-            cfg.save(tmp);
-            Files.move(tmp.toPath(), saveFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            for (Map.Entry<String, DeferredCrop> entry : deferredCrops.entrySet()) {
+                String key = entry.getKey();
+                DeferredCrop c = entry.getValue();
+                cfg.set(key + ".type", c.typeId());
+                cfg.set(key + ".stage", c.stage());
+                cfg.set(key + ".plantedAt", c.plantedAt());
+                if (c.displayUuid() != null) {
+                    cfg.set(key + ".display", c.displayUuid().toString());
+                }
+            }
+            cfg.save(saveFile);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to save crops.yml: " + e.getMessage());
         }
@@ -979,6 +1034,7 @@ public final class CropService implements Listener, AutoCloseable {
 
     public void loadCrops() {
         plantedCrops.clear();
+        deferredCrops.clear();
         entityUuidToCrop.clear();
         cropsByChunk.clear();
         synchronized (this) {
@@ -988,8 +1044,6 @@ public final class CropService implements Listener, AutoCloseable {
         try {
             YamlConfiguration cfg = YamlConfiguration.loadConfiguration(saveFile);
             for (String key : cfg.getKeys(false)) {
-                Location loc = parseKey(key);
-                if (loc == null) continue;
                 String typeId = cfg.getString(key + ".type");
                 CropType type = CropType.fromId(typeId);
                 if (type == null) continue;
@@ -1004,8 +1058,14 @@ public final class CropService implements Listener, AutoCloseable {
                     } catch (IllegalArgumentException ignored) {}
                 }
 
+                Location loc = parseKey(key);
+                if (loc == null) {
+                    deferredCrops.put(key, new DeferredCrop(key, typeId, stage, plantedAt, displayUuid));
+                    continue;
+                }
+
                 PlantedCrop crop = new PlantedCrop(loc, type, stage, plantedAt, displayUuid);
-                plantedCrops.put(key, crop);
+                plantedCrops.put(locKey(loc), crop);
                 addCropToChunkIndex(crop);
                 if (displayUuid != null) entityUuidToCrop.put(displayUuid, crop);
 
@@ -1021,7 +1081,7 @@ public final class CropService implements Listener, AutoCloseable {
                     }
                 }
             }
-            plugin.getLogger().info("Loaded " + plantedCrops.size() + " planted crops from crops.yml");
+            plugin.getLogger().info("Loaded " + plantedCrops.size() + " planted crops (" + deferredCrops.size() + " deferred) from crops.yml");
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to load crops.yml: " + e.getMessage());
         }

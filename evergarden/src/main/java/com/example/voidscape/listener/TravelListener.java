@@ -213,7 +213,7 @@ public final class TravelListener implements Listener {
     }
 
     private boolean tryIgnitePortal(Block inner,Player p) {
-        if(inner.getType()!=Material.AIR&&inner.getType()!=Material.FIRE)return false;
+        if(inner.getType()!=Material.AIR&&inner.getType()!=Material.CAVE_AIR&&inner.getType()!=Material.FIRE&&inner.getType()!=Material.SOUL_FIRE)return false;
         // Test X-Axis orientation
         if(checkAndFillPortal(inner,Axis.X)) {
             portalIgniteFeedback(inner,p);
@@ -374,7 +374,15 @@ public final class TravelListener implements Listener {
         if(!e.hasChangedBlock())return;
         Player p=e.getPlayer();
         Block b=p.getLocation().getBlock();
-        if(!visuals.contains(b))return;
+        if(!visuals.contains(b)) {
+            Block eye = p.getEyeLocation().getBlock();
+            if (visuals.contains(eye)) {
+                b = eye;
+            } else {
+                b = findQuartzPortalBlock(p, p.getLocation());
+                if (b == null) return;
+            }
+        }
         if(p.getWorld()==plugin.world()) {
             // Return portal at spawn island
             if(Math.abs(b.getX())<=3&&b.getZ()<=-4&&b.getZ()>=-6) {
@@ -428,6 +436,9 @@ public final class TravelListener implements Listener {
 
     private void handlePortalBreak(Block broken) {
         if(broken.getType()!=Material.QUARTZ_BLOCK&&broken.getType()!=Material.STRUCTURE_VOID)return;
+        if(broken.getType()==Material.STRUCTURE_VOID) {
+            clearPortal(broken,new HashSet<>());
+        }
         for(BlockFace face:new BlockFace[]{BlockFace.NORTH,BlockFace.SOUTH,BlockFace.EAST,BlockFace.WEST,BlockFace.UP,BlockFace.DOWN}) {
             Block adj=broken.getRelative(face);
             if(adj.getType()==Material.STRUCTURE_VOID) {
@@ -482,7 +493,7 @@ public final class TravelListener implements Listener {
     private Location returnLocation(Player p) {
         String value=p.getPersistentDataContainer().get(plugin.key("return_location"),PersistentDataType.STRING);
         if(value!=null)try {
-            String[] a=value.split(",");World w=Bukkit.getWorld(UUID.fromString(a[0]));
+            String[] a=value.split(",");World w=visuals.resolveWorld(a[0]);
             if(w!=null&&w!=plugin.world()) {
                 Location location=new Location(w,Double.parseDouble(a[1]),Double.parseDouble(a[2]),Double.parseDouble(a[3]),Float.parseFloat(a[4]),Float.parseFloat(a[5]));
                 if(location.getY()>w.getMinHeight()+2&&w.getWorldBorder().isInside(location))return location;
@@ -566,6 +577,12 @@ public final class TravelListener implements Listener {
                 flowerOfferingExpires.remove(dropId);
                 flowerOfferingOwners.remove(dropId);
             }
+        }
+    }
+
+    public void close() {
+        if (visuals != null) {
+            visuals.close();
         }
     }
 }

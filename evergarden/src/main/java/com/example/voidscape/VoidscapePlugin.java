@@ -99,6 +99,7 @@ public final class VoidscapePlugin extends JavaPlugin {
             wandGui=new com.example.voidscape.gui.WandShowcaseGui(this);pm.registerEvents(wandGui,this);
             relicGui=new com.example.voidscape.gui.RelicShowcaseGui(this);pm.registerEvents(relicGui,this);
             guideMenu=new com.example.voidscape.guide.GuideMenuGui(this);pm.registerEvents(guideMenu,this);
+            if(packs==null){packs=new com.example.voidscape.pack.ResourcePackService(this);try{packs.extract();}catch(Throwable ignored){}}
             packs.start();pm.registerEvents(packs,this);
             crops=new com.example.voidscape.crop.CropService(this);
             cropBuffs=new com.example.voidscape.crop.CropBuffListener(this,crops);
@@ -136,7 +137,7 @@ public final class VoidscapePlugin extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
         }
     }
-    @Override public void onDisable(){if(packs!=null)packs.close();if(dungeons!=null)dungeons.close();if(relics!=null)relics.close();if(crops!=null)crops.close();if(cropBuffs!=null)cropBuffs.close();if(botanist!=null)botanist.close();}
+    @Override public void onDisable(){if(travel!=null)travel.close();if(packs!=null)packs.close();if(dungeons!=null)dungeons.close();if(relics!=null)relics.close();if(crops!=null)crops.close();if(cropBuffs!=null)cropBuffs.close();if(botanist!=null)botanist.close();}
     public NamespacedKey key(String value){return new NamespacedKey("voidscape",value);}
     public int integer(String path,int value,int min,int max){return Math.max(min,Math.min(max,getConfig().getInt(path,value)));}
     public void message(CommandSender sender,String text){sender.sendMessage(Component.text("✦ "+text,NamedTextColor.AQUA));}

@@ -59,6 +59,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
     private final Map<UUID, Long> oreResonanceUntil = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> floraAuraCharges = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> treeFellerCharges = new ConcurrentHashMap<>();
+    private final Set<UUID> fellingPlayers = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Map<UUID, Long> vaultFortuneUntil = new ConcurrentHashMap<>();
     private final Map<UUID, Long> bloodCastUntil = new ConcurrentHashMap<>();
     private final Map<UUID, Long> debuffImmunityUntil = new ConcurrentHashMap<>();
@@ -832,19 +833,33 @@ public final class CropBuffListener implements Listener, AutoCloseable {
             }
         }
 
+        if (fellingPlayers.contains(id)) return;
+
         // 2. Tree Feller (5 charges, respecting claims and durability)
         int charges = treeFellerCharges.getOrDefault(id, 0);
         if (charges > 0 && Tag.LOGS.isTagged(e.getBlock().getType())) {
-            treeFellerCharges.put(id, charges - 1);
+            ItemStack mainHand = p.getInventory().getItemInMainHand();
+            if (com.example.voidscape.enchant.EnchantApplyListener.hasUnique(mainHand, com.example.voidscape.enchant.UniqueEnchant.TITAN_BREACH)) {
+                return;
+            }
+            int remaining = charges - 1;
+            if (remaining <= 0) {
+                treeFellerCharges.remove(id);
+                p.sendActionBar(Component.text("✦ Tree Feller: โค่นต้นไม้สำเร็จ! (ชาร์จหมดแล้ว)", NamedTextColor.GRAY));
+            } else {
+                treeFellerCharges.put(id, remaining);
+                p.sendActionBar(Component.text("✦ Tree Feller: โค่นต้นไม้สำเร็จ! (เหลือ " + remaining + " ต้น)", NamedTextColor.GOLD));
+            }
             fellTree(e.getBlock(), p);
-            p.sendActionBar(Component.text("✦ Tree Feller: โค่นต้นไม้สำเร็จ! (เหลือ " + (charges - 1) + " ชาร์จ)", NamedTextColor.GOLD));
         }
     }
 
     private void fellTree(Block start, Player p) {
-        Set<Block> logs = new HashSet<>();
-        Queue<Block> queue = new ArrayDeque<>();
-        queue.add(start);
+        fellingPlayers.add(p.getUniqueId());
+        try {
+            Set<Block> logs = new HashSet<>();
+            Queue<Block> queue = new ArrayDeque<>();
+            queue.add(start);
 
         while (!queue.isEmpty() && logs.size() < 128) {
             Block curr = queue.poll();
@@ -888,7 +903,10 @@ public final class CropBuffListener implements Listener, AutoCloseable {
                 }
             }
         }
+    } finally {
+        fellingPlayers.remove(p.getUniqueId());
     }
+}
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onTarget(EntityTargetLivingEntityEvent e) {
@@ -949,6 +967,7 @@ public final class CropBuffListener implements Listener, AutoCloseable {
         oreResonanceUntil.remove(id);
         floraAuraCharges.remove(id);
         treeFellerCharges.remove(id);
+        fellingPlayers.remove(id);
         vaultFortuneUntil.remove(id);
         bloodCastUntil.remove(id);
         debuffImmunityUntil.remove(id);

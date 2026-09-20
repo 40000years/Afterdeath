@@ -373,7 +373,7 @@ public final class EnchantApplyListener implements Listener {
         }
     }
 
-    public static void applyEfficiencyToolComponent(ItemMeta meta, int level) {
+    public static void applyEfficiencyToolComponent(Material mat, ItemMeta meta, int level) {
         if (meta == null || level < 6) return;
         try {
             org.bukkit.inventory.meta.components.ToolComponent tool = meta.getTool();
@@ -381,14 +381,31 @@ public final class EnchantApplyListener implements Listener {
             // Level 9: 9 + 82 = 91.0 (>= 90.0 required to instamine Deepslate 3.0 hardness)
             // Level 10: 9 + 101 = 110.0 (Ultra instamine)
             float speed = (float) (9.0 + (level * level + 1));
-            tool.setDefaultMiningSpeed(speed);
-            tool.addRule(Tag.MINEABLE_PICKAXE, speed, true);
-            tool.addRule(Tag.MINEABLE_AXE, speed, true);
-            tool.addRule(Tag.MINEABLE_SHOVEL, speed, true);
-            tool.addRule(Tag.MINEABLE_HOE, speed, true);
+            tool.setDefaultMiningSpeed(1.0f);
+            tool.setDamagePerBlock(1);
+            if (mat != null) {
+                String name = mat.name();
+                if (name.endsWith("_PICKAXE")) {
+                    tool.addRule(Tag.MINEABLE_PICKAXE, speed, true);
+                } else if (name.endsWith("_AXE")) {
+                    tool.addRule(Tag.MINEABLE_AXE, speed, true);
+                } else if (name.endsWith("_SHOVEL")) {
+                    tool.addRule(Tag.MINEABLE_SHOVEL, speed, true);
+                } else if (name.endsWith("_HOE")) {
+                    tool.addRule(Tag.MINEABLE_HOE, speed, true);
+                } else {
+                    tool.addRule(Tag.MINEABLE_PICKAXE, speed, true);
+                }
+            } else {
+                tool.addRule(Tag.MINEABLE_PICKAXE, speed, true);
+            }
             meta.setTool(tool);
         } catch (Throwable ignored) {
         }
+    }
+
+    public static void applyEfficiencyToolComponent(ItemMeta meta, int level) {
+        applyEfficiencyToolComponent(null, meta, level);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
