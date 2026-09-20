@@ -396,7 +396,7 @@ public final class CropService implements Listener, AutoCloseable {
 
     private void updateCropRenderer(ArmorStand stand, PlantedCrop crop) {
         NamespacedKey revisionKey = new NamespacedKey("voidscape", "crop_renderer_revision");
-        if (Integer.valueOf(6).equals(stand.getPersistentDataContainer().get(revisionKey, PersistentDataType.INTEGER))) return;
+        if (Integer.valueOf(7).equals(stand.getPersistentDataContainer().get(revisionKey, PersistentDataType.INTEGER))) return;
         stand.setMarker(false);
         stand.setCollidable(false);
         stand.setGravity(false);
@@ -405,7 +405,7 @@ public final class CropService implements Listener, AutoCloseable {
         stand.teleport(crop.getLocation().add(0.5, CROP_STAND_Y, 0.5));
         for (ArmorStand.LockType lock : ArmorStand.LockType.values()) stand.addEquipmentLock(EquipmentSlot.HEAD, lock);
         stand.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), crop.getStage()), true);
-        stand.getPersistentDataContainer().set(revisionKey, PersistentDataType.INTEGER, 6);
+        stand.getPersistentDataContainer().set(revisionKey, PersistentDataType.INTEGER, 7);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

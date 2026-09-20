@@ -59,6 +59,7 @@ public final class CropItemFactory {
         var modelData = meta.getCustomModelDataComponent();
         modelData.setStrings(List.of("voidscape:seed_" + type.id));
         meta.setCustomModelDataComponent(modelData);
+        meta.setItemModel(new NamespacedKey("voidscape", "seed_" + type.id));
 
         meta.getPersistentDataContainer().set(seedKey, PersistentDataType.STRING, type.id);
         meta.getPersistentDataContainer().set(new NamespacedKey("evergarden", "crop_seed"), PersistentDataType.STRING, type.id);
@@ -90,6 +91,7 @@ public final class CropItemFactory {
         var modelData = meta.getCustomModelDataComponent();
         modelData.setStrings(List.of("voidscape:crop_" + type.id));
         meta.setCustomModelDataComponent(modelData);
+        meta.setItemModel(new NamespacedKey("voidscape", "crop_" + type.id));
 
         meta.getPersistentDataContainer().set(foodKey, PersistentDataType.STRING, type.id);
         meta.getPersistentDataContainer().set(new NamespacedKey("evergarden", "crop_food"), PersistentDataType.STRING, type.id);
@@ -118,11 +120,8 @@ public final class CropItemFactory {
     }
 
     public ItemStack createPlantDisplay(CropType type, int stage) {
-        // CARVED_PUMPKIN: equips to HEAD slot on Java (equippable component),
-        // but Bedrock does NOT classify it as wearable armor — so Geyser will
-        // not render an attachable on the opening player's head when the item
-        // is in a chest or held. IRON_HELMET caused a visible Geyser virtual-
-        // chest block above the player's head on every container open.
+        // The Bedrock mapping registers crop stages against carved pumpkin, so
+        // keep the carrier aligned with the generated Geyser mapping.
         ItemStack item = new ItemStack(Material.CARVED_PUMPKIN, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -137,6 +136,7 @@ public final class CropItemFactory {
         var modelData = meta.getCustomModelDataComponent();
         modelData.setStrings(List.of("voidscape:crop_" + type.id + "_stage_" + stage));
         meta.setCustomModelDataComponent(modelData);
+        meta.setItemModel(new NamespacedKey("voidscape", "crop_" + type.id + "_stage_" + stage));
 
         item.setItemMeta(meta);
         return item;

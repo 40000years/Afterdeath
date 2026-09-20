@@ -169,6 +169,7 @@ public final class TravelListener implements Listener {
         if(p.getWorld()==plugin.world()||!allowedEntryWorld(p)) return;
         Block placed = e.getBlockPlaced();
         if(!isPortalFlower(placed.getType())) return;
+        if(!hasNearbyQuartz(placed)) return;
 
         Block[] candidates = new Block[] {
             placed,
@@ -181,12 +182,21 @@ public final class TravelListener implements Listener {
         };
         for(Block candidate : candidates) {
             Material orig = placed.getType();
+            org.bukkit.block.data.BlockData originalData = placed.getBlockData().clone();
             placed.setType(Material.AIR, false);
             if(tryIgnitePortal(candidate, p)) {
                 return;
             }
             placed.setType(orig, false);
+            placed.setBlockData(originalData, false);
         }
+    }
+
+    private boolean hasNearbyQuartz(Block block) {
+        for(int x=-2;x<=2;x++) for(int y=-2;y<=2;y++) for(int z=-2;z<=2;z++) {
+            if(block.getRelative(x,y,z).getType()==Material.QUARTZ_BLOCK) return true;
+        }
+        return false;
     }
 
     private void consumeFlowerOffering(Item item) {

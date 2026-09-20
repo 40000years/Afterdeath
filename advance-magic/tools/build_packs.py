@@ -151,14 +151,6 @@ def main():
                                      'bedrock_identifier': f'advance_magic:core_{name}', 'display_name': core_titles[name],
                                      'bedrock_options': {'icon': f'advance_magic.core_{name}', 'allow_offhand': True, 'display_handheld': False, 'creative_category': 'items'}})
 
-        # Select overrides for carrot_on_a_stick (wands) and heart_of_the_sea (cores)
-        write_json(java / 'assets/minecraft/items/carrot_on_a_stick.json', {'model': {
-            'type': 'minecraft:select', 'property': 'minecraft:custom_model_data', 'index': 0, 'cases': cases,
-            'fallback': {'type': 'minecraft:model', 'model': 'minecraft:item/carrot_on_a_stick'}}})
-        write_json(java / 'assets/minecraft/items/heart_of_the_sea.json', {'model': {
-            'type': 'minecraft:select', 'property': 'minecraft:custom_model_data', 'index': 0, 'cases': core_cases,
-            'fallback': {'type': 'minecraft:model', 'model': 'minecraft:item/heart_of_the_sea'}}})
-
         write_json(bedrock / 'textures/item_texture.json', {'resource_pack_name': 'advance_magic', 'texture_name': 'atlas.items', 'texture_data': atlas})
         write_json(DIST / 'geyser-mappings.json', {
             'format_version': 2,

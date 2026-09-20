@@ -304,6 +304,8 @@ def main():
  crop_assets.register_crop_assets(java, bedrock, textures, mappings, selectors, write_json, png)
  portal_assets.register(java, bedrock, textures, mappings, selectors, write_json)
  for base,cases in selectors.items():
+  if base=='carved_pumpkin':
+   continue
   fallback={'type':'minecraft:model','model':'minecraft:item/'+base}
   if base=='bow':
    entries=[{'threshold':t,'model':{'type':'minecraft:model','model':f'minecraft:item/bow_pulling_{n}'}} for n,t in enumerate([0,0.65,0.9])]

@@ -421,10 +421,6 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
         write_json(java / f'assets/voidscape/items/{seed_name}.json', {
             'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + seed_name}
         })
-        selectors.setdefault(base_seed, []).append({
-            'when': 'voidscape:' + seed_name,
-            'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + seed_name}
-        })
         mappings['items'].setdefault('minecraft:' + base_seed, []).append({
             'type': 'definition',
             'model': 'minecraft:' + base_seed,
@@ -446,10 +442,6 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
             'textures': {'layer0': 'voidscape:item/' + food_name}
         })
         write_json(java / f'assets/voidscape/items/{food_name}.json', {
-            'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + food_name}
-        })
-        selectors.setdefault(base_food, []).append({
-            'when': 'voidscape:' + food_name,
             'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + food_name}
         })
         mappings['items'].setdefault('minecraft:' + base_food, []).append({
@@ -484,10 +476,6 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
             }
             write_json(java / f'assets/voidscape/models/item/{stage_name}.json', stage_model)
             write_json(java / f'assets/voidscape/items/{stage_name}.json', {
-                'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + stage_name}
-            })
-            selectors.setdefault('carved_pumpkin', []).append({
-                'when': 'voidscape:' + stage_name,
                 'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + stage_name}
             })
             # A crop is worn by an invisible armor stand. Geyser translates
@@ -533,8 +521,8 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
                     'render_controllers': ['controller.render.evergarden_mask']
                 }}
             })
-            # carved_pumpkin equips to HEAD on Java but is NOT treated as wearable
-            # armor in Bedrock; Geyser will not render the attachable on the player.
+            # Keep the mapping aligned with the Java carrier item used by the
+            # crop armor-stand display.
             mappings['items'].setdefault('minecraft:carved_pumpkin', []).append({
                 'type': 'definition',
                 'model': 'minecraft:carved_pumpkin',

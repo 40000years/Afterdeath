@@ -18,6 +18,7 @@ public final class GuardianAppearance {
         String id=theme(kind)+(boss?"_crown":"_mask");
         meta.setDisplayName("Evergarden · "+id);
         var data=meta.getCustomModelDataComponent();data.setStrings(List.of("voidscape:"+id));meta.setCustomModelDataComponent(data);
+        meta.setItemModel(new NamespacedKey("voidscape", id));
         item.setItemMeta(meta);return item;
     }
     private static ItemStack armor(Material material,Color color) {

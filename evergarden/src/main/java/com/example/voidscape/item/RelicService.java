@@ -452,6 +452,7 @@ public final class RelicService implements Listener {
 
     public boolean migrate(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
+        if (!isManagedItem(item)) return false;
         boolean changed = false;
         if (EnchantApplyListener.hasUnique(item, UniqueEnchant.ADVANCE_TOOL)) {
             var meta = item.getItemMeta();
@@ -488,6 +489,26 @@ public final class RelicService implements Listener {
         if(!meta.hasItemModel()&&data.getStrings().equals(List.of(model)))return changed;
         meta.setItemModel(null);data.setStrings(List.of(model));meta.setCustomModelDataComponent(data);item.setItemMeta(meta);return true;
     }
+
+    private boolean isManagedItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        var pdc = meta.getPersistentDataContainer();
+        return pdc.has(type, PersistentDataType.STRING)
+            || pdc.has(plugin.key("relic"), PersistentDataType.STRING)
+            || pdc.has(new NamespacedKey("evergarden", "relic_v2"), PersistentDataType.STRING)
+            || pdc.has(new NamespacedKey("evergarden", "relic"), PersistentDataType.STRING)
+            || pdc.has(plugin.key("limit_break_type"), PersistentDataType.STRING)
+            || pdc.has(plugin.key("unique_enchant"), PersistentDataType.STRING)
+            || pdc.has(plugin.key("relic_eternity"), PersistentDataType.BYTE)
+            || pdc.has(voidKeyTag, PersistentDataType.BYTE)
+            || pdc.has(plugin.key("key_shard"), PersistentDataType.BYTE)
+            || pdc.has(plugin.key("repair_stone"), PersistentDataType.BYTE)
+            || pdc.has(plugin.key("void_elixir"), PersistentDataType.BYTE)
+            || pdc.has(plugin.key("astral_dust"), PersistentDataType.BYTE)
+            || type(item) != null;
+    }
+
     public void migrate(Inventory inventory){for(int i=0;i<inventory.getSize();i++){var item=inventory.getItem(i);if(migrate(item))inventory.setItem(i,item);}}
     @EventHandler public void join(PlayerJoinEvent e){
         Player p=e.getPlayer();

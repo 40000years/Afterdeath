@@ -62,13 +62,8 @@ for name, digest in hashes.items():
 with zipfile.ZipFile(dist / 'advance-magic-java.zip') as z:
     pack = json.loads(z.read('pack.mcmeta'))['pack']
     assert pack['min_format'] == [75, 0] and pack['max_format'] == [88, 0]
-    selector = json.loads(z.read('assets/minecraft/items/carrot_on_a_stick.json'))['model']
-    assert selector['type'] == 'minecraft:select' and selector['property'] == 'minecraft:custom_model_data' and selector['index'] == 0
-    assert selector['fallback'] == {'type': 'minecraft:model', 'model': 'minecraft:item/carrot_on_a_stick'}
-    cases = {case['when']: case['model']['model'] for case in selector['cases']}
-    assert len(cases) == 15
+    assert 'assets/minecraft/items/carrot_on_a_stick.json' not in z.namelist()
     for name, _, _ in catalog:
-        assert cases[f'advance_magic:{name}'] == f'advance_magic:item/{name}'
         item = json.loads(z.read(f'assets/advance_magic/items/{name}.json'))
         assert item['model']['model'] == f'advance_magic:item/{name}'
         model = json.loads(z.read(f'assets/advance_magic/models/item/{name}.json'))

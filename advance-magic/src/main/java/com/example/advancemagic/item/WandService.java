@@ -198,7 +198,7 @@ public final class WandService implements Listener {
             var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();
             String key="advance_magic:"+spell.id();
             if(!meta.hasItemModel()&&data.getStrings().equals(List.of(key)))return false;
-            meta.setItemModel(null);data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
+            meta.setItemModel(new NamespacedKey("advance_magic",spell.id()));data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
             item.setItemMeta(meta);return true;
         }
         Spell core=coreSpell(item);
@@ -206,7 +206,7 @@ public final class WandService implements Listener {
             var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();
             String key="advance_magic:core_"+core.id();
             if(!meta.hasItemModel()&&data.getStrings().equals(List.of(key)))return false;
-            meta.setItemModel(null);data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
+            meta.setItemModel(new NamespacedKey("advance_magic","core_"+core.id()));data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
             item.setItemMeta(meta);return true;
         }
         return false;
