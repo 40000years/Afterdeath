@@ -47,7 +47,7 @@ follow-up:
 resource-pack:
   enabled: true
   # Direct HTTPS CDN URL (Fastly / GitHub). Empty = use bundled CDN URL.
-  url: 'https://raw.githubusercontent.com/40000years/Afterdeath/DEV/advance-magic/dist/advance-magic-java.zip'
+  url: 'https://raw.githubusercontent.com/40000years/Afterdeath/ecec8fa/advance-magic/dist/advance-magic-java.zip'
   # Empty = calculate dynamically from embedded ZIP.
   sha1: ''
   required: false
