@@ -568,9 +568,9 @@ public final class DungeonManager implements Listener {
             if (victimSpecies == Species.BOSS) {
                 // Boss takes 35% reduced incoming damage so players don't 2-shot it
                 e.setDamage(e.getDamage() * 0.65);
-                // Cap single hit damage to 450 max
-                if (e.getDamage() > 450.0) {
-                    e.setDamage(450.0);
+                // Cap single hit damage to 225 max after the half-damage tuning.
+                if (e.getDamage() > 225.0) {
+                    e.setDamage(225.0);
                 }
             }
         }
@@ -596,17 +596,17 @@ public final class DungeonManager implements Listener {
                     }
                 }
                 // Cap and enforce melee hit damage against external leveler inflation
-                double maxMelee = species == Species.BOSS ? (45.0 + Math.max(0, mobEnc.presence.size() - 1) * 10.0) :
-                                  species == Species.VEX ? 24.0 :
-                                  species == Species.STALKER ? 24.0 :
-                                  species == Species.MINION ? 20.0 : 18.0;
+                double maxMelee = species == Species.BOSS ? (22.5 + Math.max(0, mobEnc.presence.size() - 1) * 5.0) :
+                                  species == Species.VEX ? 12.0 :
+                                  species == Species.STALKER ? 12.0 :
+                                  species == Species.MINION ? 10.0 : 9.0;
                 if (e.getDamage() > maxMelee * 1.35) {
                     e.setDamage(maxMelee);
                 }
                 if (species == Species.BOSS) {
                     recordTrueDeathHit(victim);
                     // True Damage that penetrates Protection VIII!
-                    double trueDmg = 12.0 + Math.max(0, players(mobEnc.site).size() - 1) * 2.0;
+                    double trueDmg = 6.0 + Math.max(0, players(mobEnc.site).size() - 1) * 1.0;
                     victim.damage(trueDmg);
                     victim.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, victim.getLocation().add(0, 1, 0), 10, 0.2, 0.3, 0.2, 0.1);
                     
@@ -720,8 +720,8 @@ public final class DungeonManager implements Listener {
                 deathLoc.getWorld().spawnParticle(Particle.FIREWORK, deathLoc.clone().add(0, 0.5, 0), 6, 0.2, 0.2, 0.2, 0.05);
             }
 
-            // 3% chance to drop 1 Key Shard from wave mobs (low rate, anti-looting 10 abuse, strictly 1 item)
-            if (ThreadLocalRandom.current().nextDouble() < 0.03 && plugin.relics() != null) {
+            // Keep shard farming rare: 1% per wave mob, so the boss remains the primary path to Evergarden Key.
+            if (ThreadLocalRandom.current().nextDouble() < 0.01 && plugin.relics() != null) {
                 deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.relics().createKeyShard(1));
                 deathLoc.getWorld().spawnParticle(Particle.ENCHANT, deathLoc.clone().add(0, 0.5, 0), 10, 0.3, 0.3, 0.3, 0.05);
             }
@@ -981,7 +981,7 @@ public final class DungeonManager implements Listener {
                                     blastLoc.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME,blastLoc.clone().add(0,1,0),35,1.5,1.0,1.5,0.08);
                                     for(Player p:team) {
                                         if(p.getWorld()==blastLoc.getWorld()&&p.getLocation().distanceSquared(blastLoc)<=25) {
-                                            p.damage(26.0,mob);
+                                            p.damage(13.0,mob);
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER,160,2));
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,60,0));
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,100,1));
@@ -999,7 +999,7 @@ public final class DungeonManager implements Listener {
                                     blastLoc.getWorld().strikeLightningEffect(blastLoc);
                                     for(Player p:team) {
                                         if(p.getWorld()==blastLoc.getWorld()&&p.getLocation().distanceSquared(blastLoc)<=25) {
-                                            p.damage(24.0,mob);
+                                            p.damage(12.0,mob);
                                             p.setVelocity(p.getVelocity().add(new Vector(0,0.9,0)));
                                             p.setFreezeTicks(Math.min(p.getMaxFreezeTicks(),p.getFreezeTicks()+180));
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,100,2));
@@ -1012,7 +1012,7 @@ public final class DungeonManager implements Listener {
                                     blastLoc.getWorld().spawnParticle(Particle.ENCHANT,blastLoc.clone().add(0,1,0),60,2.0,1.5,2.0,0.1);
                                     for(Player p:team) {
                                         if(p.getWorld()==blastLoc.getWorld()&&p.getLocation().distanceSquared(blastLoc)<=36) {
-                                            p.damage(22.0,mob);
+                                            p.damage(11.0,mob);
                                             Vector dir=blastLoc.toVector().subtract(p.getLocation().toVector()).normalize().multiply(0.8);
                                             dir.setY(0.2);
                                             p.setVelocity(dir);
@@ -1143,7 +1143,7 @@ public final class DungeonManager implements Listener {
                             double distSq = pCenter.toVector().distanceSquared(closestPoint);
 
                             if (distSq <= 2.2 * 2.2) {
-                                p.damage(26.0, boss);
+                                p.damage(13.0, boss);
 
                                 Vector impulse = fireDir.clone().multiply(1.2);
                                 impulse.setY(0.45);

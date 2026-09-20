@@ -767,8 +767,9 @@ public final class RelicService implements Listener {
             }
         }
 
-        // 6. Block custom items from being consumed in vanilla recipes
-        if (keyShards > 0 || astralDust > 0 || repairStones > 0 || scrollCount > 0) {
+        // 6. Only reserve the crafting grid when it actually contains Evergarden custom ingredients.
+        // This avoids hijacking unrelated vanilla recipes on Bedrock, which can cause crafting-table hangs.
+        if (keyShards > 0 || astralDust > 0 || repairStones > 0 || amethystShards > 0 || glassBottles > 0 || scrollCount > 0 || damagedEquipCount > 0) {
             inv.setResult(null);
             return;
         }

@@ -38,8 +38,8 @@ combat:
   boss-health: 1024
   guardian-health: 90
   specialist-health: 80
-  boss-attack: 27
-  guardian-attack: 16
+  boss-attack: 13.5
+  guardian-attack: 8.0
   caster-interval-ms: 7000
   boss-skill-interval-ms: 5500
   # Preserve the 2.2-second warning; increase the configured base damage by 10%.
