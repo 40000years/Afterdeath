@@ -605,6 +605,12 @@ public final class CropService implements Listener, AutoCloseable {
             return;
         }
 
+        // Astral Dust: accelerates crop growth by 5% (Evergarden dimension only)
+        if (hand != null && plugin.relics() != null && plugin.relics().isAstralDust(hand)) {
+            applyAstralDust(p, crop, hand);
+            return;
+        }
+
         if (crop.isMature()) {
             if (hand != null && com.example.voidscape.enchant.EnchantApplyListener.hasUnique(hand, com.example.voidscape.enchant.UniqueEnchant.DEMETER_SCYTHE) && plugin.abilities() != null) {
                 plugin.abilities().harvestCropsArea(p, cropBlock);
@@ -635,6 +641,12 @@ public final class CropService implements Listener, AutoCloseable {
             return;
         }
 
+        // Astral Dust: accelerates crop growth by 5% (Evergarden dimension only)
+        if (hand != null && plugin.relics() != null && plugin.relics().isAstralDust(hand)) {
+            applyAstralDust(p, found, hand);
+            return;
+        }
+
         if (found.isMature()) {
             if (hand != null && com.example.voidscape.enchant.EnchantApplyListener.hasUnique(hand, com.example.voidscape.enchant.UniqueEnchant.DEMETER_SCYTHE) && plugin.abilities() != null) {
                 plugin.abilities().harvestCropsArea(p, found.getLocation().getBlock());
@@ -645,6 +657,58 @@ public final class CropService implements Listener, AutoCloseable {
             p.sendActionBar(Component.text("⏳ " + found.getType().thaiName + " กำลังเติบโต (" + (int)(found.growthProgress() * 100) + "% · เหลือ " + found.secondsRemaining() + " วินาที)", NamedTextColor.YELLOW));
             found.getLocation().getWorld().playSound(found.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_HIT, 0.6f, 1.5f);
         }
+    }
+
+    public boolean applyAstralDust(Player player, PlantedCrop crop, ItemStack hand) {
+        if (crop == null || player == null || hand == null) return false;
+        if (plugin.relics() == null || !plugin.relics().isAstralDust(hand)) return false;
+
+        World world = crop.getLocation().getWorld();
+        if (world == null || plugin.world() == null || !world.equals(plugin.world())) {
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            player.sendActionBar(Component.text("✦ ผงละอองดาวสามารถใช้เร่งโตพืชได้เฉพาะในมิติ Evergarden เท่านั้น!", NamedTextColor.RED));
+            return true;
+        }
+
+        if (crop.isMature()) {
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            player.sendActionBar(Component.text("✦ " + crop.getType().thaiName + " โตเต็มที่แล้ว (พร้อมเก็บเกี่ยว)", NamedTextColor.GREEN));
+            return true;
+        }
+
+        // Accelerate 5% of total growth duration
+        int boostSeconds = Math.max(1, (int) Math.round(crop.getType().tier.growthSeconds * 0.05));
+        crop.accelerate(boostSeconds);
+
+        // Update stage if threshold passed
+        int newStage = crop.calculateTargetStage();
+        if (newStage > crop.getStage()) {
+            crop.setStage(newStage);
+            ArmorStand stand = getOrSpawnDisplay(crop);
+            if (stand != null) {
+                stand.getEquipment().setHelmet(factory.createPlantDisplay(crop.getType(), newStage), true);
+            }
+        }
+        dirty.set(true);
+        scheduleGrowth(crop);
+
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            hand.setAmount(hand.getAmount() - 1);
+        }
+
+        Location loc = crop.getLocation().add(0.5, 0.4, 0.5);
+        world.playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.6f);
+        world.playSound(loc, Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.8f, 1.4f);
+        world.spawnParticle(Particle.FIREWORK, loc, 8, 0.25, 0.25, 0.25, 0.04);
+        world.spawnParticle(Particle.HAPPY_VILLAGER, loc, 6, 0.25, 0.25, 0.25, 0.02);
+
+        if (crop.isMature()) {
+            player.sendActionBar(Component.text("✨ ผงละอองดาวเร่งโต " + crop.getType().thaiName + " +5%! (★ โตเต็มที่แล้ว!)", NamedTextColor.GOLD));
+        } else {
+            int pct = (int) (crop.growthProgress() * 100);
+            player.sendActionBar(Component.text("✨ ผงละอองดาวเร่งโต " + crop.getType().thaiName + " +5% (" + pct + "% · เหลือ " + crop.secondsRemaining() + " วินาที)", NamedTextColor.AQUA));
+        }
+        return true;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
