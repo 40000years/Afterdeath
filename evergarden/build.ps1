@@ -66,3 +66,30 @@ foreach ($dst in $(if ($SkipDeploy) { @() } else { $destinations })) {
 
 Write-Output ('Built Evergarden 3.0 (with embedded resource-packs): ' + (Join-Path $distDir 'evergarden-3.0.0.jar'))
 Write-Output ('Classes: ' + $classesDir)
+
+# ─── Auto-update resource-pack URL & SHA1 in deployed configs ────────────────
+$hashesFile = Join-Path $distDir 'pack-hashes.json'
+if ((Test-Path $hashesFile) -and !$SkipDeploy) {
+    $hashes   = Get-Content $hashesFile | ConvertFrom-Json
+    $newSha1  = $hashes.'evergarden-java.zip'
+    $gitHash  = (& git -C $workspaceRoot rev-parse --short=8 HEAD 2>$null).Trim()
+    if ($gitHash -and $newSha1) {
+        $newUrl = "https://raw.githubusercontent.com/40000years/Afterdeath/$gitHash/evergarden/dist/evergarden-java.zip"
+        $configPaths = @(
+            'C:\Users\User\Desktop\TestServer\plugins\Evergarden\config.yml'
+        )
+        foreach ($cfg in $configPaths) {
+            if (Test-Path $cfg) {
+                $content = Get-Content $cfg -Raw -Encoding UTF8
+                # Update url: line under resource-pack section
+                $content = $content -replace '(?m)^(\s*url:\s*)https://raw\.githubusercontent\.com/[^\r\n]+', "`${1}$newUrl"
+                # Update sha1: line (quoted or unquoted)
+                $content = $content -replace "(?m)^(\s*sha1:\s*)'[^']*'", "`${1}'$newSha1'"
+                $content = $content -replace "(?m)^(\s*sha1:\s*)""[^""]*""", "`${1}'$newSha1'"
+                $content = $content -replace '(?m)^(\s*sha1:\s*)[^\r\n]+', "`${1}'$newSha1'"
+                [System.IO.File]::WriteAllText($cfg, $content, [System.Text.Encoding]::UTF8)
+                Write-Output ("Updated resource-pack config: $cfg  (sha1=$newSha1, commit=$gitHash)")
+            }
+        }
+    }
+}
