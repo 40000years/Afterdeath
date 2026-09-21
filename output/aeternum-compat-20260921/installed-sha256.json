@@ -1,0 +1,8 @@
+{
+  "plugins\\evergarden.jar": "b2d81174b340fbc45e668223bb3ee7dc9687b951530232719fafe665823f3a86",
+  "plugins\\Evergarden\\config.yml": "aae536776fe8278fdcf6da08eafa5732de638478727cc6da03fb94a39916ab9a",
+  "plugins\\Geyser-Spigot\\packs\\Aeternum-Foods-Bedrock.mcpack": "ba2e4b768821b3ad362b6de08d6a8e3148e1bd0d2ce23f30b2aa98c52c1e4a4a",
+  "plugins\\Geyser-Spigot\\custom_mappings\\aeternum_food_items.json": "2a285a0e08c6542f4a7f5ff21e20fb85ed250c5890e1d443e73dc61a5b0014ea",
+  "plugins\\Geyser-Spigot\\custom_mappings\\aeternum_food_blocks.json": "8ddf53a2ec7dc6347413824dba942a281bde30d53b7306345e162970558ebebf",
+  "plugins\\Evergarden\\resource-packs\\Aeternum-Foods-26.x.zip": "e1b65ee5cd2dfef78bcb3d749dcf05361a50043fcc9637d109d6352880dc7607"
+}

@@ -42,7 +42,7 @@ public final class MobilitySpells {
         c.particles(last.clone().add(0,1,0),Particle.SWEEP_ATTACK,12,0.6);
         p.getWorld().playSound(last,Sound.ENTITY_PLAYER_ATTACK_SWEEP,1.0f,1.4f);
         for(var e:c.nearby(p,last,3.5,false))if(c.affect(p,e,Spell.SHADOW_STEP)) {
-            c.damage(p,e,c.configuredDamage("damage.shadow-step-rupture",100),DamageType.MAGIC);
+            c.damage(p,e,c.configuredDamage("damage.shadow-step-rupture",37.5),DamageType.MAGIC);
             c.potion(e,PotionEffectType.DARKNESS,40,0);
         }
         c.potion(p,PotionEffectType.SPEED,50,1);
@@ -100,7 +100,7 @@ public final class MobilitySpells {
                     c.potion(ally,PotionEffectType.SATURATION,40,1);
                 }
                 for(var enemy:c.nearby(p,center,8.5,false))if(c.affect(p,enemy,Spell.NATURES_BLOOM)) {
-                    c.damage(p,enemy,c.configuredDamage("damage.natures-bloom-thorns",80),DamageType.MAGIC);
+                    c.damage(p,enemy,c.configuredDamage("damage.natures-bloom-thorns",30),DamageType.MAGIC);
                     c.plugin.statuses().root(p,enemy);
                 }
             }
@@ -112,7 +112,7 @@ public final class MobilitySpells {
                     c.potion(ally,PotionEffectType.RESISTANCE,100,0);
                 }
                 for(var enemy:c.nearby(p,center,8.5,false))if(c.affect(p,enemy,Spell.NATURES_BLOOM))
-                    c.damage(p,enemy,c.configuredDamage("follow-up.damage.natures_bloom",60),DamageType.MAGIC);
+                    c.damage(p,enemy,c.configuredDamage("follow-up.damage.natures_bloom",22.5),DamageType.MAGIC);
             }
             return true;
         });

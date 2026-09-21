@@ -5,44 +5,44 @@ max-targets-per-effect: 32
 meteor:
   ignite-terrain: true
   # Explosions damage entities but never remove terrain blocks.
-  damage: 180.0
+  damage: 135.0
 damage:
-  sonic-boom: 150.0
-  blaze-barrage: 50.0
-  guardian-tidal-burst: 90.0
-  poison-impact: 40.0
-  lightning: 120.0
-  lightning-secondary: 60.0
-  frost-shatter: 70.0
-  earth-wall-rupture: 50.0
-  dragon-per-second: 60.0
-  wither-skull: 80.0
-  shulker-impact: 40.0
-  shulker-singularity-burst: 240.0
-  void-collapse: 90.0
-  shadow-step-rupture: 50.0
-  soul-nova: 70.0
-  shroud-ambush: 100.0
-  natures-bloom-thorns: 40.0
+  sonic-boom: 112.5
+  blaze-barrage: 37.5
+  guardian-tidal-burst: 67.5
+  poison-impact: 30.0
+  lightning: 90.0
+  lightning-secondary: 45.0
+  frost-shatter: 52.5
+  earth-wall-rupture: 37.5
+  dragon-per-second: 45.0
+  wither-skull: 60.0
+  shulker-impact: 30.0
+  shulker-singularity-burst: 180.0
+  void-collapse: 67.5
+  shadow-step-rupture: 37.5
+  soul-nova: 52.5
+  shroud-ambush: 75.0
+  natures-bloom-thorns: 30.0
 # Automatic extra stage from the same cast, with no additional mana or cooldown.
 # Existing customized base damage settings are preserved when upgrading.
 follow-up:
   damage:
-    lightning_strike: 36.0
-    frost_nova: 50.0
-    shadow_step: 40.0
-    natures_bloom: 30.0
-    earth_wall: 50.0
-    dragons_breath: 60.0
-    void_pull: 40.0
-    sonic_boom: 50.0
-    blaze_barrage: 40.0
-    wither_ray: 30.0
-    shulker_levitation: 40.0
-    meteor_strike: 30.0
-    iron_armor: 50.0
-    vex_legion: 50.0
-    guardian_beam: 40.0
+    lightning_strike: 27.0
+    frost_nova: 37.5
+    shadow_step: 30.0
+    natures_bloom: 22.5
+    earth_wall: 37.5
+    dragons_breath: 45.0
+    void_pull: 30.0
+    sonic_boom: 37.5
+    blaze_barrage: 30.0
+    wither_ray: 22.5
+    shulker_levitation: 30.0
+    meteor_strike: 22.5
+    iron_armor: 37.5
+    vex_legion: 37.5
+    guardian_beam: 30.0
 # Bundled pack is automatically offered one tick after joining.
 resource-pack:
   enabled: true

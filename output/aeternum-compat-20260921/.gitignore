@@ -1,0 +1,5 @@
+*.html
+*.bytecode.txt
+*.zip
+pack-versions.json
+downloads/

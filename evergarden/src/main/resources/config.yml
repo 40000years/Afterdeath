@@ -80,6 +80,8 @@ resource-pack:
 
 # No anticheat bypass permissions are granted. Restart after changing modes.
 compatibility:
+  # Keep LevelledMobs active elsewhere, but automatically exclude the Evergarden world.
+  levelled-mobs-exclude-world: true
   # Offer the official Java 26.x food pack when AeternumSeasons is enabled.
   # Bedrock additionally needs the author's Geyser pack and custom mappings.
   aeternum-seasons:

@@ -90,6 +90,7 @@ public final class VoidscapePlugin extends JavaPlugin {
             voidWorld.setStorm(false);voidWorld.setThundering(false);
             voidWorld.getWorldBorder().setCenter(0,0);
             voidWorld.getWorldBorder().setSize(integer("dimension.border-size",24000,4096,60000000));
+            com.example.voidscape.compat.LevelledMobsCompat.register(this);
             relics=new RelicService(this);dungeons=new DungeonManager(this);travel=new TravelListener(this);
             var pm=getServer().getPluginManager();pm.registerEvents(relics,this);pm.registerEvents(dungeons,this);pm.registerEvents(travel,this);
             pm.registerEvents(new com.example.voidscape.guide.ChestGuideGui(this),this);
@@ -138,6 +139,7 @@ public final class VoidscapePlugin extends JavaPlugin {
         }
     }
     @Override public void onDisable(){if(travel!=null)travel.close();if(packs!=null)packs.close();if(dungeons!=null)dungeons.close();if(relics!=null)relics.close();if(crops!=null)crops.close();if(cropBuffs!=null)cropBuffs.close();if(botanist!=null)botanist.close();}
+
     public NamespacedKey key(String value){return new NamespacedKey("voidscape",value);}
     public int integer(String path,int value,int min,int max){return Math.max(min,Math.min(max,getConfig().getInt(path,value)));}
     public void message(CommandSender sender,String text){sender.sendMessage(Component.text("✦ "+text,NamedTextColor.AQUA));}

@@ -349,19 +349,10 @@ public final class DungeonManager implements Listener {
                 attackDamage = plugin.getConfig().getDouble("combat.guardian-attack", 16.0);
             }
 
+            baseHp += species == Species.BOSS ? 150.0 : 100.0;
             baseHp = Math.round(baseHp);
 
-            // Scoreboard tags & PDC immunity for LevelledMobs / external levelers
-            m.addScoreboardTag("no-level");
-            m.addScoreboardTag("levelledmobs:ignore");
-            m.addScoreboardTag("evergarden_mob");
-            m.addScoreboardTag("custom");
-            if (species == Species.BOSS) {
-                m.addScoreboardTag("boss");
-                m.addScoreboardTag("custom-boss");
-            }
-            m.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "no-level"), PersistentDataType.BYTE, (byte) 1);
-            m.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "ignore"), PersistentDataType.BYTE, (byte) 1);
+            com.example.voidscape.compat.LevelledMobsCompat.tagMob(m, plugin, species == Species.BOSS);
             m.getPersistentDataContainer().set(mobTargetHpKey, PersistentDataType.DOUBLE, baseHp);
             m.getPersistentDataContainer().set(mobTargetDmgKey, PersistentDataType.DOUBLE, attackDamage);
 
@@ -434,53 +425,23 @@ public final class DungeonManager implements Listener {
     public void cleanseAndLockMob(Mob mob, double targetHp, double targetDmg, String targetName, NamedTextColor color, boolean isBoss) {
         if (mob == null || !mob.isValid() || mob.isDead()) return;
 
-        // 1. Strip external LevelledMobs or leveler PDC tags
-        try {
-            for (NamespacedKey key : mob.getPersistentDataContainer().getKeys()) {
-                String ns = key.getNamespace().toLowerCase(Locale.ROOT);
-                String k = key.getKey().toLowerCase(Locale.ROOT);
-                if (ns.contains("levelledmobs") || ns.equals("lm") || k.contains("level")) {
-                    if (!key.equals(trueDeathHitsKey) && !key.equals(trueDeathLevelKey)
-                        && !key.equals(mobKey) && !key.equals(runKey)
-                        && !key.equals(mobTargetHpKey) && !key.equals(mobTargetDmgKey) && !key.equals(mobTargetNameKey)) {
-                        mob.getPersistentDataContainer().remove(key);
-                    }
-                }
-            }
-        } catch (Exception ignored) {}
+        com.example.voidscape.compat.LevelledMobsCompat.tagMob(mob, plugin, isBoss);
 
-        // Ensure immunity tags
-        mob.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "no-level"), PersistentDataType.BYTE, (byte) 1);
-        mob.getPersistentDataContainer().set(new NamespacedKey("levelledmobs", "ignore"), PersistentDataType.BYTE, (byte) 1);
-        mob.addScoreboardTag("no-level");
-        mob.addScoreboardTag("levelledmobs:ignore");
-        mob.addScoreboardTag("evergarden_mob");
-        mob.addScoreboardTag("custom");
-        if (isBoss) {
-            mob.addScoreboardTag("boss");
-            mob.addScoreboardTag("custom-boss");
-        }
-
-        // 2. Strip external LevelledMobs metadata
-        for (String metaKey : List.of("levelledmobs:level", "levelledmobs", "lm_level", "mob_level", "lm_custom")) {
-            if (mob.hasMetadata(metaKey)) {
-                mob.removeMetadata(metaKey, plugin);
-            }
-        }
-
-        // 3. Strip ALL AttributeModifiers and enforce Max Health and Health clamp
+        // Strip ALL AttributeModifiers and enforce Max Health and clamp
         var hpAttr = mob.getAttribute(Attribute.MAX_HEALTH);
         if (hpAttr != null) {
             for (org.bukkit.attribute.AttributeModifier mod : new ArrayList<>(hpAttr.getModifiers())) {
                 hpAttr.removeModifier(mod);
             }
-            hpAttr.setBaseValue(targetHp);
+            if (hpAttr.getBaseValue() != targetHp) {
+                hpAttr.setBaseValue(targetHp);
+            }
             if (mob.getHealth() > targetHp) {
                 mob.setHealth(targetHp);
             }
         }
 
-        // 4. Strip ALL AttributeModifiers and enforce Attack Damage
+        // Strip ALL AttributeModifiers and enforce Attack Damage
         var dmgAttr = mob.getAttribute(Attribute.ATTACK_DAMAGE);
         if (dmgAttr != null) {
             for (org.bukkit.attribute.AttributeModifier mod : new ArrayList<>(dmgAttr.getModifiers())) {
@@ -489,7 +450,7 @@ public final class DungeonManager implements Listener {
             dmgAttr.setBaseValue(targetDmg);
         }
 
-        // 5. Cleanse Armor & Toughness modifiers
+        // Cleanse Armor & Toughness modifiers
         var armorAttr = mob.getAttribute(Attribute.ARMOR);
         if (armorAttr != null) {
             for (org.bukkit.attribute.AttributeModifier mod : new ArrayList<>(armorAttr.getModifiers())) {
@@ -505,7 +466,7 @@ public final class DungeonManager implements Listener {
             if (isBoss) toughAttr.setBaseValue(16.0);
         }
 
-        // 6. Restore pristine Custom Name without LevelledMobs [Lvl ...] prefix
+        // Restore Custom Name
         if (targetName != null) {
             mob.customName(Component.text(targetName, color != null ? color : (isBoss ? NamedTextColor.GOLD : NamedTextColor.LIGHT_PURPLE)));
             mob.setCustomNameVisible(true);
@@ -527,9 +488,6 @@ public final class DungeonManager implements Listener {
             if (!hpAttr.getModifiers().isEmpty() || hpAttr.getBaseValue() != targetHp || mob.getHealth() > targetHp) {
                 needsCleanse = true;
             }
-        }
-        if (mob.hasMetadata("levelledmobs") || mob.hasMetadata("levelledmobs:level") || mob.hasMetadata("lm_level")) {
-            needsCleanse = true;
         }
 
         if (needsCleanse) {
@@ -720,8 +678,8 @@ public final class DungeonManager implements Listener {
                 deathLoc.getWorld().spawnParticle(Particle.FIREWORK, deathLoc.clone().add(0, 0.5, 0), 6, 0.2, 0.2, 0.2, 0.05);
             }
 
-            // Keep shard farming rare: 1% per wave mob, so the boss remains the primary path to Evergarden Key.
-            if (ThreadLocalRandom.current().nextDouble() < 0.01 && plugin.relics() != null) {
+            // Keep shard farming rare: 0.5% per wave mob (halved, flat roll, immune to Looting)
+            if (ThreadLocalRandom.current().nextDouble() < 0.005 && plugin.relics() != null) {
                 deathLoc.getWorld().dropItemNaturally(deathLoc, plugin.relics().createKeyShard(1));
                 deathLoc.getWorld().spawnParticle(Particle.ENCHANT, deathLoc.clone().add(0, 0.5, 0), 10, 0.3, 0.3, 0.3, 0.05);
             }
@@ -1260,17 +1218,10 @@ public final class DungeonManager implements Listener {
         }
     }
 
-    @EventHandler(priority=EventPriority.LOWEST)
-    public void onMobCombatLowest(EntityDamageEvent e) {
-        if (e.getEntity() instanceof Mob mob && mob.getPersistentDataContainer().has(mobKey)) {
-            cleanseMobIfTagged(mob);
-        }
-    }
-
-    @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
-    public void onMobCombatMonitor(EntityDamageEvent e) {
-        if (e.getEntity() instanceof Mob mob && mob.getPersistentDataContainer().has(mobKey)) {
-            cleanseMobIfTagged(mob);
+    @EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled=true)
+    public void onMobRegainHealth(EntityRegainHealthEvent e) {
+        if (owners.containsKey(e.getEntity().getUniqueId())) {
+            e.setCancelled(true);
         }
     }
 

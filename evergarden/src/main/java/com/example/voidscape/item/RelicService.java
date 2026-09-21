@@ -452,8 +452,106 @@ public final class RelicService implements Listener {
         return null;
     }
 
+    public boolean isAeternumItem(ItemMeta meta) {
+        if (meta == null) return false;
+        var pdc = meta.getPersistentDataContainer();
+        for (NamespacedKey k : pdc.getKeys()) {
+            String ns = k.getNamespace().toLowerCase(Locale.ROOT);
+            String key = k.getKey().toLowerCase(Locale.ROOT);
+            if (ns.contains("aeternum") || key.contains("aeternum")) {
+                return true;
+            }
+        }
+        if (meta.hasDisplayName()) {
+            String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(meta.displayName());
+            if (plain.toLowerCase(Locale.ROOT).contains("aeternum")) return true;
+        }
+        if (meta.hasLore()) {
+            for (Component line : meta.lore()) {
+                String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line);
+                if (plain.toLowerCase(Locale.ROOT).contains("aeternum")) return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean cleanseAeternumCorruption(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        if (!isAeternumItem(meta)) return false;
+
+        boolean changed = false;
+        var pdc = meta.getPersistentDataContainer();
+
+        // 1. Remove corrupted Evergarden / Voidscape Relic & Limit Break tags
+        List<NamespacedKey> toRemove = new ArrayList<>();
+        for (NamespacedKey k : pdc.getKeys()) {
+            String ns = k.getNamespace().toLowerCase(Locale.ROOT);
+            String key = k.getKey().toLowerCase(Locale.ROOT);
+            if (ns.equals("voidscape") || ns.equals("evergarden")) {
+                if (key.startsWith("relic") || key.equals("type") || key.equals("limit_break_type")
+                    || key.equals("unique_enchant") || key.equals("scroll_eternity")
+                    || key.equals("void_key") || key.equals("key_shard") || key.equals("repair_stone")
+                    || key.equals("void_elixir") || key.equals("astral_dust") || key.startsWith("lb_") || key.startsWith("ue_")) {
+                    toRemove.add(k);
+                }
+            }
+        }
+        for (NamespacedKey k : toRemove) {
+            pdc.remove(k);
+            changed = true;
+        }
+
+        // 2. Remove corrupted CustomModelData strings from Evergarden
+        var cmdComp = meta.getCustomModelDataComponent();
+        if (cmdComp != null && !cmdComp.getStrings().isEmpty()) {
+            List<String> validStrings = new ArrayList<>();
+            for (String str : cmdComp.getStrings()) {
+                String lower = str.toLowerCase(Locale.ROOT);
+                if (lower.startsWith("voidscape:") || lower.startsWith("evergarden:")) {
+                    changed = true;
+                } else {
+                    validStrings.add(str);
+                }
+            }
+            if (changed) {
+                cmdComp.setStrings(validStrings);
+                meta.setCustomModelDataComponent(cmdComp);
+            }
+        }
+
+        // 3. Remove corrupted ItemModel
+        if (meta.getItemModel() != null) {
+            String ns = meta.getItemModel().getNamespace().toLowerCase(Locale.ROOT);
+            if (ns.equals("voidscape") || ns.equals("evergarden")) {
+                meta.setItemModel(null);
+                changed = true;
+            }
+        }
+
+        // 4. Clean up corrupted Evergarden lore lines
+        if (meta.hasLore()) {
+            List<Component> lore = new ArrayList<>(meta.lore());
+            boolean loreChanged = lore.removeIf(line -> {
+                String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line);
+                return plain.contains("EVERGARDEN · RELIC") || plain.contains("EVERGARDEN · TRIAL KEY");
+            });
+            if (loreChanged) {
+                meta.lore(lore.isEmpty() ? null : lore);
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            item.setItemMeta(meta);
+        }
+        return changed;
+    }
+
     public boolean migrate(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
+        if (cleanseAeternumCorruption(item)) return true;
+        if (isAeternumItem(item.getItemMeta())) return false;
         if (!isManagedItem(item)) return false;
         boolean changed = false;
         if (EnchantApplyListener.hasUnique(item, UniqueEnchant.ADVANCE_TOOL)) {
@@ -485,6 +583,7 @@ public final class RelicService implements Listener {
     private boolean isManagedItem(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
+        if (isAeternumItem(meta)) return false;
         var pdc = meta.getPersistentDataContainer();
         for (LimitBreakType enchant : LimitBreakType.values()) {
             if (pdc.has(plugin.key("lb_" + enchant.name().toLowerCase(Locale.ROOT)), PersistentDataType.INTEGER)) return true;
@@ -633,6 +732,7 @@ public final class RelicService implements Listener {
     public Relic type(ItemStack item) {
         if(item==null||!item.hasItemMeta()) return null;
         ItemMeta meta = item.getItemMeta();
+        if (isAeternumItem(meta)) return null;
         var pdc = meta.getPersistentDataContainer();
 
         // 1. Primary PDC key (voidscape:relic_v2)
