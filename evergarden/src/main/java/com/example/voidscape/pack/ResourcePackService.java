@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.jar.JarFile;
 
 public final class ResourcePackService implements Listener, AutoCloseable {
-    public static final UUID PACK_ID=UUID.fromString("5f118489-cb55-4d09-91c7-24cd9a2ce188");
+    public static final UUID PACK_ID=UUID.fromString("c8f2b94e-4a35-4d1b-9b67-0d2a6ef4f821");
     public static final String DEFAULT_CDN_URL = "https://raw.githubusercontent.com/40000years/Afterdeath/DEV/evergarden/dist/evergarden-java.zip";
     private static final List<String> FILES=List.of("evergarden-java.zip","evergarden-bedrock.mcpack",
             "geyser-mappings.json","pack-hashes.json");
