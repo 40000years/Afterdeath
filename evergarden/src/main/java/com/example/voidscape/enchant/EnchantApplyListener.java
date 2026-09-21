@@ -202,7 +202,7 @@ public final class EnchantApplyListener implements Listener {
         ItemMeta meta = target.getItemMeta();
         if (meta == null) return;
 
-        int current = relics.getLimitBreakLevel(target, type);
+        int current = relics.getLimitBreakUpgradeLevel(target, type);
         if (current <= 0) {
             fail(player, "อุปกรณ์ต้องมีเอนแชนต์ " + type.enchantment().getKey().getKey() + " อยู่ก่อนแล้ว");
             return;
@@ -213,7 +213,7 @@ public final class EnchantApplyListener implements Listener {
         }
 
         int next = current + 1;
-        relics.applyLimitBreakMeta(meta, type, next);
+        relics.applyLimitBreakMeta(target.getType(), meta, type, next);
         target.setItemMeta(meta);
 
         if (rawSlot >= 0) {

@@ -80,6 +80,13 @@ resource-pack:
 
 # No anticheat bypass permissions are granted. Restart after changing modes.
 compatibility:
+  # Offer the official Java 26.x food pack when AeternumSeasons is enabled.
+  # Bedrock additionally needs the author's Geyser pack and custom mappings.
+  aeternum-seasons:
+    resource-pack:
+      enabled: true
+      url: https://cdn.modrinth.com/data/4hkZZzlQ/versions/VveNYYee/Aeternum-Foods-26.x.zip
+      sha1: f7137350c381dfb933f96e869bfaced4a292bcff
   # vanilla: Fairy/Bamboo use Jump Boost; no flight toggles or step-height changes.
   # enhanced: opt-in Double Jump and a temporary step-height modifier; test your anticheat first.
   # Glider always uses vanilla Slow Falling while sneaking, in either mode.

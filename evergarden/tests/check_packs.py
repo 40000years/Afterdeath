@@ -42,14 +42,22 @@ with zipfile.ZipFile(dist / 'evergarden-java.zip') as java, zipfile.ZipFile(dist
     assert 'textures/blocks/portal.png' not in bedrock.namelist()
     assert json.loads(java.read('assets/voidscape/textures/item/azure_portal.png.mcmeta'))['animation']['frametime'] == 2
     assert 'USE_UV_ANIM' in json.loads(bedrock.read('materials/evergarden_portal.material'))['materials']['evergarden_portal:entity_alphablend']['+defines']
+    assert 'assets/minecraft/items/carved_pumpkin.json' not in java.namelist()
     for base, entries in mapping['items'].items():
-        selector = json.loads(java.read('assets/minecraft/items/' + base.split(':')[1] + '.json'))['model']
-        assert selector['property'] == 'minecraft:custom_model_data' and 'fallback' in selector
-        cases = {c['when'] for c in selector['cases']}
+        selector_path = 'assets/minecraft/items/' + base.split(':')[1] + '.json'
+        cases = set()
+        if selector_path in java.namelist():
+            selector = json.loads(java.read(selector_path))['model']
+            assert selector['property'] == 'minecraft:custom_model_data' and 'fallback' in selector
+            cases = {c['when'] for c in selector['cases']}
         for entry in entries:
             assert entry['model'] == base
-            assert entry['predicate']['value'] in cases
             name = entry['bedrock_identifier'].split(':')[1]
+            # Crops and head models use direct item_model components; relics
+            # additionally support the legacy custom-model-data selector.
+            if not name.startswith(('seed_', 'crop_')) and not name.endswith(('_mask', '_crown')):
+                assert entry['predicate']['value'] in cases
+            assert json.loads(java.read(f'assets/voidscape/items/{name}.json'))['model']
             java_texture = java.read(f'assets/voidscape/textures/item/{name}.png')
             bedrock_texture = bedrock.read(atlas[entry['bedrock_options']['icon']]['textures'] + '.png')
             if name in ('storm_bow', 'nova_bow'):

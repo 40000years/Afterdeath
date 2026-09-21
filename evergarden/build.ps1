@@ -1,4 +1,4 @@
-param([switch]$SkipPacks)
+param([switch]$SkipPacks, [switch]$SkipDeploy)
 $ErrorActionPreference = 'Stop'
 $moduleRoot = $PSScriptRoot
 $workspaceRoot = Split-Path $moduleRoot -Parent
@@ -56,7 +56,7 @@ $destinations = @(
     (Join-Path $workspaceRoot '.audit-plugins\garden-balance-server\plugins\evergarden.jar'),
     (Join-Path $workspaceRoot '.audit-plugins\gardens-server\plugins\evergarden.jar')
 )
-foreach ($dst in $destinations) {
+foreach ($dst in $(if ($SkipDeploy) { @() } else { $destinations })) {
     $parent = Split-Path $dst -Parent
     if (Test-Path $parent) {
         Copy-Item -LiteralPath $builtJar -Destination $dst -Force

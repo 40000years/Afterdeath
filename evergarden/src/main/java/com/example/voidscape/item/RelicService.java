@@ -167,7 +167,9 @@ public final class RelicService implements Listener {
             Component.text(relic.lore,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
             Component.text(relic==Relic.VOID_KEY?"EVERGARDEN · TRIAL KEY":"EVERGARDEN · RELIC",NamedTextColor.DARK_PURPLE).decoration(TextDecoration.ITALIC, false)
         ));
-        meta.setItemModel(null);
+        // The Aeternum food pack also defines honey_bottle. Give our elixir its
+        // own item definition so pack order cannot turn it into a vanilla drink.
+        meta.setItemModel(relic == Relic.VOID_ELIXIR ? new NamespacedKey("voidscape", relic.id()) : null);
         var selector=meta.getCustomModelDataComponent();selector.setStrings(List.of("voidscape:"+relic.id()));meta.setCustomModelDataComponent(selector);
         meta.getPersistentDataContainer().set(type,PersistentDataType.STRING,relic.name());
 
@@ -343,13 +345,6 @@ public final class RelicService implements Listener {
         if (item == null || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
         if (meta.getPersistentDataContainer().has(plugin.key("relic_eternity"), PersistentDataType.BYTE)) return true;
-        if (meta.isUnbreakable() && meta.hasLore()) {
-            for (Component line : meta.lore()) {
-                if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line).contains("สถิตนิรันดร์")) {
-                    return true;
-                }
-            }
-        }
         return false;
     }
 
@@ -360,6 +355,13 @@ public final class RelicService implements Listener {
         Integer custom = meta.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
         if (custom != null) return custom;
         return Math.min(meta.getEnchantLevel(type.enchantment()), type.enchantment().getMaxLevel());
+    }
+
+    /** Upgrade from the actual level, including native over-level loot from other plugins.
+     * Ability listeners still use getLimitBreakLevel so they don't add our bonus to foreign enchants. */
+    public int getLimitBreakUpgradeLevel(ItemStack item, LimitBreakType type) {
+        if (item == null || !item.hasItemMeta() || type == null) return 0;
+        return Math.max(item.getItemMeta().getEnchantLevel(type.enchantment()), getLimitBreakLevel(item, type));
     }
 
     public void applyEternityMeta(ItemMeta meta) {
@@ -415,7 +417,7 @@ public final class RelicService implements Listener {
         LimitBreakType type = getLimitBreakType(scroll);
         if (type != null) {
             if (!type.category().matches(target.getType())) return null;
-            int current = getLimitBreakLevel(target, type);
+            int current = getLimitBreakUpgradeLevel(target, type);
             if (current <= 0 || current >= type.maxLevel()) return null;
             int next = current + 1;
             ItemMeta meta = target.getItemMeta();
@@ -465,35 +467,31 @@ public final class RelicService implements Listener {
         int lbEff = getLimitBreakLevel(item, LimitBreakType.EFFICIENCY);
         if (lbEff >= 6) {
             var meta = item.getItemMeta();
-            if (meta != null && (!meta.hasTool() || meta.getTool().getDefaultMiningSpeed() != 1.0f)) {
+            if (meta != null && (!meta.hasTool() || meta.getTool().getRules().isEmpty() || meta.getTool().getDefaultMiningSpeed() != 1.0f)) {
                 EnchantApplyListener.applyEfficiencyToolComponent(item.getType(), meta, lbEff);
                 item.setItemMeta(meta);
                 changed = true;
             }
-        } else if (!EnchantApplyListener.hasUnique(item, UniqueEnchant.ADVANCE_TOOL)) {
-            var meta = item.getItemMeta();
-            if (meta != null && meta.hasTool()) {
-                meta.setTool(null);
-                item.setItemMeta(meta);
-                changed = true;
-            }
         }
-        if (item.getItemMeta().isUnbreakable() && !isEternityItem(item)) {
-            var meta = item.getItemMeta();
-            meta.setUnbreakable(false);
-            item.setItemMeta(meta);
-            changed = true;
-        }
+        // A scroll only grants its own ability. It does not transfer ownership
+        // of unrelated tool components or the native unbreakable flag to us.
         Relic relic=type(item);if(relic==null)return changed;
         var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();String model="voidscape:"+relic.id();
-        if(!meta.hasItemModel()&&data.getStrings().equals(List.of(model)))return changed;
-        meta.setItemModel(null);data.setStrings(List.of(model));meta.setCustomModelDataComponent(data);item.setItemMeta(meta);return true;
+        NamespacedKey itemModel=relic==Relic.VOID_ELIXIR?new NamespacedKey("voidscape",relic.id()):null;
+        if(Objects.equals(meta.getItemModel(),itemModel)&&data.getStrings().equals(List.of(model)))return changed;
+        meta.setItemModel(itemModel);data.setStrings(List.of(model));meta.setCustomModelDataComponent(data);item.setItemMeta(meta);return true;
     }
 
     private boolean isManagedItem(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
         var pdc = meta.getPersistentDataContainer();
+        for (LimitBreakType enchant : LimitBreakType.values()) {
+            if (pdc.has(plugin.key("lb_" + enchant.name().toLowerCase(Locale.ROOT)), PersistentDataType.INTEGER)) return true;
+        }
+        for (UniqueEnchant enchant : UniqueEnchant.values()) {
+            if (EnchantApplyListener.hasUnique(item, enchant)) return true;
+        }
         return pdc.has(type, PersistentDataType.STRING)
             || pdc.has(plugin.key("relic"), PersistentDataType.STRING)
             || pdc.has(new NamespacedKey("evergarden", "relic_v2"), PersistentDataType.STRING)
@@ -666,7 +664,7 @@ public final class RelicService implements Listener {
         if (cmdComp != null && !cmdComp.getStrings().isEmpty()) {
             for (String str : cmdComp.getStrings()) {
                 for (Relic r : Relic.values()) {
-                    if (str.equalsIgnoreCase("voidscape:" + r.id()) || str.equalsIgnoreCase("evergarden:" + r.id()) || str.equalsIgnoreCase(r.id())) {
+                    if (str.equalsIgnoreCase("voidscape:" + r.id()) || str.equalsIgnoreCase("evergarden:" + r.id())) {
                         if (item.getType() == r.material) {
                             pdc.set(type, PersistentDataType.STRING, r.name());
                             item.setItemMeta(meta);
@@ -677,20 +675,8 @@ public final class RelicService implements Listener {
             }
         }
 
-        // 4. Display name fallback
-        if (meta.hasDisplayName()) {
-            String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(meta.displayName());
-            for (Relic r : Relic.values()) {
-                if (item.getType() == r.material) {
-                    if (plain.contains(r.title) || (r == Relic.SMELTER_PICKAXE && (plain.contains("อีเต้อหลอม") || plain.toLowerCase(Locale.ROOT).contains("smelter")))) {
-                        pdc.set(type, PersistentDataType.STRING, r.name());
-                        item.setItemMeta(meta);
-                        return r;
-                    }
-                }
-            }
-        }
-
+        // Names and lore are player-editable and shared by other plugins.
+        // Only our PDC keys or explicitly namespaced models identify a relic.
         return null;
     }
     public boolean immune(Player p) {

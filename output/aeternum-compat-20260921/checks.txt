@@ -1,0 +1,125 @@
+PASS both plugins enabled
+PASS foreign Efficiency 7 unbreakable=false preserved exactly
+PASS foreign loot gains no Evergarden abilities 7/false
+PASS explicit scroll upgrades native 7 to 8
+PASS foreign Efficiency 7 unbreakable=true preserved exactly
+PASS foreign loot gains no Evergarden abilities 7/true
+PASS explicit scroll upgrades native 7 to 8
+PASS foreign Efficiency 8 unbreakable=false preserved exactly
+PASS foreign loot gains no Evergarden abilities 8/false
+PASS explicit scroll upgrades native 8 to 9
+PASS foreign Efficiency 8 unbreakable=true preserved exactly
+PASS foreign loot gains no Evergarden abilities 8/true
+PASS explicit scroll upgrades native 8 to 9
+PASS foreign Efficiency 10 unbreakable=false preserved exactly
+PASS foreign loot gains no Evergarden abilities 10/false
+PASS foreign Efficiency 10 unbreakable=true preserved exactly
+PASS foreign loot gains no Evergarden abilities 10/true
+PASS foreign display name cannot claim Evergarden ownership
+PASS Eternity does not erase another plugin's tool component or native unbreakable flag
+PASS owned Limit Break item repairs its tool component
+PASS elixir has independent model for stacked food packs
+PASS stored elixir migrates once without changing its identity
+PASS food pack is added after Evergarden without replacing its pack
+PASS official food pack URL and SHA-1 are paired
+PASS food pack integration can be disabled
+PASS Aeternum onion seed metadata stays separate
+PASS Aeternum onion plants with both event listeners loaded
+PASS Aeternum onion consumes one seed
+PASS Aeternum tomato seed metadata stays separate
+PASS Aeternum tomato plants with both event listeners loaded
+PASS Aeternum tomato consumes one seed
+PASS Aeternum rice seed metadata stays separate
+PASS Aeternum rice plants in source water with both listeners loaded
+PASS Aeternum rice consumes one seed
+PASS Evergarden mana_dew_berry seed metadata stays separate
+PASS Evergarden mana_dew_berry plants with both event listeners loaded
+PASS Evergarden mana_dew_berry consumes one seed
+PASS Evergarden chameleon_leaf seed metadata stays separate
+PASS Evergarden chameleon_leaf plants with both event listeners loaded
+PASS Evergarden chameleon_leaf consumes one seed
+PASS Evergarden fairy_mushroom seed metadata stays separate
+PASS Evergarden fairy_mushroom plants with both event listeners loaded
+PASS Evergarden fairy_mushroom consumes one seed
+PASS Evergarden magnetic_squash seed metadata stays separate
+PASS Evergarden magnetic_squash plants with both event listeners loaded
+PASS Evergarden magnetic_squash consumes one seed
+PASS Evergarden mountain_walker_bamboo seed metadata stays separate
+PASS Evergarden mountain_walker_bamboo plants with both event listeners loaded
+PASS Evergarden mountain_walker_bamboo consumes one seed
+PASS Evergarden lumberjack_acorn seed metadata stays separate
+PASS Evergarden lumberjack_acorn plants with both event listeners loaded
+PASS Evergarden lumberjack_acorn consumes one seed
+PASS Evergarden blood_thorn_tomato seed metadata stays separate
+PASS Evergarden blood_thorn_tomato plants with both event listeners loaded
+PASS Evergarden blood_thorn_tomato consumes one seed
+PASS Evergarden frostbite_radish seed metadata stays separate
+PASS Evergarden frostbite_radish plants with both event listeners loaded
+PASS Evergarden frostbite_radish consumes one seed
+PASS Evergarden thunder_kernel_corn seed metadata stays separate
+PASS Evergarden thunder_kernel_corn plants with both event listeners loaded
+PASS Evergarden thunder_kernel_corn consumes one seed
+PASS Evergarden reapers_garlic seed metadata stays separate
+PASS Evergarden reapers_garlic plants with both event listeners loaded
+PASS Evergarden reapers_garlic consumes one seed
+PASS Evergarden titan_pumpkin seed metadata stays separate
+PASS Evergarden titan_pumpkin plants with both event listeners loaded
+PASS Evergarden titan_pumpkin consumes one seed
+PASS Evergarden kinetic_pea_pod seed metadata stays separate
+PASS Evergarden kinetic_pea_pod plants with both event listeners loaded
+PASS Evergarden kinetic_pea_pod consumes one seed
+PASS Evergarden twilight_grape seed metadata stays separate
+PASS Evergarden twilight_grape plants with both event listeners loaded
+PASS Evergarden twilight_grape consumes one seed
+PASS Evergarden void_feather_blossom seed metadata stays separate
+PASS Evergarden void_feather_blossom plants with both event listeners loaded
+PASS Evergarden void_feather_blossom consumes one seed
+PASS Evergarden lodestone_gourd seed metadata stays separate
+PASS Evergarden lodestone_gourd plants with both event listeners loaded
+PASS Evergarden lodestone_gourd consumes one seed
+PASS Evergarden abyssal_kelp seed metadata stays separate
+PASS Evergarden abyssal_kelp plants with both event listeners loaded
+PASS Evergarden abyssal_kelp consumes one seed
+PASS Evergarden glider_spore seed metadata stays separate
+PASS Evergarden glider_spore plants with both event listeners loaded
+PASS Evergarden glider_spore consumes one seed
+PASS Evergarden star_anise seed metadata stays separate
+PASS Evergarden star_anise plants with both event listeners loaded
+PASS Evergarden star_anise consumes one seed
+PASS Evergarden fortune_beet seed metadata stays separate
+PASS Evergarden fortune_beet plants with both event listeners loaded
+PASS Evergarden fortune_beet consumes one seed
+PASS Evergarden demeters_melon seed metadata stays separate
+PASS Evergarden demeters_melon plants with both event listeners loaded
+PASS Evergarden demeters_melon consumes one seed
+PASS Evergarden prism_shard_carrot seed metadata stays separate
+PASS Evergarden prism_shard_carrot plants with both event listeners loaded
+PASS Evergarden prism_shard_carrot consumes one seed
+PASS Evergarden goldleaf_herb seed metadata stays separate
+PASS Evergarden goldleaf_herb plants with both event listeners loaded
+PASS Evergarden goldleaf_herb consumes one seed
+PASS Evergarden soul_ward_bulb seed metadata stays separate
+PASS Evergarden soul_ward_bulb plants with both event listeners loaded
+PASS Evergarden soul_ward_bulb consumes one seed
+PASS Evergarden chrono_pepper seed metadata stays separate
+PASS Evergarden chrono_pepper plants with both event listeners loaded
+PASS Evergarden chrono_pepper consumes one seed
+PASS Evergarden ancient_astral_root seed metadata stays separate
+PASS Evergarden ancient_astral_root plants with both event listeners loaded
+PASS Evergarden ancient_astral_root consumes one seed
+PASS Evergarden yggdrasil_sprout seed metadata stays separate
+PASS Evergarden yggdrasil_sprout plants with both event listeners loaded
+PASS Evergarden yggdrasil_sprout consumes one seed
+PASS Evergarden void_overcharge_fig seed metadata stays separate
+PASS Evergarden void_overcharge_fig plants with both event listeners loaded
+PASS Evergarden void_overcharge_fig consumes one seed
+PASS Evergarden ethereal_mint seed metadata stays separate
+PASS Evergarden ethereal_mint plants with both event listeners loaded
+PASS Evergarden ethereal_mint consumes one seed
+PASS Evergarden bloodburn_chili seed metadata stays separate
+PASS Evergarden bloodburn_chili plants with both event listeners loaded
+PASS Evergarden bloodburn_chili consumes one seed
+PASS Evergarden omni_pomegranate seed metadata stays separate
+PASS Evergarden omni_pomegranate plants with both event listeners loaded
+PASS Evergarden omni_pomegranate consumes one seed
+PASS all 30 Evergarden crop types planted

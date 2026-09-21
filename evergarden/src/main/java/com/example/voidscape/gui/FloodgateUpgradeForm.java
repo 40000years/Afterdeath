@@ -191,7 +191,7 @@ public final class FloodgateUpgradeForm {
             if (count > 0 && type.category().matches(target.getType())) {
                 ItemMeta meta = target.getItemMeta();
                 if (meta != null) {
-                    int currentLevel = plugin.relics().getLimitBreakLevel(target, type);
+                    int currentLevel = plugin.relics().getLimitBreakUpgradeLevel(target, type);
                     if (currentLevel > 0 && currentLevel < type.maxLevel()) {
                         availableOptions++;
                         builder.button("📜 ทลายขีดจำกัด: " + type.thaiTitle() + " (มี " + count + " ชิ้น)\n§bเพิ่ม " + type.title() + " เป็นระดับ " + toRoman(currentLevel + 1));
@@ -272,7 +272,7 @@ public final class FloodgateUpgradeForm {
 
         ItemMeta meta = target.getItemMeta();
         if (meta == null) return;
-        int current = plugin.relics().getLimitBreakLevel(target, type);
+        int current = plugin.relics().getLimitBreakUpgradeLevel(target, type);
         if (current <= 0 || current >= type.maxLevel()) return;
 
         if (!consumeOne(player, it -> plugin.relics().getLimitBreakType(it) == type)) {
@@ -281,7 +281,7 @@ public final class FloodgateUpgradeForm {
         }
 
         int next = current + 1;
-        plugin.relics().applyLimitBreakMeta(meta, type, next);
+        plugin.relics().applyLimitBreakMeta(target.getType(), meta, type, next);
         target.setItemMeta(meta);
 
         player.getInventory().setItem(targetSlot, target);

@@ -17,10 +17,14 @@ import java.util.jar.JarFile;
 public final class ResourcePackService implements Listener, AutoCloseable {
     public static final UUID PACK_ID=UUID.fromString("c8f2b94e-4a35-4d1b-9b67-0d2a6ef4f821");
     public static final String DEFAULT_CDN_URL = "https://raw.githubusercontent.com/40000years/Afterdeath/DEV/evergarden/dist/evergarden-java.zip";
+    public static final UUID AETERNUM_PACK_ID=UUID.fromString("8d2af8f1-f85c-4b4e-8a37-a55a359ce496");
+    public static final String AETERNUM_PACK_URL="https://cdn.modrinth.com/data/4hkZZzlQ/versions/VveNYYee/Aeternum-Foods-26.x.zip";
+    public static final String AETERNUM_PACK_SHA1="f7137350c381dfb933f96e869bfaced4a292bcff";
     private static final List<String> FILES=List.of("evergarden-java.zip","evergarden-bedrock.mcpack",
             "geyser-mappings.json","pack-hashes.json");
     private final JavaPlugin plugin;
     private final Map<UUID,String> statuses=new HashMap<>();
+    private final Map<UUID,String> aeternumStatuses=new HashMap<>();
     private PackHttpServer http;
     private String bedrockPackInfo="Bedrock pack not extracted";
     private String sha1="",failure="",geyserStatus="External Geyser: copy files from resource-packs/ manually.";
@@ -151,11 +155,39 @@ public final class ResourcePackService implements Listener, AutoCloseable {
                     plugin.getConfig().getBoolean("resource-pack.required",false));
             statuses.put(player.getUniqueId(),"OFFERED");
         }catch(IllegalArgumentException e){statuses.put(player.getUniqueId(),"INVALID_URL");}
+        offerAeternum(player);
+    }
+    private boolean aeternumEnabled() {
+        return plugin.getConfig().getBoolean("compatibility.aeternum-seasons.resource-pack.enabled",true)
+                && Bukkit.getPluginManager().isPluginEnabled("AeternumSeasons");
+    }
+    private void offerAeternum(Player player) {
+        if(!aeternumEnabled())return;
+        String url=validateUrl(plugin.getConfig().getString("compatibility.aeternum-seasons.resource-pack.url",AETERNUM_PACK_URL).trim());
+        String digest=plugin.getConfig().getString("compatibility.aeternum-seasons.resource-pack.sha1",AETERNUM_PACK_SHA1).trim();
+        if(url.isEmpty()||!digest.matches("[a-fA-F0-9]{40}")) {
+            aeternumStatuses.put(player.getUniqueId(),"INVALID_URL_OR_SHA1");
+            plugin.getLogger().warning("Invalid Aeternum food pack URL/SHA-1; check compatibility.aeternum-seasons.resource-pack.");
+            return;
+        }
+        // Add last: Aeternum owns shared food carriers such as honey_bottle.
+        // Our elixir uses voidscape:void_elixir, independent of that override.
+        player.addResourcePack(AETERNUM_PACK_ID,url,HexFormat.of().parseHex(digest),
+                "Aeternum Seasons: crops and foods",plugin.getConfig().getBoolean("resource-pack.required",false));
+        aeternumStatuses.put(player.getUniqueId(),"OFFERED");
     }
     @EventHandler public void join(PlayerJoinEvent event) {
         Bukkit.getScheduler().runTaskLater(plugin,()->{if(event.getPlayer().isOnline())offer(event.getPlayer());},2);
     }
     @EventHandler public void status(PlayerResourcePackStatusEvent event) {
+        if(AETERNUM_PACK_ID.equals(event.getID())) {
+            String status=event.getStatus().name();aeternumStatuses.put(event.getPlayer().getUniqueId(),status);
+            if(status.startsWith("FAILED")||status.equals("INVALID_URL")||status.equals("DISCARDED")) {
+                plugin.getLogger().warning("Aeternum food pack for "+event.getPlayer().getName()+": "+status);
+                event.getPlayer().sendMessage(ChatColor.YELLOW+"Aeternum crop textures could not load. Check /evergarden pack and retry /evergarden pack resend.");
+            }
+            return;
+        }
         if(!PACK_ID.equals(event.getID()))return;
         String status=event.getStatus().name();statuses.put(event.getPlayer().getUniqueId(),status);
         if(status.startsWith("FAILED")||status.equals("INVALID_URL")||status.equals("DISCARDED")) {
@@ -163,7 +195,7 @@ public final class ResourcePackService implements Listener, AutoCloseable {
             event.getPlayer().sendMessage(ChatColor.YELLOW+"Evergarden textures could not load. Items still work; ask an admin to check /evergarden pack.");
         }
     }
-    @EventHandler public void quit(PlayerQuitEvent event){statuses.remove(event.getPlayer().getUniqueId());}
+    @EventHandler public void quit(PlayerQuitEvent event){statuses.remove(event.getPlayer().getUniqueId());aeternumStatuses.remove(event.getPlayer().getUniqueId());}
     public void describe(CommandSender sender) {
         sender.sendMessage(ChatColor.LIGHT_PURPLE+"Evergarden resource pack");
         sender.sendMessage("Enabled: "+plugin.getConfig().getBoolean("resource-pack.enabled",true)+" | Host: "+(http==null?"off (CDN active)":"TCP "+http.port()));
@@ -171,6 +203,11 @@ public final class ResourcePackService implements Listener, AutoCloseable {
         String url=url(sender instanceof Player p?p:null);sender.sendMessage("URL: "+(url.isEmpty()?"CDN default":url));
         sender.sendMessage(geyserStatus);
         sender.sendMessage(bedrockPackInfo);
+        sender.sendMessage("Aeternum Java food pack: "+(aeternumEnabled()?"enabled (added after Evergarden)":"off or plugin absent"));
+        if(aeternumEnabled()) {
+            if(sender instanceof Player p)sender.sendMessage("Your Aeternum pack: "+aeternumStatuses.getOrDefault(p.getUniqueId(),"not offered (or Bedrock)"));
+            else for(Player p:Bukkit.getOnlinePlayers())sender.sendMessage(p.getName()+" Aeternum pack: "+aeternumStatuses.getOrDefault(p.getUniqueId(),"not offered (or Bedrock)"));
+        }
         if(!failure.isEmpty())sender.sendMessage(ChatColor.RED+failure);
         if(sender instanceof Player p)sender.sendMessage("Your pack: "+statuses.getOrDefault(p.getUniqueId(),"not offered (or Bedrock)"));
         else for(Player player:Bukkit.getOnlinePlayers()) {
@@ -179,5 +216,5 @@ public final class ResourcePackService implements Listener, AutoCloseable {
         }
         sender.sendMessage("Files: plugins/Evergarden/resource-packs/ | Retry: /evergarden pack resend");
     }
-    @Override public void close(){if(http!=null){http.close();http=null;}statuses.clear();}
+    @Override public void close(){if(http!=null){http.close();http=null;}statuses.clear();aeternumStatuses.clear();}
 }
