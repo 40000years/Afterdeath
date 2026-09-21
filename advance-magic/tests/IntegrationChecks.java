@@ -65,12 +65,16 @@ public final class IntegrationChecks extends JavaPlugin {
             check(plugin.wands().migrate(old)&&!old.getItemMeta().hasItemModel()&&plugin.wands().spell(old)==s
                     &&old.getItemMeta().getDisplayName().equals("Keep my custom name"),"legacy wand migration preserves PDC and name "+s.id());
             check(!plugin.wands().migrate(old),"legacy migration is idempotent "+s.id());
-            Recipe recipe=Bukkit.getRecipe(new NamespacedKey(plugin,s.id()));
+            Recipe recipe=Bukkit.getRecipe(new NamespacedKey(plugin,s.id()+"_ni_c"));
             check(recipe instanceof ShapedRecipe&&((ShapedRecipe)recipe).getShape().length==3&&Arrays.stream(((ShapedRecipe)recipe).getShape()).allMatch(row->row.length()==3),"recipe shape "+s.id());
             var choices=((ShapedRecipe)recipe).getChoiceMap();
             String[] shape=((ShapedRecipe)recipe).getShape();boolean ingredients=true;
             for(int y=0;y<3;y++)for(int x=0;x<3;x++)ingredients &= choices.get(shape[y].charAt(x)).test(x==1&&y==1?plugin.wands().createCore(s):new ItemStack(Material.NETHERITE_INGOT));
             check(ingredients,"recipe ingredients "+s.id());
+            RecipeChoice outer=choices.get(shape[0].charAt(0));
+            check(outer.test(new ItemStack(Material.NETHERITE_INGOT))&&outer.test(new ItemStack(Material.NETHER_STAR))
+                    &&!outer.test(new ItemStack(Material.NETHERITE_SCRAP)),"recipe accepts only either premium ingredient "+s.id());
+            check(outer.getItemStack().getType()==Material.NETHERITE_INGOT,"recipe book has stable ingot preview "+s.id());
         }
         check(plugin.wands().spell(new ItemStack(Material.CARROT_ON_A_STICK))==null,"vanilla item cannot cast");
         check(!plugin.wands().migrate(new ItemStack(Material.CARROT_ON_A_STICK)),"migration leaves vanilla items alone");

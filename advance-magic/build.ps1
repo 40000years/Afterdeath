@@ -1,4 +1,4 @@
-param([switch]$SkipPacks)
+param([switch]$SkipPacks, [switch]$SkipDeploy)
 $ErrorActionPreference = 'Stop'
 $moduleRoot = $PSScriptRoot
 $workspaceRoot = Split-Path $moduleRoot -Parent
@@ -37,7 +37,7 @@ try {
 }
 
 $testServerPlugin = 'C:\Users\User\Desktop\TestServer\plugins\advance-magic.jar'
-if (Test-Path (Split-Path $testServerPlugin -Parent)) {
+if (!$SkipDeploy -and (Test-Path (Split-Path $testServerPlugin -Parent))) {
     Copy-Item -LiteralPath $builtJar -Destination $testServerPlugin -Force
     Write-Output ("Deployed to: " + $testServerPlugin)
     $testServerData = 'C:\Users\User\Desktop\TestServer\plugins\advance-magic'

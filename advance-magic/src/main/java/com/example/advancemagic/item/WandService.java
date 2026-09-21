@@ -184,7 +184,13 @@ public final class WandService implements Listener {
                 ShapedRecipe recipe=new ShapedRecipe(key,create(spell));
                 if(bottom)recipe.shape("NNN","NNN","NCN");
                 else recipe.shape("NNN","NCN","NNN");
-                recipe.setIngredient('N',new RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT,Material.NETHER_STAR));
+                // A MaterialChoice animates each of the eight recipe-book slots
+                // independently, producing a confusing checkerboard preview.
+                // Keep one stable display item while accepting ingots, stars,
+                // and any mixture of the two in the real crafting grid.
+                recipe.setIngredient('N',RecipeChoice.predicateChoice(
+                        item -> item != null && (item.getType()==Material.NETHERITE_INGOT || item.getType()==Material.NETHER_STAR),
+                        new ItemStack(Material.NETHERITE_INGOT)));
                 recipe.setIngredient('C',RecipeChoice.predicateChoice(item->coreSpell(item)==spell,createCore(spell)));
                 Bukkit.addRecipe(recipe);
                 recipes.put(key,spell);
@@ -198,7 +204,7 @@ public final class WandService implements Listener {
             var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();
             String key="advance_magic:"+spell.id();
             if(!meta.hasItemModel()&&data.getStrings().equals(List.of(key)))return false;
-            meta.setItemModel(new NamespacedKey("advance_magic",spell.id()));data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
+            meta.setItemModel(null);data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
             item.setItemMeta(meta);return true;
         }
         Spell core=coreSpell(item);
@@ -206,7 +212,7 @@ public final class WandService implements Listener {
             var meta=item.getItemMeta();var data=meta.getCustomModelDataComponent();
             String key="advance_magic:core_"+core.id();
             if(!meta.hasItemModel()&&data.getStrings().equals(List.of(key)))return false;
-            meta.setItemModel(new NamespacedKey("advance_magic","core_"+core.id()));data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
+            meta.setItemModel(null);data.setStrings(List.of(key));meta.setCustomModelDataComponent(data);
             item.setItemMeta(meta);return true;
         }
         return false;
