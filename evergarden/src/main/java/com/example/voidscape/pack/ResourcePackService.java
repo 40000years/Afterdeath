@@ -16,7 +16,7 @@ import java.util.jar.JarFile;
 
 public final class ResourcePackService implements Listener, AutoCloseable {
     public static final UUID PACK_ID=UUID.fromString("c8f2b94e-4a35-4d1b-9b67-0d2a6ef4f821");
-    public static final String DEFAULT_CDN_URL = "https://raw.githubusercontent.com/40000years/Afterdeath/DEV/evergarden/dist/evergarden-java.zip";
+    public static final String DEFAULT_CDN_URL = "https://raw.githubusercontent.com/40000years/Afterdeath/4bfd13c564239e16bb18062a53a5f3d646139e5b/evergarden/dist/evergarden-java.zip";
     public static final UUID AETERNUM_PACK_ID=UUID.fromString("8d2af8f1-f85c-4b4e-8a37-a55a359ce496");
     public static final String AETERNUM_PACK_URL="https://raw.githubusercontent.com/40000years/Afterdeath/DEV/evergarden/dist/Aeternum-Foods-26.x.zip";
     public static final String AETERNUM_PACK_SHA1="f7137350c381dfb933f96e869bfaced4a292bcff";
@@ -91,6 +91,10 @@ public final class ResourcePackService implements Listener, AutoCloseable {
             if(input==null)throw new IOException("Embedded Java pack is missing");
             byte[] pack=input.readAllBytes();
             sha1=HexFormat.of().formatHex(MessageDigest.getInstance("SHA-1").digest(pack));
+            if(migratePackConfig(plugin.getConfig())) {
+                plugin.saveConfig();
+                plugin.getLogger().info("Updated the official Evergarden pack URL and SHA-1 to match this release.");
+            }
             if(!plugin.getConfig().getBoolean("resource-pack.enabled",true))return;
             String configuredUrl=plugin.getConfig().getString("resource-pack.url","").trim();
             if(!configuredUrl.isBlank()) {
@@ -107,6 +111,15 @@ public final class ResourcePackService implements Listener, AutoCloseable {
         }catch(IOException|GeneralSecurityException|IllegalArgumentException e) {
             failure=e.getMessage();plugin.getLogger().warning("Pack host could not start: "+failure+". Using GitHub CDN fallback.");
         }
+    }
+    static boolean migratePackConfig(org.bukkit.configuration.file.FileConfiguration config) {
+        String url=config.getString("resource-pack.url","").trim();
+        // Only migrate our published GitHub packs; private CDN/host settings remain administrator-owned.
+        if(!url.matches("https://raw\\.githubusercontent\\.com/40000years/Afterdeath/(?:DEV|main|[a-fA-F0-9]{7,40})/evergarden/dist/evergarden-java\\.zip"))return false;
+        if(url.equals(DEFAULT_CDN_URL))return false;
+        config.set("resource-pack.url",DEFAULT_CDN_URL);
+        config.set("resource-pack.sha1",""); // Calculated from the embedded ZIP by offer().
+        return true;
     }
     private boolean bedrock(Player player) {
         for(String name:List.of("org.geysermc.floodgate.api.FloodgateApi","org.geysermc.geyser.api.GeyserApi")) {

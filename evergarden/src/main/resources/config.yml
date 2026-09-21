@@ -64,8 +64,8 @@ relics:
   allow-pvp: false
 resource-pack:
   enabled: true
-  # Direct HTTPS CDN URL (Fastly / GitHub). Empty = use bundled CDN URL.
-  url: 'https://raw.githubusercontent.com/40000years/Afterdeath/ecec8fa/evergarden/dist/evergarden-java.zip'
+  # Pinned to the commit containing this release's embedded pack. Empty = bundled CDN URL.
+  url: 'https://raw.githubusercontent.com/40000years/Afterdeath/4bfd13c564239e16bb18062a53a5f3d646139e5b/evergarden/dist/evergarden-java.zip'
   # Empty = calculate dynamically from embedded ZIP.
   sha1: ''
   required: false
