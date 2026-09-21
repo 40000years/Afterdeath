@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class CropService implements Listener, AutoCloseable {
@@ -692,8 +693,11 @@ public final class CropService implements Listener, AutoCloseable {
         dirty.set(true);
         scheduleGrowth(crop);
 
-        if (player.getGameMode() != GameMode.CREATIVE) {
+        // 50% chance to consume the Astral Dust
+        boolean consumed = false;
+        if (player.getGameMode() != GameMode.CREATIVE && ThreadLocalRandom.current().nextBoolean()) {
             hand.setAmount(hand.getAmount() - 1);
+            consumed = true;
         }
 
         Location loc = crop.getLocation().add(0.5, 0.4, 0.5);
@@ -703,10 +707,12 @@ public final class CropService implements Listener, AutoCloseable {
         world.spawnParticle(Particle.HAPPY_VILLAGER, loc, 6, 0.25, 0.25, 0.25, 0.02);
 
         if (crop.isMature()) {
-            player.sendActionBar(Component.text("✨ ผงละอองดาวเร่งโต " + crop.getType().thaiName + " +5%! (★ โตเต็มที่แล้ว!)", NamedTextColor.GOLD));
+            String suffix = consumed ? " (ผงถูกใช้ไป)" : " (ผงยังคงพลัง \u2726)";
+            player.sendActionBar(Component.text("\u2728 ผงละอองดาวเร่งโต " + crop.getType().thaiName + " +5%! (\u2605 โตเต็มที่แล้ว!)" + suffix, NamedTextColor.GOLD));
         } else {
             int pct = (int) (crop.growthProgress() * 100);
-            player.sendActionBar(Component.text("✨ ผงละอองดาวเร่งโต " + crop.getType().thaiName + " +5% (" + pct + "% · เหลือ " + crop.secondsRemaining() + " วินาที)", NamedTextColor.AQUA));
+            String suffix = consumed ? " · ผงถูกใช้ไป" : " · \u2726 ผงยังคงพลัง";
+            player.sendActionBar(Component.text("\u2728 ผงละอองดาวเร่งโต " + crop.getType().thaiName + " +5% (" + pct + "% · เหลือ " + crop.secondsRemaining() + " วินาที" + suffix + ")", NamedTextColor.AQUA));
         }
         return true;
     }
