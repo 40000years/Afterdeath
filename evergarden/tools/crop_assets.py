@@ -423,8 +423,7 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
         })
         mappings['items'].setdefault('minecraft:' + base_seed, []).append({
             'type': 'definition',
-            'model': 'minecraft:' + base_seed,
-            'predicate': {'type': 'match', 'property': 'custom_model_data', 'index': 0, 'value': 'voidscape:' + seed_name},
+            'model': 'voidscape:' + seed_name,
             'bedrock_identifier': 'voidscape:' + seed_name,
             'display_name': 'Seed of ' + title,
             'bedrock_options': {'icon': 'voidscape.' + seed_name, 'allow_offhand': True, 'display_handheld': False, 'creative_category': 'items'}
@@ -446,8 +445,7 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
         })
         mappings['items'].setdefault('minecraft:' + base_food, []).append({
             'type': 'definition',
-            'model': 'minecraft:' + base_food,
-            'predicate': {'type': 'match', 'property': 'custom_model_data', 'index': 0, 'value': 'voidscape:' + food_name},
+            'model': 'voidscape:' + food_name,
             'bedrock_identifier': 'voidscape:' + food_name,
             'display_name': title,
             'bedrock_options': {'icon': 'voidscape.' + food_name, 'allow_offhand': True, 'display_handheld': False, 'creative_category': 'items'}
@@ -525,8 +523,7 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
             # crop armor-stand display.
             mappings['items'].setdefault('minecraft:carved_pumpkin', []).append({
                 'type': 'definition',
-                'model': 'minecraft:carved_pumpkin',
-                'predicate': {'type': 'match', 'property': 'custom_model_data', 'index': 0, 'value': 'voidscape:' + stage_name},
+                'model': 'voidscape:' + stage_name,
                 'bedrock_identifier': 'voidscape:' + stage_name,
                 'display_name': f'{title} (Stage {stage})',
                 'bedrock_options': {'icon': 'voidscape.' + stage_name, 'allow_offhand': True, 'display_handheld': False, 'creative_category': 'items'}

@@ -51,10 +51,14 @@ with zipfile.ZipFile(dist / 'evergarden-java.zip') as java, zipfile.ZipFile(dist
             assert selector['property'] == 'minecraft:custom_model_data' and 'fallback' in selector
             cases = {c['when'] for c in selector['cases']}
         for entry in entries:
-            assert entry['model'] == base
             name = entry['bedrock_identifier'].split(':')[1]
             # Crops and head models use direct item_model components; relics
             # additionally support the legacy custom-model-data selector.
+            if name.startswith(('seed_', 'crop_')):
+                assert entry['model'] == entry['bedrock_identifier']
+                assert 'predicate' not in entry
+            else:
+                assert entry['model'] == base
             if not name.startswith(('seed_', 'crop_')) and not name.endswith(('_mask', '_crown')):
                 assert entry['predicate']['value'] in cases
             assert json.loads(java.read(f'assets/voidscape/items/{name}.json'))['model']

@@ -384,13 +384,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_mana_dew_berry_stage_0"
-        },
+        "model": "voidscape:crop_mana_dew_berry_stage_0",
         "bedrock_identifier": "voidscape:crop_mana_dew_berry_stage_0",
         "display_name": "Blueberry (Stage 0)",
         "bedrock_options": {
@@ -402,13 +396,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_mana_dew_berry_stage_1"
-        },
+        "model": "voidscape:crop_mana_dew_berry_stage_1",
         "bedrock_identifier": "voidscape:crop_mana_dew_berry_stage_1",
         "display_name": "Blueberry (Stage 1)",
         "bedrock_options": {
@@ -420,13 +408,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_mana_dew_berry_stage_2"
-        },
+        "model": "voidscape:crop_mana_dew_berry_stage_2",
         "bedrock_identifier": "voidscape:crop_mana_dew_berry_stage_2",
         "display_name": "Blueberry (Stage 2)",
         "bedrock_options": {
@@ -438,13 +420,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_chameleon_leaf_stage_0"
-        },
+        "model": "voidscape:crop_chameleon_leaf_stage_0",
         "bedrock_identifier": "voidscape:crop_chameleon_leaf_stage_0",
         "display_name": "Lettuce (Stage 0)",
         "bedrock_options": {
@@ -456,13 +432,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_chameleon_leaf_stage_1"
-        },
+        "model": "voidscape:crop_chameleon_leaf_stage_1",
         "bedrock_identifier": "voidscape:crop_chameleon_leaf_stage_1",
         "display_name": "Lettuce (Stage 1)",
         "bedrock_options": {
@@ -474,13 +444,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_chameleon_leaf_stage_2"
-        },
+        "model": "voidscape:crop_chameleon_leaf_stage_2",
         "bedrock_identifier": "voidscape:crop_chameleon_leaf_stage_2",
         "display_name": "Lettuce (Stage 2)",
         "bedrock_options": {
@@ -492,13 +456,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_fairy_mushroom_stage_0"
-        },
+        "model": "voidscape:crop_fairy_mushroom_stage_0",
         "bedrock_identifier": "voidscape:crop_fairy_mushroom_stage_0",
         "display_name": "Truffle (Stage 0)",
         "bedrock_options": {
@@ -510,13 +468,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_fairy_mushroom_stage_1"
-        },
+        "model": "voidscape:crop_fairy_mushroom_stage_1",
         "bedrock_identifier": "voidscape:crop_fairy_mushroom_stage_1",
         "display_name": "Truffle (Stage 1)",
         "bedrock_options": {
@@ -528,13 +480,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_fairy_mushroom_stage_2"
-        },
+        "model": "voidscape:crop_fairy_mushroom_stage_2",
         "bedrock_identifier": "voidscape:crop_fairy_mushroom_stage_2",
         "display_name": "Truffle (Stage 2)",
         "bedrock_options": {
@@ -546,13 +492,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_magnetic_squash_stage_0"
-        },
+        "model": "voidscape:crop_magnetic_squash_stage_0",
         "bedrock_identifier": "voidscape:crop_magnetic_squash_stage_0",
         "display_name": "Butternut Squash (Stage 0)",
         "bedrock_options": {
@@ -564,13 +504,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_magnetic_squash_stage_1"
-        },
+        "model": "voidscape:crop_magnetic_squash_stage_1",
         "bedrock_identifier": "voidscape:crop_magnetic_squash_stage_1",
         "display_name": "Butternut Squash (Stage 1)",
         "bedrock_options": {
@@ -582,13 +516,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_magnetic_squash_stage_2"
-        },
+        "model": "voidscape:crop_magnetic_squash_stage_2",
         "bedrock_identifier": "voidscape:crop_magnetic_squash_stage_2",
         "display_name": "Butternut Squash (Stage 2)",
         "bedrock_options": {
@@ -600,13 +528,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_mountain_walker_bamboo_stage_0"
-        },
+        "model": "voidscape:crop_mountain_walker_bamboo_stage_0",
         "bedrock_identifier": "voidscape:crop_mountain_walker_bamboo_stage_0",
         "display_name": "Leek (Stage 0)",
         "bedrock_options": {
@@ -618,13 +540,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_mountain_walker_bamboo_stage_1"
-        },
+        "model": "voidscape:crop_mountain_walker_bamboo_stage_1",
         "bedrock_identifier": "voidscape:crop_mountain_walker_bamboo_stage_1",
         "display_name": "Leek (Stage 1)",
         "bedrock_options": {
@@ -636,13 +552,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_mountain_walker_bamboo_stage_2"
-        },
+        "model": "voidscape:crop_mountain_walker_bamboo_stage_2",
         "bedrock_identifier": "voidscape:crop_mountain_walker_bamboo_stage_2",
         "display_name": "Leek (Stage 2)",
         "bedrock_options": {
@@ -654,13 +564,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_lumberjack_acorn_stage_0"
-        },
+        "model": "voidscape:crop_lumberjack_acorn_stage_0",
         "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_0",
         "display_name": "Chestnut (Stage 0)",
         "bedrock_options": {
@@ -672,13 +576,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_lumberjack_acorn_stage_1"
-        },
+        "model": "voidscape:crop_lumberjack_acorn_stage_1",
         "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_1",
         "display_name": "Chestnut (Stage 1)",
         "bedrock_options": {
@@ -690,13 +588,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_lumberjack_acorn_stage_2"
-        },
+        "model": "voidscape:crop_lumberjack_acorn_stage_2",
         "bedrock_identifier": "voidscape:crop_lumberjack_acorn_stage_2",
         "display_name": "Chestnut (Stage 2)",
         "bedrock_options": {
@@ -708,13 +600,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_blood_thorn_tomato_stage_0"
-        },
+        "model": "voidscape:crop_blood_thorn_tomato_stage_0",
         "bedrock_identifier": "voidscape:crop_blood_thorn_tomato_stage_0",
         "display_name": "Tomato (Stage 0)",
         "bedrock_options": {
@@ -726,13 +612,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_blood_thorn_tomato_stage_1"
-        },
+        "model": "voidscape:crop_blood_thorn_tomato_stage_1",
         "bedrock_identifier": "voidscape:crop_blood_thorn_tomato_stage_1",
         "display_name": "Tomato (Stage 1)",
         "bedrock_options": {
@@ -744,13 +624,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_blood_thorn_tomato_stage_2"
-        },
+        "model": "voidscape:crop_blood_thorn_tomato_stage_2",
         "bedrock_identifier": "voidscape:crop_blood_thorn_tomato_stage_2",
         "display_name": "Tomato (Stage 2)",
         "bedrock_options": {
@@ -762,13 +636,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_frostbite_radish_stage_0"
-        },
+        "model": "voidscape:crop_frostbite_radish_stage_0",
         "bedrock_identifier": "voidscape:crop_frostbite_radish_stage_0",
         "display_name": "Radish (Stage 0)",
         "bedrock_options": {
@@ -780,13 +648,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_frostbite_radish_stage_1"
-        },
+        "model": "voidscape:crop_frostbite_radish_stage_1",
         "bedrock_identifier": "voidscape:crop_frostbite_radish_stage_1",
         "display_name": "Radish (Stage 1)",
         "bedrock_options": {
@@ -798,13 +660,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_frostbite_radish_stage_2"
-        },
+        "model": "voidscape:crop_frostbite_radish_stage_2",
         "bedrock_identifier": "voidscape:crop_frostbite_radish_stage_2",
         "display_name": "Radish (Stage 2)",
         "bedrock_options": {
@@ -816,13 +672,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_thunder_kernel_corn_stage_0"
-        },
+        "model": "voidscape:crop_thunder_kernel_corn_stage_0",
         "bedrock_identifier": "voidscape:crop_thunder_kernel_corn_stage_0",
         "display_name": "Corn (Stage 0)",
         "bedrock_options": {
@@ -834,13 +684,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_thunder_kernel_corn_stage_1"
-        },
+        "model": "voidscape:crop_thunder_kernel_corn_stage_1",
         "bedrock_identifier": "voidscape:crop_thunder_kernel_corn_stage_1",
         "display_name": "Corn (Stage 1)",
         "bedrock_options": {
@@ -852,13 +696,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_thunder_kernel_corn_stage_2"
-        },
+        "model": "voidscape:crop_thunder_kernel_corn_stage_2",
         "bedrock_identifier": "voidscape:crop_thunder_kernel_corn_stage_2",
         "display_name": "Corn (Stage 2)",
         "bedrock_options": {
@@ -870,13 +708,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_reapers_garlic_stage_0"
-        },
+        "model": "voidscape:crop_reapers_garlic_stage_0",
         "bedrock_identifier": "voidscape:crop_reapers_garlic_stage_0",
         "display_name": "Garlic (Stage 0)",
         "bedrock_options": {
@@ -888,13 +720,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_reapers_garlic_stage_1"
-        },
+        "model": "voidscape:crop_reapers_garlic_stage_1",
         "bedrock_identifier": "voidscape:crop_reapers_garlic_stage_1",
         "display_name": "Garlic (Stage 1)",
         "bedrock_options": {
@@ -906,13 +732,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_reapers_garlic_stage_2"
-        },
+        "model": "voidscape:crop_reapers_garlic_stage_2",
         "bedrock_identifier": "voidscape:crop_reapers_garlic_stage_2",
         "display_name": "Garlic (Stage 2)",
         "bedrock_options": {
@@ -924,13 +744,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_titan_pumpkin_stage_0"
-        },
+        "model": "voidscape:crop_titan_pumpkin_stage_0",
         "bedrock_identifier": "voidscape:crop_titan_pumpkin_stage_0",
         "display_name": "Eggplant (Stage 0)",
         "bedrock_options": {
@@ -942,13 +756,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_titan_pumpkin_stage_1"
-        },
+        "model": "voidscape:crop_titan_pumpkin_stage_1",
         "bedrock_identifier": "voidscape:crop_titan_pumpkin_stage_1",
         "display_name": "Eggplant (Stage 1)",
         "bedrock_options": {
@@ -960,13 +768,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_titan_pumpkin_stage_2"
-        },
+        "model": "voidscape:crop_titan_pumpkin_stage_2",
         "bedrock_identifier": "voidscape:crop_titan_pumpkin_stage_2",
         "display_name": "Eggplant (Stage 2)",
         "bedrock_options": {
@@ -978,13 +780,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_kinetic_pea_pod_stage_0"
-        },
+        "model": "voidscape:crop_kinetic_pea_pod_stage_0",
         "bedrock_identifier": "voidscape:crop_kinetic_pea_pod_stage_0",
         "display_name": "Green Peas (Stage 0)",
         "bedrock_options": {
@@ -996,13 +792,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_kinetic_pea_pod_stage_1"
-        },
+        "model": "voidscape:crop_kinetic_pea_pod_stage_1",
         "bedrock_identifier": "voidscape:crop_kinetic_pea_pod_stage_1",
         "display_name": "Green Peas (Stage 1)",
         "bedrock_options": {
@@ -1014,13 +804,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_kinetic_pea_pod_stage_2"
-        },
+        "model": "voidscape:crop_kinetic_pea_pod_stage_2",
         "bedrock_identifier": "voidscape:crop_kinetic_pea_pod_stage_2",
         "display_name": "Green Peas (Stage 2)",
         "bedrock_options": {
@@ -1032,13 +816,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_twilight_grape_stage_0"
-        },
+        "model": "voidscape:crop_twilight_grape_stage_0",
         "bedrock_identifier": "voidscape:crop_twilight_grape_stage_0",
         "display_name": "Grape (Stage 0)",
         "bedrock_options": {
@@ -1050,13 +828,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_twilight_grape_stage_1"
-        },
+        "model": "voidscape:crop_twilight_grape_stage_1",
         "bedrock_identifier": "voidscape:crop_twilight_grape_stage_1",
         "display_name": "Grape (Stage 1)",
         "bedrock_options": {
@@ -1068,13 +840,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_twilight_grape_stage_2"
-        },
+        "model": "voidscape:crop_twilight_grape_stage_2",
         "bedrock_identifier": "voidscape:crop_twilight_grape_stage_2",
         "display_name": "Grape (Stage 2)",
         "bedrock_options": {
@@ -1086,13 +852,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_void_feather_blossom_stage_0"
-        },
+        "model": "voidscape:crop_void_feather_blossom_stage_0",
         "bedrock_identifier": "voidscape:crop_void_feather_blossom_stage_0",
         "display_name": "Red Cabbage (Stage 0)",
         "bedrock_options": {
@@ -1104,13 +864,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_void_feather_blossom_stage_1"
-        },
+        "model": "voidscape:crop_void_feather_blossom_stage_1",
         "bedrock_identifier": "voidscape:crop_void_feather_blossom_stage_1",
         "display_name": "Red Cabbage (Stage 1)",
         "bedrock_options": {
@@ -1122,13 +876,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_void_feather_blossom_stage_2"
-        },
+        "model": "voidscape:crop_void_feather_blossom_stage_2",
         "bedrock_identifier": "voidscape:crop_void_feather_blossom_stage_2",
         "display_name": "Red Cabbage (Stage 2)",
         "bedrock_options": {
@@ -1140,13 +888,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_lodestone_gourd_stage_0"
-        },
+        "model": "voidscape:crop_lodestone_gourd_stage_0",
         "bedrock_identifier": "voidscape:crop_lodestone_gourd_stage_0",
         "display_name": "Bottle Gourd (Stage 0)",
         "bedrock_options": {
@@ -1158,13 +900,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_lodestone_gourd_stage_1"
-        },
+        "model": "voidscape:crop_lodestone_gourd_stage_1",
         "bedrock_identifier": "voidscape:crop_lodestone_gourd_stage_1",
         "display_name": "Bottle Gourd (Stage 1)",
         "bedrock_options": {
@@ -1176,13 +912,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_lodestone_gourd_stage_2"
-        },
+        "model": "voidscape:crop_lodestone_gourd_stage_2",
         "bedrock_identifier": "voidscape:crop_lodestone_gourd_stage_2",
         "display_name": "Bottle Gourd (Stage 2)",
         "bedrock_options": {
@@ -1194,13 +924,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_abyssal_kelp_stage_0"
-        },
+        "model": "voidscape:crop_abyssal_kelp_stage_0",
         "bedrock_identifier": "voidscape:crop_abyssal_kelp_stage_0",
         "display_name": "Celery (Stage 0)",
         "bedrock_options": {
@@ -1212,13 +936,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_abyssal_kelp_stage_1"
-        },
+        "model": "voidscape:crop_abyssal_kelp_stage_1",
         "bedrock_identifier": "voidscape:crop_abyssal_kelp_stage_1",
         "display_name": "Celery (Stage 1)",
         "bedrock_options": {
@@ -1230,13 +948,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_abyssal_kelp_stage_2"
-        },
+        "model": "voidscape:crop_abyssal_kelp_stage_2",
         "bedrock_identifier": "voidscape:crop_abyssal_kelp_stage_2",
         "display_name": "Celery (Stage 2)",
         "bedrock_options": {
@@ -1248,13 +960,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_glider_spore_stage_0"
-        },
+        "model": "voidscape:crop_glider_spore_stage_0",
         "bedrock_identifier": "voidscape:crop_glider_spore_stage_0",
         "display_name": "Broccoli (Stage 0)",
         "bedrock_options": {
@@ -1266,13 +972,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_glider_spore_stage_1"
-        },
+        "model": "voidscape:crop_glider_spore_stage_1",
         "bedrock_identifier": "voidscape:crop_glider_spore_stage_1",
         "display_name": "Broccoli (Stage 1)",
         "bedrock_options": {
@@ -1284,13 +984,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_glider_spore_stage_2"
-        },
+        "model": "voidscape:crop_glider_spore_stage_2",
         "bedrock_identifier": "voidscape:crop_glider_spore_stage_2",
         "display_name": "Broccoli (Stage 2)",
         "bedrock_options": {
@@ -1302,13 +996,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_star_anise_stage_0"
-        },
+        "model": "voidscape:crop_star_anise_stage_0",
         "bedrock_identifier": "voidscape:crop_star_anise_stage_0",
         "display_name": "Star Anise (Stage 0)",
         "bedrock_options": {
@@ -1320,13 +1008,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_star_anise_stage_1"
-        },
+        "model": "voidscape:crop_star_anise_stage_1",
         "bedrock_identifier": "voidscape:crop_star_anise_stage_1",
         "display_name": "Star Anise (Stage 1)",
         "bedrock_options": {
@@ -1338,13 +1020,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_star_anise_stage_2"
-        },
+        "model": "voidscape:crop_star_anise_stage_2",
         "bedrock_identifier": "voidscape:crop_star_anise_stage_2",
         "display_name": "Star Anise (Stage 2)",
         "bedrock_options": {
@@ -1356,13 +1032,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_fortune_beet_stage_0"
-        },
+        "model": "voidscape:crop_fortune_beet_stage_0",
         "bedrock_identifier": "voidscape:crop_fortune_beet_stage_0",
         "display_name": "Turnip (Stage 0)",
         "bedrock_options": {
@@ -1374,13 +1044,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_fortune_beet_stage_1"
-        },
+        "model": "voidscape:crop_fortune_beet_stage_1",
         "bedrock_identifier": "voidscape:crop_fortune_beet_stage_1",
         "display_name": "Turnip (Stage 1)",
         "bedrock_options": {
@@ -1392,13 +1056,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_fortune_beet_stage_2"
-        },
+        "model": "voidscape:crop_fortune_beet_stage_2",
         "bedrock_identifier": "voidscape:crop_fortune_beet_stage_2",
         "display_name": "Turnip (Stage 2)",
         "bedrock_options": {
@@ -1410,13 +1068,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_demeters_melon_stage_0"
-        },
+        "model": "voidscape:crop_demeters_melon_stage_0",
         "bedrock_identifier": "voidscape:crop_demeters_melon_stage_0",
         "display_name": "Papaya (Stage 0)",
         "bedrock_options": {
@@ -1428,13 +1080,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_demeters_melon_stage_1"
-        },
+        "model": "voidscape:crop_demeters_melon_stage_1",
         "bedrock_identifier": "voidscape:crop_demeters_melon_stage_1",
         "display_name": "Papaya (Stage 1)",
         "bedrock_options": {
@@ -1446,13 +1092,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_demeters_melon_stage_2"
-        },
+        "model": "voidscape:crop_demeters_melon_stage_2",
         "bedrock_identifier": "voidscape:crop_demeters_melon_stage_2",
         "display_name": "Papaya (Stage 2)",
         "bedrock_options": {
@@ -1464,13 +1104,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_prism_shard_carrot_stage_0"
-        },
+        "model": "voidscape:crop_prism_shard_carrot_stage_0",
         "bedrock_identifier": "voidscape:crop_prism_shard_carrot_stage_0",
         "display_name": "Cassava (Stage 0)",
         "bedrock_options": {
@@ -1482,13 +1116,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_prism_shard_carrot_stage_1"
-        },
+        "model": "voidscape:crop_prism_shard_carrot_stage_1",
         "bedrock_identifier": "voidscape:crop_prism_shard_carrot_stage_1",
         "display_name": "Cassava (Stage 1)",
         "bedrock_options": {
@@ -1500,13 +1128,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_prism_shard_carrot_stage_2"
-        },
+        "model": "voidscape:crop_prism_shard_carrot_stage_2",
         "bedrock_identifier": "voidscape:crop_prism_shard_carrot_stage_2",
         "display_name": "Cassava (Stage 2)",
         "bedrock_options": {
@@ -1518,13 +1140,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_goldleaf_herb_stage_0"
-        },
+        "model": "voidscape:crop_goldleaf_herb_stage_0",
         "bedrock_identifier": "voidscape:crop_goldleaf_herb_stage_0",
         "display_name": "Spinach (Stage 0)",
         "bedrock_options": {
@@ -1536,13 +1152,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_goldleaf_herb_stage_1"
-        },
+        "model": "voidscape:crop_goldleaf_herb_stage_1",
         "bedrock_identifier": "voidscape:crop_goldleaf_herb_stage_1",
         "display_name": "Spinach (Stage 1)",
         "bedrock_options": {
@@ -1554,13 +1164,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_goldleaf_herb_stage_2"
-        },
+        "model": "voidscape:crop_goldleaf_herb_stage_2",
         "bedrock_identifier": "voidscape:crop_goldleaf_herb_stage_2",
         "display_name": "Spinach (Stage 2)",
         "bedrock_options": {
@@ -1572,13 +1176,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_soul_ward_bulb_stage_0"
-        },
+        "model": "voidscape:crop_soul_ward_bulb_stage_0",
         "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_0",
         "display_name": "Onion (Stage 0)",
         "bedrock_options": {
@@ -1590,13 +1188,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_soul_ward_bulb_stage_1"
-        },
+        "model": "voidscape:crop_soul_ward_bulb_stage_1",
         "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_1",
         "display_name": "Onion (Stage 1)",
         "bedrock_options": {
@@ -1608,13 +1200,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_soul_ward_bulb_stage_2"
-        },
+        "model": "voidscape:crop_soul_ward_bulb_stage_2",
         "bedrock_identifier": "voidscape:crop_soul_ward_bulb_stage_2",
         "display_name": "Onion (Stage 2)",
         "bedrock_options": {
@@ -1626,13 +1212,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_chrono_pepper_stage_0"
-        },
+        "model": "voidscape:crop_chrono_pepper_stage_0",
         "bedrock_identifier": "voidscape:crop_chrono_pepper_stage_0",
         "display_name": "Bell Pepper (Stage 0)",
         "bedrock_options": {
@@ -1644,13 +1224,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_chrono_pepper_stage_1"
-        },
+        "model": "voidscape:crop_chrono_pepper_stage_1",
         "bedrock_identifier": "voidscape:crop_chrono_pepper_stage_1",
         "display_name": "Bell Pepper (Stage 1)",
         "bedrock_options": {
@@ -1662,13 +1236,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_chrono_pepper_stage_2"
-        },
+        "model": "voidscape:crop_chrono_pepper_stage_2",
         "bedrock_identifier": "voidscape:crop_chrono_pepper_stage_2",
         "display_name": "Bell Pepper (Stage 2)",
         "bedrock_options": {
@@ -1680,13 +1248,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_ancient_astral_root_stage_0"
-        },
+        "model": "voidscape:crop_ancient_astral_root_stage_0",
         "bedrock_identifier": "voidscape:crop_ancient_astral_root_stage_0",
         "display_name": "Sweet Potato (Stage 0)",
         "bedrock_options": {
@@ -1698,13 +1260,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_ancient_astral_root_stage_1"
-        },
+        "model": "voidscape:crop_ancient_astral_root_stage_1",
         "bedrock_identifier": "voidscape:crop_ancient_astral_root_stage_1",
         "display_name": "Sweet Potato (Stage 1)",
         "bedrock_options": {
@@ -1716,13 +1272,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_ancient_astral_root_stage_2"
-        },
+        "model": "voidscape:crop_ancient_astral_root_stage_2",
         "bedrock_identifier": "voidscape:crop_ancient_astral_root_stage_2",
         "display_name": "Sweet Potato (Stage 2)",
         "bedrock_options": {
@@ -1734,13 +1284,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_yggdrasil_sprout_stage_0"
-        },
+        "model": "voidscape:crop_yggdrasil_sprout_stage_0",
         "bedrock_identifier": "voidscape:crop_yggdrasil_sprout_stage_0",
         "display_name": "Asparagus (Stage 0)",
         "bedrock_options": {
@@ -1752,13 +1296,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_yggdrasil_sprout_stage_1"
-        },
+        "model": "voidscape:crop_yggdrasil_sprout_stage_1",
         "bedrock_identifier": "voidscape:crop_yggdrasil_sprout_stage_1",
         "display_name": "Asparagus (Stage 1)",
         "bedrock_options": {
@@ -1770,13 +1308,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_yggdrasil_sprout_stage_2"
-        },
+        "model": "voidscape:crop_yggdrasil_sprout_stage_2",
         "bedrock_identifier": "voidscape:crop_yggdrasil_sprout_stage_2",
         "display_name": "Asparagus (Stage 2)",
         "bedrock_options": {
@@ -1788,13 +1320,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_void_overcharge_fig_stage_0"
-        },
+        "model": "voidscape:crop_void_overcharge_fig_stage_0",
         "bedrock_identifier": "voidscape:crop_void_overcharge_fig_stage_0",
         "display_name": "Fig (Stage 0)",
         "bedrock_options": {
@@ -1806,13 +1332,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_void_overcharge_fig_stage_1"
-        },
+        "model": "voidscape:crop_void_overcharge_fig_stage_1",
         "bedrock_identifier": "voidscape:crop_void_overcharge_fig_stage_1",
         "display_name": "Fig (Stage 1)",
         "bedrock_options": {
@@ -1824,13 +1344,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_void_overcharge_fig_stage_2"
-        },
+        "model": "voidscape:crop_void_overcharge_fig_stage_2",
         "bedrock_identifier": "voidscape:crop_void_overcharge_fig_stage_2",
         "display_name": "Fig (Stage 2)",
         "bedrock_options": {
@@ -1842,13 +1356,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_ethereal_mint_stage_0"
-        },
+        "model": "voidscape:crop_ethereal_mint_stage_0",
         "bedrock_identifier": "voidscape:crop_ethereal_mint_stage_0",
         "display_name": "Mint (Stage 0)",
         "bedrock_options": {
@@ -1860,13 +1368,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_ethereal_mint_stage_1"
-        },
+        "model": "voidscape:crop_ethereal_mint_stage_1",
         "bedrock_identifier": "voidscape:crop_ethereal_mint_stage_1",
         "display_name": "Mint (Stage 1)",
         "bedrock_options": {
@@ -1878,13 +1380,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_ethereal_mint_stage_2"
-        },
+        "model": "voidscape:crop_ethereal_mint_stage_2",
         "bedrock_identifier": "voidscape:crop_ethereal_mint_stage_2",
         "display_name": "Mint (Stage 2)",
         "bedrock_options": {
@@ -1896,13 +1392,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_bloodburn_chili_stage_0"
-        },
+        "model": "voidscape:crop_bloodburn_chili_stage_0",
         "bedrock_identifier": "voidscape:crop_bloodburn_chili_stage_0",
         "display_name": "Chili Pepper (Stage 0)",
         "bedrock_options": {
@@ -1914,13 +1404,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_bloodburn_chili_stage_1"
-        },
+        "model": "voidscape:crop_bloodburn_chili_stage_1",
         "bedrock_identifier": "voidscape:crop_bloodburn_chili_stage_1",
         "display_name": "Chili Pepper (Stage 1)",
         "bedrock_options": {
@@ -1932,13 +1416,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_bloodburn_chili_stage_2"
-        },
+        "model": "voidscape:crop_bloodburn_chili_stage_2",
         "bedrock_identifier": "voidscape:crop_bloodburn_chili_stage_2",
         "display_name": "Chili Pepper (Stage 2)",
         "bedrock_options": {
@@ -1950,13 +1428,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_omni_pomegranate_stage_0"
-        },
+        "model": "voidscape:crop_omni_pomegranate_stage_0",
         "bedrock_identifier": "voidscape:crop_omni_pomegranate_stage_0",
         "display_name": "Pomegranate (Stage 0)",
         "bedrock_options": {
@@ -1968,13 +1440,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_omni_pomegranate_stage_1"
-        },
+        "model": "voidscape:crop_omni_pomegranate_stage_1",
         "bedrock_identifier": "voidscape:crop_omni_pomegranate_stage_1",
         "display_name": "Pomegranate (Stage 1)",
         "bedrock_options": {
@@ -1986,13 +1452,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carved_pumpkin",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_omni_pomegranate_stage_2"
-        },
+        "model": "voidscape:crop_omni_pomegranate_stage_2",
         "bedrock_identifier": "voidscape:crop_omni_pomegranate_stage_2",
         "display_name": "Pomegranate (Stage 2)",
         "bedrock_options": {
@@ -2006,13 +1466,7 @@
     "minecraft:beetroot_seeds": [
       {
         "type": "definition",
-        "model": "minecraft:beetroot_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_mana_dew_berry"
-        },
+        "model": "voidscape:seed_mana_dew_berry",
         "bedrock_identifier": "voidscape:seed_mana_dew_berry",
         "display_name": "Seed of Blueberry",
         "bedrock_options": {
@@ -2024,13 +1478,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:beetroot_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_fairy_mushroom"
-        },
+        "model": "voidscape:seed_fairy_mushroom",
         "bedrock_identifier": "voidscape:seed_fairy_mushroom",
         "display_name": "Seed of Truffle",
         "bedrock_options": {
@@ -2042,13 +1490,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:beetroot_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_frostbite_radish"
-        },
+        "model": "voidscape:seed_frostbite_radish",
         "bedrock_identifier": "voidscape:seed_frostbite_radish",
         "display_name": "Seed of Radish",
         "bedrock_options": {
@@ -2060,13 +1502,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:beetroot_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_reapers_garlic"
-        },
+        "model": "voidscape:seed_reapers_garlic",
         "bedrock_identifier": "voidscape:seed_reapers_garlic",
         "display_name": "Seed of Garlic",
         "bedrock_options": {
@@ -2078,13 +1514,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:beetroot_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_glider_spore"
-        },
+        "model": "voidscape:seed_glider_spore",
         "bedrock_identifier": "voidscape:seed_glider_spore",
         "display_name": "Seed of Broccoli",
         "bedrock_options": {
@@ -2096,13 +1526,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:beetroot_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_fortune_beet"
-        },
+        "model": "voidscape:seed_fortune_beet",
         "bedrock_identifier": "voidscape:seed_fortune_beet",
         "display_name": "Seed of Turnip",
         "bedrock_options": {
@@ -2114,13 +1538,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:beetroot_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_soul_ward_bulb"
-        },
+        "model": "voidscape:seed_soul_ward_bulb",
         "bedrock_identifier": "voidscape:seed_soul_ward_bulb",
         "display_name": "Seed of Onion",
         "bedrock_options": {
@@ -2134,13 +1552,7 @@
     "minecraft:sweet_berries": [
       {
         "type": "definition",
-        "model": "minecraft:sweet_berries",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_mana_dew_berry"
-        },
+        "model": "voidscape:crop_mana_dew_berry",
         "bedrock_identifier": "voidscape:crop_mana_dew_berry",
         "display_name": "Blueberry",
         "bedrock_options": {
@@ -2152,13 +1564,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:sweet_berries",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_kinetic_pea_pod"
-        },
+        "model": "voidscape:crop_kinetic_pea_pod",
         "bedrock_identifier": "voidscape:crop_kinetic_pea_pod",
         "display_name": "Green Peas",
         "bedrock_options": {
@@ -2170,13 +1576,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:sweet_berries",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_twilight_grape"
-        },
+        "model": "voidscape:crop_twilight_grape",
         "bedrock_identifier": "voidscape:crop_twilight_grape",
         "display_name": "Grape",
         "bedrock_options": {
@@ -2190,13 +1590,7 @@
     "minecraft:wheat_seeds": [
       {
         "type": "definition",
-        "model": "minecraft:wheat_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_chameleon_leaf"
-        },
+        "model": "voidscape:seed_chameleon_leaf",
         "bedrock_identifier": "voidscape:seed_chameleon_leaf",
         "display_name": "Seed of Lettuce",
         "bedrock_options": {
@@ -2208,13 +1602,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:wheat_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_mountain_walker_bamboo"
-        },
+        "model": "voidscape:seed_mountain_walker_bamboo",
         "bedrock_identifier": "voidscape:seed_mountain_walker_bamboo",
         "display_name": "Seed of Leek",
         "bedrock_options": {
@@ -2226,13 +1614,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:wheat_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_lumberjack_acorn"
-        },
+        "model": "voidscape:seed_lumberjack_acorn",
         "bedrock_identifier": "voidscape:seed_lumberjack_acorn",
         "display_name": "Seed of Chestnut",
         "bedrock_options": {
@@ -2244,13 +1626,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:wheat_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_thunder_kernel_corn"
-        },
+        "model": "voidscape:seed_thunder_kernel_corn",
         "bedrock_identifier": "voidscape:seed_thunder_kernel_corn",
         "display_name": "Seed of Corn",
         "bedrock_options": {
@@ -2262,13 +1638,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:wheat_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_kinetic_pea_pod"
-        },
+        "model": "voidscape:seed_kinetic_pea_pod",
         "bedrock_identifier": "voidscape:seed_kinetic_pea_pod",
         "display_name": "Seed of Green Peas",
         "bedrock_options": {
@@ -2280,13 +1650,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:wheat_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_abyssal_kelp"
-        },
+        "model": "voidscape:seed_abyssal_kelp",
         "bedrock_identifier": "voidscape:seed_abyssal_kelp",
         "display_name": "Seed of Celery",
         "bedrock_options": {
@@ -2298,13 +1662,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:wheat_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_ethereal_mint"
-        },
+        "model": "voidscape:seed_ethereal_mint",
         "bedrock_identifier": "voidscape:seed_ethereal_mint",
         "display_name": "Seed of Mint",
         "bedrock_options": {
@@ -2318,13 +1676,7 @@
     "minecraft:dried_kelp": [
       {
         "type": "definition",
-        "model": "minecraft:dried_kelp",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_chameleon_leaf"
-        },
+        "model": "voidscape:crop_chameleon_leaf",
         "bedrock_identifier": "voidscape:crop_chameleon_leaf",
         "display_name": "Lettuce",
         "bedrock_options": {
@@ -2336,13 +1688,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:dried_kelp",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_void_feather_blossom"
-        },
+        "model": "voidscape:crop_void_feather_blossom",
         "bedrock_identifier": "voidscape:crop_void_feather_blossom",
         "display_name": "Red Cabbage",
         "bedrock_options": {
@@ -2354,13 +1700,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:dried_kelp",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_abyssal_kelp"
-        },
+        "model": "voidscape:crop_abyssal_kelp",
         "bedrock_identifier": "voidscape:crop_abyssal_kelp",
         "display_name": "Celery",
         "bedrock_options": {
@@ -2374,13 +1714,7 @@
     "minecraft:cookie": [
       {
         "type": "definition",
-        "model": "minecraft:cookie",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_fairy_mushroom"
-        },
+        "model": "voidscape:crop_fairy_mushroom",
         "bedrock_identifier": "voidscape:crop_fairy_mushroom",
         "display_name": "Truffle",
         "bedrock_options": {
@@ -2392,13 +1726,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:cookie",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_lumberjack_acorn"
-        },
+        "model": "voidscape:crop_lumberjack_acorn",
         "bedrock_identifier": "voidscape:crop_lumberjack_acorn",
         "display_name": "Chestnut",
         "bedrock_options": {
@@ -2410,13 +1738,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:cookie",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_glider_spore"
-        },
+        "model": "voidscape:crop_glider_spore",
         "bedrock_identifier": "voidscape:crop_glider_spore",
         "display_name": "Broccoli",
         "bedrock_options": {
@@ -2430,13 +1752,7 @@
     "minecraft:pumpkin_seeds": [
       {
         "type": "definition",
-        "model": "minecraft:pumpkin_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_magnetic_squash"
-        },
+        "model": "voidscape:seed_magnetic_squash",
         "bedrock_identifier": "voidscape:seed_magnetic_squash",
         "display_name": "Seed of Butternut Squash",
         "bedrock_options": {
@@ -2448,13 +1764,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:pumpkin_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_blood_thorn_tomato"
-        },
+        "model": "voidscape:seed_blood_thorn_tomato",
         "bedrock_identifier": "voidscape:seed_blood_thorn_tomato",
         "display_name": "Seed of Tomato",
         "bedrock_options": {
@@ -2466,13 +1776,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:pumpkin_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_titan_pumpkin"
-        },
+        "model": "voidscape:seed_titan_pumpkin",
         "bedrock_identifier": "voidscape:seed_titan_pumpkin",
         "display_name": "Seed of Eggplant",
         "bedrock_options": {
@@ -2484,13 +1788,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:pumpkin_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_chrono_pepper"
-        },
+        "model": "voidscape:seed_chrono_pepper",
         "bedrock_identifier": "voidscape:seed_chrono_pepper",
         "display_name": "Seed of Bell Pepper",
         "bedrock_options": {
@@ -2502,13 +1800,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:pumpkin_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_bloodburn_chili"
-        },
+        "model": "voidscape:seed_bloodburn_chili",
         "bedrock_identifier": "voidscape:seed_bloodburn_chili",
         "display_name": "Seed of Chili Pepper",
         "bedrock_options": {
@@ -2522,13 +1814,7 @@
     "minecraft:pumpkin_pie": [
       {
         "type": "definition",
-        "model": "minecraft:pumpkin_pie",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_magnetic_squash"
-        },
+        "model": "voidscape:crop_magnetic_squash",
         "bedrock_identifier": "voidscape:crop_magnetic_squash",
         "display_name": "Butternut Squash",
         "bedrock_options": {
@@ -2540,13 +1826,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:pumpkin_pie",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_titan_pumpkin"
-        },
+        "model": "voidscape:crop_titan_pumpkin",
         "bedrock_identifier": "voidscape:crop_titan_pumpkin",
         "display_name": "Eggplant",
         "bedrock_options": {
@@ -2560,13 +1840,7 @@
     "minecraft:carrot": [
       {
         "type": "definition",
-        "model": "minecraft:carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_mountain_walker_bamboo"
-        },
+        "model": "voidscape:crop_mountain_walker_bamboo",
         "bedrock_identifier": "voidscape:crop_mountain_walker_bamboo",
         "display_name": "Leek",
         "bedrock_options": {
@@ -2578,13 +1852,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_frostbite_radish"
-        },
+        "model": "voidscape:crop_frostbite_radish",
         "bedrock_identifier": "voidscape:crop_frostbite_radish",
         "display_name": "Radish",
         "bedrock_options": {
@@ -2596,13 +1864,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_fortune_beet"
-        },
+        "model": "voidscape:crop_fortune_beet",
         "bedrock_identifier": "voidscape:crop_fortune_beet",
         "display_name": "Turnip",
         "bedrock_options": {
@@ -2616,13 +1878,7 @@
     "minecraft:apple": [
       {
         "type": "definition",
-        "model": "minecraft:apple",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_blood_thorn_tomato"
-        },
+        "model": "voidscape:crop_blood_thorn_tomato",
         "bedrock_identifier": "voidscape:crop_blood_thorn_tomato",
         "display_name": "Tomato",
         "bedrock_options": {
@@ -2634,13 +1890,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:apple",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_lodestone_gourd"
-        },
+        "model": "voidscape:crop_lodestone_gourd",
         "bedrock_identifier": "voidscape:crop_lodestone_gourd",
         "display_name": "Bottle Gourd",
         "bedrock_options": {
@@ -2652,13 +1902,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:apple",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_chrono_pepper"
-        },
+        "model": "voidscape:crop_chrono_pepper",
         "bedrock_identifier": "voidscape:crop_chrono_pepper",
         "display_name": "Bell Pepper",
         "bedrock_options": {
@@ -2670,13 +1914,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:apple",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_ethereal_mint"
-        },
+        "model": "voidscape:crop_ethereal_mint",
         "bedrock_identifier": "voidscape:crop_ethereal_mint",
         "display_name": "Mint",
         "bedrock_options": {
@@ -2688,13 +1926,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:apple",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_bloodburn_chili"
-        },
+        "model": "voidscape:crop_bloodburn_chili",
         "bedrock_identifier": "voidscape:crop_bloodburn_chili",
         "display_name": "Chili Pepper",
         "bedrock_options": {
@@ -2708,13 +1940,7 @@
     "minecraft:bread": [
       {
         "type": "definition",
-        "model": "minecraft:bread",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_thunder_kernel_corn"
-        },
+        "model": "voidscape:crop_thunder_kernel_corn",
         "bedrock_identifier": "voidscape:crop_thunder_kernel_corn",
         "display_name": "Corn",
         "bedrock_options": {
@@ -2728,13 +1954,7 @@
     "minecraft:golden_carrot": [
       {
         "type": "definition",
-        "model": "minecraft:golden_carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_reapers_garlic"
-        },
+        "model": "voidscape:crop_reapers_garlic",
         "bedrock_identifier": "voidscape:crop_reapers_garlic",
         "display_name": "Garlic",
         "bedrock_options": {
@@ -2746,13 +1966,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:golden_carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_star_anise"
-        },
+        "model": "voidscape:crop_star_anise",
         "bedrock_identifier": "voidscape:crop_star_anise",
         "display_name": "Star Anise",
         "bedrock_options": {
@@ -2764,13 +1978,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:golden_carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_prism_shard_carrot"
-        },
+        "model": "voidscape:crop_prism_shard_carrot",
         "bedrock_identifier": "voidscape:crop_prism_shard_carrot",
         "display_name": "Cassava",
         "bedrock_options": {
@@ -2782,13 +1990,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:golden_carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_soul_ward_bulb"
-        },
+        "model": "voidscape:crop_soul_ward_bulb",
         "bedrock_identifier": "voidscape:crop_soul_ward_bulb",
         "display_name": "Onion",
         "bedrock_options": {
@@ -2800,13 +2002,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:golden_carrot",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_void_overcharge_fig"
-        },
+        "model": "voidscape:crop_void_overcharge_fig",
         "bedrock_identifier": "voidscape:crop_void_overcharge_fig",
         "display_name": "Fig",
         "bedrock_options": {
@@ -2820,13 +2016,7 @@
     "minecraft:melon_seeds": [
       {
         "type": "definition",
-        "model": "minecraft:melon_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_twilight_grape"
-        },
+        "model": "voidscape:seed_twilight_grape",
         "bedrock_identifier": "voidscape:seed_twilight_grape",
         "display_name": "Seed of Grape",
         "bedrock_options": {
@@ -2838,13 +2028,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:melon_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_lodestone_gourd"
-        },
+        "model": "voidscape:seed_lodestone_gourd",
         "bedrock_identifier": "voidscape:seed_lodestone_gourd",
         "display_name": "Seed of Bottle Gourd",
         "bedrock_options": {
@@ -2856,13 +2040,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:melon_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_demeters_melon"
-        },
+        "model": "voidscape:seed_demeters_melon",
         "bedrock_identifier": "voidscape:seed_demeters_melon",
         "display_name": "Seed of Papaya",
         "bedrock_options": {
@@ -2876,13 +2054,7 @@
     "minecraft:torchflower_seeds": [
       {
         "type": "definition",
-        "model": "minecraft:torchflower_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_void_feather_blossom"
-        },
+        "model": "voidscape:seed_void_feather_blossom",
         "bedrock_identifier": "voidscape:seed_void_feather_blossom",
         "display_name": "Seed of Red Cabbage",
         "bedrock_options": {
@@ -2894,13 +2066,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:torchflower_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_goldleaf_herb"
-        },
+        "model": "voidscape:seed_goldleaf_herb",
         "bedrock_identifier": "voidscape:seed_goldleaf_herb",
         "display_name": "Seed of Spinach",
         "bedrock_options": {
@@ -2912,13 +2078,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:torchflower_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_ancient_astral_root"
-        },
+        "model": "voidscape:seed_ancient_astral_root",
         "bedrock_identifier": "voidscape:seed_ancient_astral_root",
         "display_name": "Seed of Sweet Potato",
         "bedrock_options": {
@@ -2930,13 +2090,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:torchflower_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_yggdrasil_sprout"
-        },
+        "model": "voidscape:seed_yggdrasil_sprout",
         "bedrock_identifier": "voidscape:seed_yggdrasil_sprout",
         "display_name": "Seed of Asparagus",
         "bedrock_options": {
@@ -2948,13 +2102,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:torchflower_seeds",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_omni_pomegranate"
-        },
+        "model": "voidscape:seed_omni_pomegranate",
         "bedrock_identifier": "voidscape:seed_omni_pomegranate",
         "display_name": "Seed of Pomegranate",
         "bedrock_options": {
@@ -2968,13 +2116,7 @@
     "minecraft:pitcher_pod": [
       {
         "type": "definition",
-        "model": "minecraft:pitcher_pod",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_star_anise"
-        },
+        "model": "voidscape:seed_star_anise",
         "bedrock_identifier": "voidscape:seed_star_anise",
         "display_name": "Seed of Star Anise",
         "bedrock_options": {
@@ -2986,13 +2128,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:pitcher_pod",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_prism_shard_carrot"
-        },
+        "model": "voidscape:seed_prism_shard_carrot",
         "bedrock_identifier": "voidscape:seed_prism_shard_carrot",
         "display_name": "Seed of Cassava",
         "bedrock_options": {
@@ -3004,13 +2140,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:pitcher_pod",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:seed_void_overcharge_fig"
-        },
+        "model": "voidscape:seed_void_overcharge_fig",
         "bedrock_identifier": "voidscape:seed_void_overcharge_fig",
         "display_name": "Seed of Fig",
         "bedrock_options": {
@@ -3024,13 +2154,7 @@
     "minecraft:melon_slice": [
       {
         "type": "definition",
-        "model": "minecraft:melon_slice",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_demeters_melon"
-        },
+        "model": "voidscape:crop_demeters_melon",
         "bedrock_identifier": "voidscape:crop_demeters_melon",
         "display_name": "Papaya",
         "bedrock_options": {
@@ -3044,13 +2168,7 @@
     "minecraft:golden_apple": [
       {
         "type": "definition",
-        "model": "minecraft:golden_apple",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_goldleaf_herb"
-        },
+        "model": "voidscape:crop_goldleaf_herb",
         "bedrock_identifier": "voidscape:crop_goldleaf_herb",
         "display_name": "Spinach",
         "bedrock_options": {
@@ -3062,13 +2180,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:golden_apple",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_ancient_astral_root"
-        },
+        "model": "voidscape:crop_ancient_astral_root",
         "bedrock_identifier": "voidscape:crop_ancient_astral_root",
         "display_name": "Sweet Potato",
         "bedrock_options": {
@@ -3080,13 +2192,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:golden_apple",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_yggdrasil_sprout"
-        },
+        "model": "voidscape:crop_yggdrasil_sprout",
         "bedrock_identifier": "voidscape:crop_yggdrasil_sprout",
         "display_name": "Asparagus",
         "bedrock_options": {
@@ -3098,13 +2204,7 @@
       },
       {
         "type": "definition",
-        "model": "minecraft:golden_apple",
-        "predicate": {
-          "type": "match",
-          "property": "custom_model_data",
-          "index": 0,
-          "value": "voidscape:crop_omni_pomegranate"
-        },
+        "model": "voidscape:crop_omni_pomegranate",
         "bedrock_identifier": "voidscape:crop_omni_pomegranate",
         "display_name": "Pomegranate",
         "bedrock_options": {
