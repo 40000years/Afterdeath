@@ -665,11 +665,7 @@ public final class CropService implements Listener, AutoCloseable {
         if (plugin.relics() == null || !plugin.relics().isAstralDust(hand)) return false;
 
         World world = crop.getLocation().getWorld();
-        if (world == null || plugin.world() == null || !world.equals(plugin.world())) {
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
-            player.sendActionBar(Component.text("✦ ผงละอองดาวสามารถใช้เร่งโตพืชได้เฉพาะในมิติ Evergarden เท่านั้น!", NamedTextColor.RED));
-            return true;
-        }
+        if (world == null) return false;
 
         if (crop.isMature()) {
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
