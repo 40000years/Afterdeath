@@ -468,13 +468,13 @@ public final class RelicService implements Listener {
             || pdc.has(plugin.key("relic_eternity"), PersistentDataType.BYTE)
             || pdc.has(voidKeyTag, PersistentDataType.BYTE)
             || pdc.has(new NamespacedKey("evergarden", "void_key"), PersistentDataType.BYTE)
-            || pdc.has(keyShardTag, PersistentDataType.BYTE)
+            || pdc.has(plugin.key("key_shard"), PersistentDataType.BYTE)
             || pdc.has(new NamespacedKey("evergarden", "key_shard"), PersistentDataType.BYTE)
-            || pdc.has(repairStoneTag, PersistentDataType.BYTE)
+            || pdc.has(plugin.key("repair_stone"), PersistentDataType.BYTE)
             || pdc.has(new NamespacedKey("evergarden", "repair_stone"), PersistentDataType.BYTE)
-            || pdc.has(voidElixirTag, PersistentDataType.BYTE)
+            || pdc.has(plugin.key("void_elixir"), PersistentDataType.BYTE)
             || pdc.has(new NamespacedKey("evergarden", "void_elixir"), PersistentDataType.BYTE)
-            || pdc.has(astralDustTag, PersistentDataType.BYTE)
+            || pdc.has(plugin.key("astral_dust"), PersistentDataType.BYTE)
             || pdc.has(new NamespacedKey("evergarden", "astral_dust"), PersistentDataType.BYTE)) {
             return true;
         }
