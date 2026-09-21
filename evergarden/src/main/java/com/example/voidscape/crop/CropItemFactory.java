@@ -59,6 +59,7 @@ public final class CropItemFactory {
         var modelData = meta.getCustomModelDataComponent();
         modelData.setStrings(List.of("voidscape:seed_" + type.id));
         meta.setCustomModelDataComponent(modelData);
+        meta.setCustomModelData(10000 + type.ordinal());
         meta.setItemModel(new NamespacedKey("voidscape", "seed_" + type.id));
 
         meta.getPersistentDataContainer().set(seedKey, PersistentDataType.STRING, type.id);
@@ -91,6 +92,7 @@ public final class CropItemFactory {
         var modelData = meta.getCustomModelDataComponent();
         modelData.setStrings(List.of("voidscape:crop_" + type.id));
         meta.setCustomModelDataComponent(modelData);
+        meta.setCustomModelData(20000 + type.ordinal());
         meta.setItemModel(new NamespacedKey("voidscape", "crop_" + type.id));
 
         meta.getPersistentDataContainer().set(foodKey, PersistentDataType.STRING, type.id);

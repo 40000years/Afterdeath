@@ -452,8 +452,44 @@ public final class RelicService implements Listener {
         return null;
     }
 
+    public boolean isEvergardenItem(ItemMeta meta) {
+        if (meta == null) return false;
+        var pdc = meta.getPersistentDataContainer();
+        if (pdc.has(new NamespacedKey("voidscape", "crop_seed"), PersistentDataType.STRING)
+            || pdc.has(new NamespacedKey("evergarden", "crop_seed"), PersistentDataType.STRING)
+            || pdc.has(new NamespacedKey("voidscape", "crop_food"), PersistentDataType.STRING)
+            || pdc.has(new NamespacedKey("evergarden", "crop_food"), PersistentDataType.STRING)
+            || pdc.has(type, PersistentDataType.STRING)
+            || pdc.has(plugin.key("relic"), PersistentDataType.STRING)
+            || pdc.has(new NamespacedKey("evergarden", "relic_v2"), PersistentDataType.STRING)
+            || pdc.has(new NamespacedKey("evergarden", "relic"), PersistentDataType.STRING)
+            || pdc.has(plugin.key("limit_break_type"), PersistentDataType.STRING)
+            || pdc.has(plugin.key("unique_enchant"), PersistentDataType.STRING)
+            || pdc.has(plugin.key("relic_eternity"), PersistentDataType.BYTE)
+            || pdc.has(voidKeyTag, PersistentDataType.BYTE)
+            || pdc.has(new NamespacedKey("evergarden", "void_key"), PersistentDataType.BYTE)
+            || pdc.has(keyShardTag, PersistentDataType.BYTE)
+            || pdc.has(new NamespacedKey("evergarden", "key_shard"), PersistentDataType.BYTE)
+            || pdc.has(repairStoneTag, PersistentDataType.BYTE)
+            || pdc.has(new NamespacedKey("evergarden", "repair_stone"), PersistentDataType.BYTE)
+            || pdc.has(voidElixirTag, PersistentDataType.BYTE)
+            || pdc.has(new NamespacedKey("evergarden", "void_elixir"), PersistentDataType.BYTE)
+            || pdc.has(astralDustTag, PersistentDataType.BYTE)
+            || pdc.has(new NamespacedKey("evergarden", "astral_dust"), PersistentDataType.BYTE)) {
+            return true;
+        }
+        if (meta.hasLore()) {
+            for (Component line : meta.lore()) {
+                String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line);
+                if (plain.contains("EVERGARDEN ·") || plain.contains("VOIDSCAPE ·")) return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isAeternumItem(ItemMeta meta) {
         if (meta == null) return false;
+        if (isEvergardenItem(meta)) return false;
         var pdc = meta.getPersistentDataContainer();
         for (NamespacedKey k : pdc.getKeys()) {
             String ns = k.getNamespace().toLowerCase(Locale.ROOT);
