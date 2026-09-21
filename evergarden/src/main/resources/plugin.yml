@@ -15,6 +15,10 @@ commands:
     aliases: [up, enchantgui]
     description: Open the Evergarden Enchanting and Upgrade menu
     usage: /upgrade
+  team:
+    aliases: [t, party]
+    description: Team system with per-team friendly fire toggle
+    usage: /team help
 permissions:
   evergarden.enter:
     default: op
@@ -27,4 +31,8 @@ permissions:
   voidscape.enter:
     default: op
   voidscape.admin:
+    default: op
+  evergarden.team:
+    default: true
+  evergarden.team.admin:
     default: op
