@@ -4,6 +4,7 @@ import hashlib, json, struct, zlib, zipfile, tempfile
 from pathlib import Path
 import crop_assets
 import portal_assets
+import aeternum_assets
 
 ROOT = Path(__file__).resolve().parents[1]
 (ROOT / 'target').mkdir(exist_ok=True)
@@ -303,16 +304,21 @@ def main():
     'bedrock_options':{'icon':'voidscape.'+name,'allow_offhand':True,'display_handheld':base in ('netherite_pickaxe','netherite_sword','bow'),'creative_category':cat}})
  crop_assets.register_crop_assets(java, bedrock, textures, mappings, selectors, write_json, png)
  portal_assets.register(java, bedrock, textures, mappings, selectors, write_json)
+ fallback_overrides = {}
+ aeternum_assets.register_aeternum_assets(java, bedrock, textures, mappings, selectors, write_json, fallback_overrides)
  for base,cases in selectors.items():
   if base=='carved_pumpkin':
    continue
-  fallback={'type':'minecraft:model','model':'minecraft:item/'+base}
+  fallback=fallback_overrides.get(base, {'type':'minecraft:model','model':'minecraft:item/'+base})
   if base=='bow':
    entries=[{'threshold':t,'model':{'type':'minecraft:model','model':f'minecraft:item/bow_pulling_{n}'}} for n,t in enumerate([0,0.65,0.9])]
    fallback={'type':'minecraft:condition','property':'minecraft:using_item','on_false':fallback,'on_true':{'type':'minecraft:range_dispatch','property':'minecraft:use_duration','scale':0.05,'fallback':entries[0]['model'],'entries':entries}}
   if base=='shield':
    fallback={'type':'minecraft:condition','property':'minecraft:using_item','on_false':{'type':'minecraft:special','base':'minecraft:item/shield','model':{'type':'minecraft:shield'}},'on_true':{'type':'minecraft:special','base':'minecraft:item/shield_blocking','model':{'type':'minecraft:shield'}},'transformation':{'left_rotation':[0.0,0.0,0.0,1.0],'right_rotation':[0.0,0.0,0.0,1.0],'scale':[1.0,-1.0,-1.0],'translation':[0.0,0.0,0.0]}}
   write_json(java/f'assets/minecraft/items/{base}.json',{'model':{'type':'minecraft:select','property':'minecraft:custom_model_data','index':0,'cases':cases,'fallback':fallback}})
+ for base,fb in fallback_overrides.items():
+  if base not in selectors:
+   write_json(java/f'assets/minecraft/items/{base}.json',{'model':fb})
  core_cases=[]
  core_definitions=[]
  core_items={

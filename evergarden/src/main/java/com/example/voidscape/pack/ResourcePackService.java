@@ -18,7 +18,7 @@ public final class ResourcePackService implements Listener, AutoCloseable {
     public static final UUID PACK_ID=UUID.fromString("c8f2b94e-4a35-4d1b-9b67-0d2a6ef4f821");
     public static final String DEFAULT_CDN_URL = "https://raw.githubusercontent.com/40000years/Afterdeath/DEV/evergarden/dist/evergarden-java.zip";
     public static final UUID AETERNUM_PACK_ID=UUID.fromString("8d2af8f1-f85c-4b4e-8a37-a55a359ce496");
-    public static final String AETERNUM_PACK_URL="https://cdn.modrinth.com/data/4hkZZzlQ/versions/VveNYYee/Aeternum-Foods-26.x.zip";
+    public static final String AETERNUM_PACK_URL="https://raw.githubusercontent.com/40000years/Afterdeath/DEV/evergarden/dist/Aeternum-Foods-26.x.zip";
     public static final String AETERNUM_PACK_SHA1="f7137350c381dfb933f96e869bfaced4a292bcff";
     private static final List<String> FILES=List.of("evergarden-java.zip","evergarden-bedrock.mcpack",
             "geyser-mappings.json","pack-hashes.json");
