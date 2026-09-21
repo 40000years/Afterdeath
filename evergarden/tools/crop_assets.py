@@ -428,6 +428,7 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
             'display_name': 'Seed of ' + title,
             'bedrock_options': {'icon': 'voidscape.' + seed_name, 'allow_offhand': True, 'display_handheld': False, 'creative_category': 'items'}
         })
+        selectors.setdefault(base_seed, []).append({'when': 'voidscape:' + seed_name, 'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + seed_name}})
 
         # 2. Food Item
         food_name = 'crop_' + cid
@@ -450,6 +451,7 @@ def register_crop_assets(java, bedrock, textures, mappings, selectors, write_jso
             'display_name': title,
             'bedrock_options': {'icon': 'voidscape.' + food_name, 'allow_offhand': True, 'display_handheld': False, 'creative_category': 'items'}
         })
+        selectors.setdefault(base_food, []).append({'when': 'voidscape:' + food_name, 'model': {'type': 'minecraft:model', 'model': 'voidscape:item/' + food_name}})
 
         # 3. Growth stages use a head-equippable base so Bedrock registers wearable.
         for stage in (0, 1, 2):
