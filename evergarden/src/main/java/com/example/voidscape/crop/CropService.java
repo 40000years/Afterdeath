@@ -842,8 +842,22 @@ public final class CropService implements Listener, AutoCloseable {
                 player.playSound(dropLoc, Sound.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, 1.0f, 1.4f);
                 player.sendActionBar(Component.text("🌿 ค้นพบเมล็ดพันธุ์ลอยฟ้า: " + picked.thaiName + "!", NamedTextColor.GREEN));
             }
-            // 8% chance for Astral Dust
-            else if (roll < 0.20 && plugin.relics() != null) {
+            // 4% chance for Tier 2 seed (harder, 12–16% window)
+            else if (roll < 0.16 && factory != null) {
+                CropType[] tier2 = Arrays.stream(CropType.values())
+                    .filter(c -> c.tier == CropTier.TIER_2)
+                    .toArray(CropType[]::new);
+                CropType picked = tier2[java.util.concurrent.ThreadLocalRandom.current().nextInt(tier2.length)];
+                ItemStack seed = factory.createSeed(picked, 1);
+                b.getWorld().dropItemNaturally(dropLoc, seed);
+                b.getWorld().spawnParticle(Particle.CRIT, dropLoc, 12, 0.3, 0.3, 0.3, 0.08);
+                b.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, dropLoc, 6, 0.2, 0.2, 0.2, 0.04);
+                player.playSound(dropLoc, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.6f);
+                player.playSound(dropLoc, Sound.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, 0.8f, 1.2f);
+                player.sendActionBar(Component.text("✨ โชคดี! ค้นพบเมล็ดพันธุ์หายาก Tier II: " + picked.thaiName + "!", NamedTextColor.GOLD));
+            }
+            // 8% chance for Astral Dust (16–24% window)
+            else if (roll < 0.24 && plugin.relics() != null) {
                 ItemStack dust = plugin.relics().createAstralDust(1);
                 b.getWorld().dropItemNaturally(dropLoc, dust);
                 b.getWorld().spawnParticle(Particle.FIREWORK, dropLoc, 6, 0.2, 0.2, 0.2, 0.05);
