@@ -44,6 +44,9 @@ combat:
   boss-skill-interval-ms: 5500
   # Preserve the 2.2-second warning; increase the configured base damage by 10%.
   boss-skill-power-percent: 110
+  # Cobwebs are intentionally rare and cannot retrigger repeatedly on the same player.
+  cobweb-chance: 0.05
+  cobweb-cooldown-ms: 8000
   true-death:
     # จำนวนครั้งที่บอสโจมตีโดนผู้เล่นเพื่อเลื่อนระดับคำสาปขึ้น 1 ขั้น
     hits-per-level: 10

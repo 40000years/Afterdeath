@@ -49,6 +49,7 @@ public final class DungeonManager implements Listener {
     private final Map<UUID,Long> combatUntil=new HashMap<>();
     private final Map<UUID,String> seen=new HashMap<>();
     private final Map<Block,Long> tempWebs=new HashMap<>();
+    private final Map<UUID,Long> webCooldowns=new HashMap<>();
     private final Map<UUID,BossBar> trueDeathBars=new HashMap<>();
     private final NamespacedKey mobKey,runKey,trueDeathHitsKey,trueDeathLevelKey,mobTargetHpKey,mobTargetDmgKey,mobTargetNameKey;
     private final String runId=UUID.randomUUID().toString();
@@ -105,6 +106,16 @@ public final class DungeonManager implements Listener {
         tempWebs.put(block,System.currentTimeMillis()+durationMs);
         block.getWorld().playSound(block.getLocation().add(0.5,0.5,0.5),Sound.ENTITY_SPIDER_AMBIENT,0.8f,1.2f);
         block.getWorld().spawnParticle(Particle.CLOUD,block.getLocation().add(0.5,0.5,0.5),8,0.2,0.2,0.2,0.02);
+    }
+
+    private void maybePlaceWeb(Player player, long durationMs) {
+        long now=System.currentTimeMillis();
+        long cooldown=plugin.integer("combat.cobweb-cooldown-ms",8000,1000,60000);
+        if(webCooldowns.getOrDefault(player.getUniqueId(),0L)>now)return;
+        double chance=Math.max(0.0,Math.min(1.0,plugin.getConfig().getDouble("combat.cobweb-chance",0.05)));
+        if(Math.random()>=chance)return;
+        webCooldowns.put(player.getUniqueId(),now+cooldown);
+        placeTemporaryWeb(player.getLocation().getBlock(),durationMs);
     }
 
     private void clearWebs(Site site) {
@@ -332,7 +343,7 @@ public final class DungeonManager implements Listener {
                 if (m.getAttribute(Attribute.KNOCKBACK_RESISTANCE) != null) m.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1.0);
                 if (m.getAttribute(Attribute.SCALE) != null) m.getAttribute(Attribute.SCALE).setBaseValue(1.8);
             } else if (species == Species.VEX) {
-                baseHp = 20.0;
+                baseHp = 10.0;
                 attackDamage = 20.0;
                 if (m.getAttribute(Attribute.SCALE) != null) m.getAttribute(Attribute.SCALE).setBaseValue(1.30);
             } else if (species == Species.CASTER) {
@@ -549,9 +560,7 @@ public final class DungeonManager implements Listener {
                     if(plugin.getConfig().getBoolean("combat.apply-weakness",false))
                         victim.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,120,0));
                     victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,80,1));
-                    if(Math.random() < 0.20) {
-                        placeTemporaryWeb(victim.getLocation().getBlock(),6000L);
-                    }
+                    maybePlaceWeb(victim,6000L);
                 }
                 // Cap and enforce melee hit damage against external leveler inflation
                 double maxMelee = species == Species.BOSS ? (45.0 + Math.max(0, mobEnc.presence.size() - 1) * 10.0) :
@@ -836,9 +845,7 @@ public final class DungeonManager implements Listener {
                         if(plugin.getConfig().getBoolean("combat.apply-weakness",false))
                             target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,160,0));
                         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,120,1));
-                        if (Math.random() < 0.20) {
-                            placeTemporaryWeb(targetLoc.getBlock(),6000L);
-                        }
+                        maybePlaceWeb(target,6000L);
                         target.getWorld().spawnParticle(Particle.WITCH,targetLoc.clone().add(0,1,0),25,0.4,0.6,0.4,0.05);
                         target.getWorld().spawnParticle(Particle.ENCHANTED_HIT,targetLoc.clone().add(0,1,0),20,0.3,0.4,0.3,0.1);
                         target.playSound(targetLoc,Sound.ENTITY_SPLASH_POTION_BREAK,1.0f,0.8f);
@@ -943,9 +950,7 @@ public final class DungeonManager implements Listener {
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER,160,2));
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,60,0));
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,100,1));
-                                            if (Math.random() < 0.20) {
-                                                placeTemporaryWeb(p.getLocation().getBlock(),6000L);
-                                            }
+                                            maybePlaceWeb(p,6000L);
                                         }
                                         p.playSound(blastLoc,Sound.ENTITY_WITHER_SHOOT,0.9f,0.8f);
                                         p.playSound(blastLoc,Sound.ENTITY_WARDEN_SONIC_BOOM,0.7f,0.7f);
@@ -976,9 +981,7 @@ public final class DungeonManager implements Listener {
                                             p.setVelocity(dir);
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,100,3));
                                             p.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE,140,2));
-                                            if (Math.random() < 0.20) {
-                                                placeTemporaryWeb(p.getLocation().getBlock(),5000L);
-                                            }
+                                            maybePlaceWeb(p,5000L);
                                         }
                                         p.playSound(blastLoc,Sound.BLOCK_BEACON_DEACTIVATE,0.9f,0.7f);
                                         p.playSound(blastLoc,Sound.ENTITY_WARDEN_SONIC_BOOM,0.8f,0.9f);
