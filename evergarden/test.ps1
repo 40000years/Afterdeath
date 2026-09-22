@@ -6,7 +6,7 @@ $dependencyJars=(Get-ChildItem -LiteralPath (Join-Path $env:USERPROFILE '.m2/rep
 $jar=(Get-ChildItem -LiteralPath (Join-Path $moduleRoot 'dist') -Filter 'evergarden-*.jar' | Select-Object -Last 1).FullName
 if(!$jar){throw 'No voidscape JAR found in dist.'}
 $classPath=$jar+[System.IO.Path]::PathSeparator+[string]::Join([System.IO.Path]::PathSeparator,$dependencyJars)
-$sources=@((Join-Path $moduleRoot 'tests/GeometryChecks.java'),(Join-Path $moduleRoot 'tests/LootChecks.java'),(Join-Path $moduleRoot 'tests/PackConfigChecks.java'))
+$sources=@((Join-Path $moduleRoot 'tests/GeometryChecks.java'),(Join-Path $moduleRoot 'tests/LootChecks.java'),(Join-Path $moduleRoot 'tests/PackConfigChecks.java'),(Join-Path $moduleRoot 'tests/AeternumBedrockInstallChecks.java'))
 & javac -proc:none -encoding UTF-8 -cp $classPath -d $testClasses $sources
 if($LASTEXITCODE -ne 0){throw 'Test compilation failed'}
 & java -cp ($testClasses+[System.IO.Path]::PathSeparator+$classPath) GeometryChecks
@@ -15,6 +15,8 @@ if($LASTEXITCODE -ne 0){throw 'Geometry or placement tests failed'}
 if($LASTEXITCODE -ne 0){throw 'Vault loot checks failed'}
 & java -cp ($testClasses+[System.IO.Path]::PathSeparator+$classPath) com.example.voidscape.pack.PackConfigChecks
 if($LASTEXITCODE -ne 0){throw 'Pack configuration migration checks failed'}
+& java -cp ($testClasses+[System.IO.Path]::PathSeparator+$classPath) com.example.voidscape.pack.AeternumBedrockInstallChecks
+if($LASTEXITCODE -ne 0){throw 'Aeternum Bedrock installation checks failed'}
 Write-Output 'Geometry checks passed. Use tests/build_gardens.ps1 for the isolated Paper integration suite.'
 & python (Join-Path $moduleRoot 'tests/check_packs.py')
 if($LASTEXITCODE -ne 0){throw 'Evergarden resource pack checks failed'}

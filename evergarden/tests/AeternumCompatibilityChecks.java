@@ -52,6 +52,18 @@ public final class AeternumCompatibilityChecks extends JavaPlugin {
     void run() throws Exception {
         var garden=(VoidscapePlugin)Bukkit.getPluginManager().getPlugin("Evergarden");
         check(garden!=null&&garden.isEnabled()&&Bukkit.getPluginManager().isPluginEnabled("AeternumSeasons"),"both plugins enabled");
+        if(Files.exists(Path.of("check-fresh-geyser"))) {
+            check(Bukkit.getPluginManager().isPluginEnabled("Geyser-Spigot"),"Geyser enabled after automatic installation");
+            Path geyser=Path.of("plugins/Geyser-Spigot");
+            for(String name:com.example.voidscape.pack.AeternumBedrockInstaller.FILES) {
+                Path installed=geyser.resolve(name.endsWith(".mcpack")?"packs":"custom_mappings").resolve(name);
+                try(var input=garden.getResource("aeternum-bedrock/"+name)) {
+                    check(Files.exists(installed)&&Arrays.equals(Files.readAllBytes(installed),input.readAllBytes()),"automatically installed official asset: "+name);
+                }
+            }
+            check(org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(geyser.resolve("config.yml").toFile())
+                    .getBoolean("gameplay.enable-custom-content"),"Geyser custom content automatically enabled");
+        }
         var relics=garden.relics();
         for(int level:new int[]{7,8,10})for(boolean unbreakable:new boolean[]{false,true}){
             var item=new ItemStack(Material.DIAMOND_PICKAXE);var meta=item.getItemMeta();
@@ -91,7 +103,7 @@ public final class AeternumCompatibilityChecks extends JavaPlugin {
         garden.getConfig().set("resource-pack.enabled",true);
         garden.packs().offer(packPlayer);
         check(offers.equals(List.of(ResourcePackService.PACK_ID,ResourcePackService.AETERNUM_PACK_ID)),"food pack is added after Evergarden without replacing its pack");
-        check(offerArgs.size()==2&&ResourcePackService.AETERNUM_PACK_URL.equals(offerArgs.get(1)[1])&&ResourcePackService.AETERNUM_PACK_SHA1.equals(HexFormat.of().formatHex((byte[])offerArgs.get(1)[2])),"official food pack URL and SHA-1 are paired");
+        check(offerArgs.size()==2&&garden.getConfig().getString("compatibility.aeternum-seasons.resource-pack.url",ResourcePackService.AETERNUM_PACK_URL).equals(offerArgs.get(1)[1])&&ResourcePackService.AETERNUM_PACK_SHA1.equals(HexFormat.of().formatHex((byte[])offerArgs.get(1)[2])),"official food pack URL and SHA-1 are paired");
         offers.clear();garden.getConfig().set("compatibility.aeternum-seasons.resource-pack.enabled",false);garden.packs().offer(packPlayer);
         check(offers.equals(List.of(ResourcePackService.PACK_ID)),"food pack integration can be disabled");
         garden.getConfig().set("resource-pack.enabled",false);

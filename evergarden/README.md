@@ -53,6 +53,12 @@
 
 ## Resource และมอนสเตอร์
 
+เมื่อมี AeternumSeasons และ Geyser-Spigot อยู่ในเซิร์ฟเวอร์เดียวกัน Evergarden จะส่งแพ็ก Aeternum Foods ให้ Java และติดตั้งแพ็ก Bedrock พร้อม item/block mappings ที่ยังขาดก่อน Geyser เริ่มทำงาน โดยแนบไฟล์ Bedrock ใน JAR ไม่ต้องดาวน์โหลดหรือตั้งค่าด้วยมือ จากนั้น Geyser เป็นผู้ส่งแพ็กให้ผู้เล่น Bedrock
+
+การติดตั้ง Bedrock เปิดเป็นค่าเริ่มต้นที่ `resource-pack.geyser.auto-install` และ `compatibility.aeternum-seasons.bedrock.auto-install` (ต้องเปิด `compatibility.aeternum-seasons.resource-pack.enabled` ด้วย) ไฟล์ Aeternum เดิมจะไม่ถูกแทนที่ หาก Geyser ปิด custom content จะสำรอง config ใน `plugin-pack-backups` แล้วเปิด `gameplay.enable-custom-content` ให้ ตรวจผลด้วย `/evergarden pack` และรีสตาร์ตเซิร์ฟเวอร์เต็มรอบหลังเปลี่ยน JAR
+
+หาก Geyser อยู่บน proxy หรือเครื่องอื่น ต้องนำไฟล์จาก `plugins/Evergarden/resource-packs/aeternum-bedrock` หรือโฟลเดอร์ `aeternum-bedrock` ภายใน JAR ไปติดตั้งที่ Geyser นั้น การติดตั้งอัตโนมัติครอบคลุม Geyser ที่อยู่ในโฟลเดอร์ plugins เดียวกันเท่านั้น
+
 - Java: ส่งแพ็ก Evergarden เพิ่มจากแพ็ก Advance Magic อัตโนมัติ ใช้ HTTP port **8188**; `/evergarden pack` แสดง URL/สถานะ และ `/evergarden pack resend` ส่งใหม่ รองรับ URL ภายนอกและ reverse proxy ใน config
 - Bedrock: ลงแพ็กและ mapping ก่อน Geyser โหลด คงชื่อไฟล์ปลายทาง `voidscape-bedrock.mcpack` และ `voidscape.json` เพื่อแทนของเก่า ไม่เพิ่มแพ็ก UUID หรือ mapping ซ้ำ
 - Core ลงทะเบียนใน Geyser โดย Advance Magic เท่านั้น กุญแจและ relic ใช้ตัวเลือก Custom Model Data พร้อมภาพ vanilla สำรอง ไอเทมเก่าในกระเป๋า กล่อง กรอบ และไอเทมตกถูกปรับรหัสภาพโดยรักษาชื่อ/ข้อมูลเดิม

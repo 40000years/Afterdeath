@@ -47,7 +47,17 @@ with zipfile.ZipFile(java_path) as java, zipfile.ZipFile(args.downloads / "Aeter
             for texture in textures if isinstance(textures, list) else [textures]:
                 assert texture + ".png" in bedrock.namelist()
     shared = set(java.namelist()) & set(garden.namelist())
-    assert {n for n in shared if n.startswith("assets/")} == {"assets/minecraft/items/honey_bottle.json"}
+    # Evergarden now includes the official Aeternum namespace and merges its vanilla carriers.
+    # Shared art/models must be identical; our selectors must retain the official fallback.
+    for name in shared:
+        if name.startswith("assets/aeternum/"):
+            assert java.read(name) == garden.read(name), ("Changed official asset", name)
+        elif name.startswith("assets/minecraft/items/"):
+            official_model = json.loads(java.read(name))["model"]
+            merged_model = json.loads(garden.read(name))["model"]
+            assert merged_model == official_model or merged_model.get("fallback") == official_model, name
+        elif name.startswith("assets/"):
+            raise AssertionError(("Unexpected shared asset", name))
     elixir = json.loads(garden.read("assets/voidscape/items/void_elixir.json"))
     assert elixir["model"]["model"] == "voidscape:item/void_elixir"
 print(f"PASS Aeternum Java SHA-1, 12 crop models, model textures, 11 Bedrock items, {len(states)} crop block states, and pack overlap")

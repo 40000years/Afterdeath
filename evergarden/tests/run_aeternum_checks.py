@@ -4,13 +4,18 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import uuid
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--source-server", type=Path, required=True)
 parser.add_argument("--with-geyser", action="store_true")
+parser.add_argument("--fresh-geyser", action="store_true", help="Test automatic installation with no existing packs/mappings")
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[2]
 server = root / ".audit-plugins/aeternum-compat-20260921"
+if args.fresh_geyser:
+    args.with_geyser = True
+    server = root / (".audit-plugins/aeternum-auto-" + uuid.uuid4().hex)
 server.mkdir(parents=True, exist_ok=True)
 for name in ("libraries", "versions", "cache"):
     target = server / name
@@ -27,7 +32,8 @@ shutil.copy2(args.source_server / "plugins/AeternumSeasons-4.7.jar", plugins)
 for name in ("Evergarden", "advance-magic"):
     folder = plugins / name
     folder.mkdir(exist_ok=True)
-    (folder / "config.yml").write_text("config-version: 2\nresource-pack:\n  enabled: false\n  geyser:\n    auto-install: false\n", encoding="utf-8")
+    auto_install = "true" if args.fresh_geyser else "false"
+    (folder / "config.yml").write_text("config-version: 2\nresource-pack:\n  enabled: false\n  geyser:\n    auto-install: " + auto_install + "\n", encoding="utf-8")
 if args.with_geyser:
     for name in ("Geyser-Spigot.jar", "floodgate-spigot.jar"):
         shutil.copy2(args.source_server / "plugins" / name, plugins / name)
@@ -35,14 +41,14 @@ if args.with_geyser:
     geyser.mkdir(exist_ok=True)
     config = (args.source_server / "plugins/Geyser-Spigot/config.yml").read_text(encoding="utf-8")
     config = config.replace("port: 19132", "port: 19233")
+    if args.fresh_geyser:
+        config = config.replace("enable-custom-content: true", "enable-custom-content: false")
     (geyser / "config.yml").write_text(config, encoding="utf-8")
-    for name in ("packs", "custom_mappings"):
-        shutil.copytree(args.source_server / "plugins/Geyser-Spigot" / name, geyser / name, dirs_exist_ok=True)
-    downloads = root / "output/aeternum-compat-20260921/downloads"
-    for source in downloads.glob("*.json"):
-        shutil.copy2(source, geyser / "custom_mappings" / source.name)
-    for source in downloads.glob("*.mcpack"):
-        shutil.copy2(source, geyser / "packs" / source.name)
+    if not args.fresh_geyser:
+        for name in ("packs", "custom_mappings"):
+            shutil.copytree(args.source_server / "plugins/Geyser-Spigot" / name, geyser / name, dirs_exist_ok=True)
+    else:
+        (server / "check-fresh-geyser").write_text("true")
 classes = server / "check-classes"
 classes.mkdir(exist_ok=True)
 deps = [*plugins.glob("*.jar"), *(server / "versions").rglob("*.jar"), *(server / "libraries").rglob("*.jar")]

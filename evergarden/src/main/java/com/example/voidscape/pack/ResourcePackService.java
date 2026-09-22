@@ -27,6 +27,7 @@ public final class ResourcePackService implements Listener, AutoCloseable {
     private final Map<UUID,String> aeternumStatuses=new HashMap<>();
     private PackHttpServer http;
     private String bedrockPackInfo="Bedrock pack not extracted";
+    private String aeternumBedrockStatus="Aeternum Bedrock: auto-install disabled, plugin absent, or no local Geyser.";
     private String sha1="",failure="",geyserStatus="External Geyser: copy files from resource-packs/ manually.";
     public ResourcePackService(JavaPlugin plugin){this.plugin=plugin;}
 
@@ -74,6 +75,26 @@ public final class ResourcePackService implements Listener, AutoCloseable {
             writeChanged(geyser.resolve("custom_mappings/voidscape.json"),Files.readAllBytes(output.resolve("geyser-mappings.json")));
             geyserStatus="Bedrock files copied to "+geyser.toAbsolutePath()+" (restart Geyser and reconnect to use).";
             plugin.getLogger().info(geyserStatus);
+            if(plugin.getConfig().getBoolean("compatibility.aeternum-seasons.resource-pack.enabled",true)
+                    &&plugin.getConfig().getBoolean("compatibility.aeternum-seasons.bedrock.auto-install",true)
+                    &&AeternumBedrockInstaller.isPresent(plugins)) {
+                try {
+                    Path bundled=output.resolve("aeternum-bedrock");
+                    for(String name:AeternumBedrockInstaller.FILES) {
+                        try(InputStream input=plugin.getResource("aeternum-bedrock/"+name)) {
+                            if(input==null)throw new IOException("Missing bundled Aeternum asset: "+name);
+                            writeChanged(bundled.resolve(name),input.readAllBytes());
+                        }
+                    }
+                    int installed=AeternumBedrockInstaller.install(geyser,bundled);
+                    aeternumBedrockStatus="Aeternum Bedrock: pack + item/block mappings ready in "+geyser.toAbsolutePath()
+                            +" ("+installed+" files installed; existing files preserved).";
+                    plugin.getLogger().info(aeternumBedrockStatus);
+                }catch(IOException e) {
+                    aeternumBedrockStatus="Aeternum Bedrock auto-install failed: "+e.getMessage();
+                    plugin.getLogger().warning(aeternumBedrockStatus);
+                }
+            }
         }
     }
     private static void writeChanged(Path target,byte[] bytes) throws IOException {
@@ -216,6 +237,7 @@ public final class ResourcePackService implements Listener, AutoCloseable {
         String url=url(sender instanceof Player p?p:null);sender.sendMessage("URL: "+(url.isEmpty()?"CDN default":url));
         sender.sendMessage(geyserStatus);
         sender.sendMessage(bedrockPackInfo);
+        sender.sendMessage(aeternumBedrockStatus);
         sender.sendMessage("Aeternum Java food pack: "+(aeternumEnabled()?"enabled (added after Evergarden)":"off or plugin absent"));
         if(aeternumEnabled()) {
             if(sender instanceof Player p)sender.sendMessage("Your Aeternum pack: "+aeternumStatuses.getOrDefault(p.getUniqueId(),"not offered (or Bedrock)"));

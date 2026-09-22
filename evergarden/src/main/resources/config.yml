@@ -83,8 +83,11 @@ compatibility:
   # Keep LevelledMobs active elsewhere, but automatically exclude the Evergarden world.
   levelled-mobs-exclude-world: true
   # Offer the official Java 26.x food pack when AeternumSeasons is enabled.
-  # Bedrock additionally needs the author's Geyser pack and custom mappings.
+  # Bedrock pack + mappings are installed before local Geyser starts when Aeternum is present.
   aeternum-seasons:
+    bedrock:
+      # Installs missing official files, preserves existing files, and enables Geyser custom content.
+      auto-install: true
     resource-pack:
       enabled: true
       url: https://cdn.modrinth.com/data/4hkZZzlQ/versions/VveNYYee/Aeternum-Foods-26.x.zip
