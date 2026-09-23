@@ -59,6 +59,10 @@ Shroud uses Bukkit's plugin-scoped `hidePlayer`/`showPlayer`, which sends the hi
 
 Open `dist/wand-preview.html` for a self-contained preview of all wand textures.
 
+### Compatibility for existing Java JARs
+
+The JAR on the `main` branch uses the moving URL `Afterdeath/DEV/advance-magic/dist/advance-magic-java.zip` and checks it against the ZIP embedded in that JAR. Keep this file byte-for-byte aligned with the released JAR and update `dist/pack-hashes.json` whenever it changes. The JAR on `DEV` pins an immutable older pack URL, so it remains independent of this compatibility file.
+
 For Java, install the ZIP manually or host it at a direct HTTPS download URL, then set `resource-pack.url` and `resource-pack.sha1` in the plugin config using `dist/pack-hashes.json`. Restart after editing config. The plugin adds its pack with a unique UUID so it can coexist with the Evergarden pack. The default URL is blank; no pack has been uploaded or remotely deployed.
 
 For Bedrock through Geyser:
